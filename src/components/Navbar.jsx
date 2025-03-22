@@ -141,7 +141,7 @@ const Navbar = () => {
 
             <button
               onClick={openModal}
-              className="px-4 py-2 bg-brightColor text-white rounded hover:opacity-90 transition"
+              className="px-6 py-1 border-2 border-brightColor text-brightColor hover:bg-brightColor hover:text-white transition-all rounded-full"
             >
               Login
             </button>
