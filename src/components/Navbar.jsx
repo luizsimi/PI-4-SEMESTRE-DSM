@@ -5,6 +5,8 @@ import Button from "../layouts/Button";
 import { AiOutlineMenuUnfold } from "react-icons/ai";
 import { BiChevronDown } from "react-icons/bi";
 import { AiOutlineClose } from "react-icons/ai";
+import Modal from "./Modal";
+
 
 const Navbar = () => {
   const [menu, setMenu] = useState(false);
@@ -16,6 +18,11 @@ const Navbar = () => {
   const closeMenu = () => {
     setMenu(false);
   };
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   return (
     <div className=" fixed w-full">
@@ -133,7 +140,11 @@ const Navbar = () => {
               Avaliações
             </Link>
 
-            <Button title="Login" />
+            <button
+              onClick={openModal}
+              className="px-4 py-2 bg-brightColor text-white rounded hover:opacity-90 transition"
+            >Login</button>
+
           </nav>
 
           <div className="md:hidden flex items-center">
@@ -145,9 +156,8 @@ const Navbar = () => {
           </div>
         </div>
         <div
-          className={` ${
-            menu ? "translate-x-0" : "-translate-x-full"
-          } lg:hidden flex flex-col absolute bg-black text-white left-0 top-20 font-semibold text-2xl text-center pt-8 pb-4 gap-8 w-full h-fit transition-transform duration-300`}
+          className={` ${menu ? "translate-x-0" : "-translate-x-full"
+            } lg:hidden flex flex-col absolute bg-black text-white left-0 top-20 font-semibold text-2xl text-center pt-8 pb-4 gap-8 w-full h-fit transition-transform duration-300`}
         >
           <Link
             to="home"
@@ -200,8 +210,8 @@ const Navbar = () => {
             Avaliações
           </Link>
 
-          <Button title="login" />
         </div>
+        <Modal isOpen={isModalOpen} closeModal={closeModal} />
       </div>
     </div>
   );
