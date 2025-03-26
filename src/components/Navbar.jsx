@@ -1,71 +1,173 @@
 import React, { useState } from "react";
 import { Link } from "react-scroll";
 import { BiRestaurant } from "react-icons/bi";
-import Button from "../layouts/Button";
-import { AiOutlineMenuUnfold } from "react-icons/ai";
+import { AiOutlineMenuUnfold, AiOutlineClose } from "react-icons/ai";
 import { BiChevronDown } from "react-icons/bi";
-import { AiOutlineClose } from "react-icons/ai";
-import Modal from "./Modal";
+
+const Modal = ({ isOpen, closeModal }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simula o envio de dados (você pode substituir com sua lógica real)
+    setTimeout(() => {
+      setIsSubmitting(false);
+      closeModal();
+    }, 2000); // Simula 2 segundos de carregamento
+  };
+
+  return (
+    isOpen && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 relative animate-fadeIn">
+          <AiOutlineClose
+            className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-red-500"
+            size={20}
+            onClick={closeModal}
+            aria-label="Fechar modal"
+          />
+          <div className="flex justify-center mb-6">
+            <button
+              className={`px-4 py-2 text-lg font-semibold transition-all ${
+                isLogin
+                  ? "border-b-4 border-brightColor text-brightColor"
+                  : "text-gray-500"
+              } rounded-xl`}
+              onClick={() => setIsLogin(true)}
+              aria-selected={isLogin}
+            >
+              Login
+            </button>
+            <button
+              className={`px-4 py-2 text-lg font-semibold transition-all ${
+                !isLogin
+                  ? "border-b-4 border-brightColor text-brightColor"
+                  : "text-gray-500"
+              } rounded-xl`}
+              onClick={() => setIsLogin(false)}
+              aria-selected={!isLogin}
+            >
+              Cadastro
+            </button>
+          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4"
+            aria-live="polite"
+          >
+            {isLogin ? (
+              <>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Senha"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-brightColor text-white py-3 rounded-xl shadow-md hover:bg-opacity-90 transition-all"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Carregando..." : "Entrar"}
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nome Completo"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <input
+                  type="tel"
+                  placeholder="Telefone"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Endereço"
+                  className="border p-3 rounded-lg focus:ring-2 focus:ring-brightColor outline-none"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-brightColor text-white py-3 rounded-xl shadow-md hover:bg-opacity-90 transition-all"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Carregando..." : "Cadastrar"}
+                </button>
+              </>
+            )}
+          </form>
+        </div>
+      </div>
+    )
+  );
+};
 
 const Navbar = () => {
   const [menu, setMenu] = useState(false);
-
-  const handleChange = () => {
-    setMenu(!menu);
-  };
-
-  const closeMenu = () => {
-    setMenu(false);
-  };
-
+  const handleChange = () => setMenu(!menu);
+  const closeMenu = () => setMenu(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   return (
-    <div className=" fixed w-full">
+    <div className="fixed w-full">
       <div>
-        <div className=" flex flex-row justify-between p-5 md:px-32 px-5 bg-white shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
-          <div className=" flex flex-row items-center cursor-pointer">
+        <div className="flex flex-row justify-between p-5 md:px-32 px-5 bg-white shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+          <div className="flex flex-row items-center cursor-pointer">
             <span>
               <BiRestaurant size={32} />
             </span>
-            <h1 className=" text-xl font-semibold">LeveFit</h1>
+            <h1 className="text-xl font-semibold">LeveFit</h1>
           </div>
-
           <nav className="hidden md:flex flex-row items-center text-lg font-medium gap-8">
             <Link
               to="home"
-              spy={true}
-              smooth={true}
+              spy
+              smooth
               duration={500}
               className="hover:text-brightColor transition-all cursor-pointer"
             >
               Home
             </Link>
-
             <div className="relative group">
-              <div className=" flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 <Link
                   to="dishes"
-                  spy={true}
-                  smooth={true}
+                  spy
+                  smooth
                   duration={500}
                   className="hover:text-brightColor transition-all cursor-pointer"
                 >
                   Pratos
                 </Link>
-
                 <BiChevronDown className="cursor-pointer" size={25} />
               </div>
-
               <ul className="absolute hidden space-y-2 group-hover:block bg-white border border-gray-300 rounded-lg p-5">
                 <li>
                   <Link
                     to="dishes"
-                    spy={true}
-                    smooth={true}
+                    spy
+                    smooth
                     duration={500}
                     className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
                   >
@@ -73,11 +175,10 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
-                  {" "}
                   <Link
                     to="dishes"
-                    spy={true}
-                    smooth={true}
+                    spy
+                    smooth
                     duration={500}
                     className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
                   >
@@ -87,8 +188,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="dishes"
-                    spy={true}
-                    smooth={true}
+                    spy
+                    smooth
                     duration={500}
                     className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
                   >
@@ -98,8 +199,8 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="dishes"
-                    spy={true}
-                    smooth={true}
+                    spy
+                    smooth
                     duration={500}
                     className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
                   >
@@ -108,37 +209,33 @@ const Navbar = () => {
                 </li>
               </ul>
             </div>
-
             <Link
               to="about"
-              spy={true}
-              smooth={true}
+              spy
+              smooth
               duration={500}
               className="hover:text-brightColor transition-all cursor-pointer"
             >
               Sobre
             </Link>
-
             <Link
               to="menu"
-              spy={true}
-              smooth={true}
+              spy
+              smooth
               duration={500}
               className="hover:text-brightColor transition-all cursor-pointer"
             >
               Destaques
             </Link>
-
             <Link
               to="review"
-              spy={true}
-              smooth={true}
+              spy
+              smooth
               duration={500}
               className="hover:text-brightColor transition-all cursor-pointer"
             >
               Avaliações
             </Link>
-
             <button
               onClick={openModal}
               className="px-6 py-1 border-2 border-brightColor text-brightColor hover:bg-brightColor hover:text-white transition-all rounded-full"
@@ -146,7 +243,6 @@ const Navbar = () => {
               Login
             </button>
           </nav>
-
           <div className="md:hidden flex items-center">
             {menu ? (
               <AiOutlineClose size={25} onClick={handleChange} />
@@ -154,62 +250,6 @@ const Navbar = () => {
               <AiOutlineMenuUnfold size={25} onClick={handleChange} />
             )}
           </div>
-        </div>
-        <div
-          className={` ${
-            menu ? "translate-x-0" : "-translate-x-full"
-          } lg:hidden flex flex-col absolute bg-black text-white left-0 top-20 font-semibold text-2xl text-center pt-8 pb-4 gap-8 w-full h-fit transition-transform duration-300`}
-        >
-          <Link
-            to="home"
-            spy={true}
-            smooth={true}
-            duration={500}
-            className="hover:text-brightColor transition-all cursor-pointer"
-            onClick={closeMenu}
-          >
-            Home
-          </Link>
-          <Link
-            to="dishes"
-            spy={true}
-            smooth={true}
-            duration={500}
-            className="hover:text-brightColor transition-all cursor-pointer"
-            onClick={closeMenu}
-          >
-            Pratos
-          </Link>
-          <Link
-            to="about"
-            spy={true}
-            smooth={true}
-            duration={500}
-            className="hover:text-brightColor transition-all cursor-pointer"
-            onClick={closeMenu}
-          >
-            Sobre
-          </Link>
-          <Link
-            to="menu"
-            spy={true}
-            smooth={true}
-            duration={500}
-            className="hover:text-brightColor transition-all cursor-pointer"
-            onClick={closeMenu}
-          >
-            Destaques
-          </Link>
-          <Link
-            to="review"
-            spy={true}
-            smooth={true}
-            duration={500}
-            className=" hover:text-brightColor transition-all cursor-pointer"
-            onClick={closeMenu}
-          >
-            Avaliações
-          </Link>
         </div>
         <Modal isOpen={isModalOpen} closeModal={closeModal} />
       </div>
