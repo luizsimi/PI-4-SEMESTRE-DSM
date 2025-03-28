@@ -9,7 +9,7 @@ const Modal = ({ isOpen, closeModal }) => {
         <h2 className="text-2xl font-semibold mb-4">Cadastro Completo</h2>
         <form className="space-y-4">
           <div>
-            <label className="block text-lg">Nome</label>
+            <label className="block text-lg">Nome Completo</label>
             <input
               type="text"
               className="w-full border px-3 py-2 mt-1"

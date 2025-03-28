@@ -42,7 +42,8 @@ const Dishes = () => {
         </p>
 
         {/* Menu de itens com imagens e descrição */}
-        <div className="max-w-screen-xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="max-w-screen-xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 relative z-10">
+
           <MenuItem img={img1} alt="Ave" title="Ave" />
           <MenuItem img={img2} alt="Bovina" title="Bovina" />
           <MenuItem img={img3} alt="Peixe" title="Peixe" />
