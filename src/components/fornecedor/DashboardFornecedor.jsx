@@ -35,23 +35,27 @@ const DashboardFornecedor = ({ onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-green-50">
       {/* Header */}
-      <header className="bg-brightColor text-white py-4 shadow-md">
+      <header className="bg-gradient-to-r from-green-600 to-green-500 text-white py-5 shadow-lg">
         <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dashboard Fornecedor</h1>
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold">Dashboard Fornecedor</h1>
+          </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <img
                 src={usuario.fotoPerfil}
                 alt="Perfil"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md"
               />
-              <span className="hidden md:block">{usuario.nome}</span>
+              <span className="hidden md:block font-medium">
+                {usuario.nome}
+              </span>
             </div>
             <button
               onClick={onLogout}
-              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full"
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2.5 rounded-full transition-all duration-300 shadow-md"
               title="Sair"
             >
               <FiLogOut />
@@ -61,38 +65,59 @@ const DashboardFornecedor = ({ onLogout }) => {
       </header>
 
       <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
           {/* Navegação */}
-          <div className="flex flex-wrap md:flex-nowrap border-b">
+          <div className="flex flex-wrap md:flex-nowrap border-b border-gray-200">
             <button
               onClick={() => setTabAtiva("meus-pratos")}
               className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
                 tabAtiva === "meus-pratos"
-                  ? "text-brightColor border-b-2 border-brightColor"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
+                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
               }`}
             >
-              <FiList /> Meus Pratos
+              <FiList
+                className={
+                  tabAtiva === "meus-pratos"
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }
+              />
+              <span>Meus Pratos</span>
             </button>
             <button
               onClick={() => setTabAtiva("adicionar-prato")}
               className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
                 tabAtiva === "adicionar-prato"
-                  ? "text-brightColor border-b-2 border-brightColor"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
+                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
               }`}
             >
-              <FiPlusCircle /> Adicionar Prato
+              <FiPlusCircle
+                className={
+                  tabAtiva === "adicionar-prato"
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }
+              />
+              <span>Adicionar Prato</span>
             </button>
             <button
               onClick={() => setTabAtiva("editar-perfil")}
               className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
                 tabAtiva === "editar-perfil"
-                  ? "text-brightColor border-b-2 border-brightColor"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
+                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
               }`}
             >
-              <FiUser /> Meu Perfil
+              <FiUser
+                className={
+                  tabAtiva === "editar-perfil"
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }
+              />
+              <span>Meu Perfil</span>
             </button>
           </div>
 

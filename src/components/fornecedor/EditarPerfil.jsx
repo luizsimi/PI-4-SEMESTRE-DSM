@@ -1,45 +1,31 @@
 import React, { useState } from "react";
-import { FiSave, FiCamera } from "react-icons/fi";
+import { FiCamera } from "react-icons/fi";
 import InputMask from "react-input-mask";
+import PropTypes from "prop-types";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
-import PropTypes from "prop-types";
 
 const EditarPerfil = ({ usuario }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [previewImagem, setPreviewImagem] = useState(
-    usuario?.fotoPerfil || null
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImagem, setPreviewImagem] = useState(null);
   const [formData, setFormData] = useState({
     nome: usuario?.nome || "",
     email: usuario?.email || "",
     telefone: usuario?.telefone || "",
     cep: usuario?.cep || "",
-    endereco: usuario?.endereco || "",
+    rua: usuario?.endereco || "",
     numero: usuario?.numero || "",
     complemento: usuario?.complemento || "",
     cidade: usuario?.cidade || "",
     estado: usuario?.estado || "",
-    senha: "",
+    senhaAtual: "",
+    novaSenha: "",
     confirmarSenha: "",
   });
-  const [erros, setErros] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Limpar erro quando o campo for modificado
-    if (erros[name]) {
-      setErros((prev) => {
-        const newErros = { ...prev };
-        delete newErros[name];
-        return newErros;
-      });
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImagemChange = (e) => {
@@ -64,7 +50,7 @@ const EditarPerfil = ({ usuario }) => {
         if (!data.erro) {
           setFormData((prev) => ({
             ...prev,
-            endereco: data.logradouro,
+            rua: data.logradouro,
             bairro: data.bairro,
             cidade: data.localidade,
             estado: data.uf,
@@ -76,69 +62,30 @@ const EditarPerfil = ({ usuario }) => {
     }
   };
 
-  const validarFormulario = () => {
-    const novosErros = {};
-
-    if (!formData.nome || formData.nome.trim().length < 3) {
-      novosErros.nome = "Nome é obrigatório (mínimo 3 caracteres)";
-    }
-
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      novosErros.email = "Email inválido";
-    }
-
-    if (
-      !formData.telefone ||
-      formData.telefone.replace(/\D/g, "").length < 10
-    ) {
-      novosErros.telefone = "Telefone inválido";
-    }
-
-    if (!formData.cep || formData.cep.replace(/\D/g, "").length !== 8) {
-      novosErros.cep = "CEP inválido";
-    }
-
-    if (!formData.endereco) {
-      novosErros.endereco = "Endereço é obrigatório";
-    }
-
-    if (!formData.numero) {
-      novosErros.numero = "Número é obrigatório";
-    }
-
-    if (!formData.cidade) {
-      novosErros.cidade = "Cidade é obrigatória";
-    }
-
-    if (!formData.estado) {
-      novosErros.estado = "Estado é obrigatório";
-    }
-
-    // Validar senha apenas se for informada
-    if (formData.senha) {
-      if (formData.senha.length < 8) {
-        novosErros.senha = "Senha deve ter no mínimo 8 caracteres";
-      }
-
-      if (formData.senha !== formData.confirmarSenha) {
-        novosErros.confirmarSenha = "As senhas não coincidem";
-      }
-    }
-
-    setErros(novosErros);
-    return Object.keys(novosErros).length === 0;
+  const handleCancelar = () => {
+    // Resetar formulário para dados originais
+    setFormData({
+      nome: usuario?.nome || "",
+      email: usuario?.email || "",
+      telefone: usuario?.telefone || "",
+      cep: usuario?.cep || "",
+      rua: usuario?.endereco || "",
+      numero: usuario?.numero || "",
+      complemento: usuario?.complemento || "",
+      cidade: usuario?.cidade || "",
+      estado: usuario?.estado || "",
+      senhaAtual: "",
+      novaSenha: "",
+      confirmarSenha: "",
+    });
+    setPreviewImagem(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
-      if (!validarFormulario()) {
-        setIsLoading(false);
-        return;
-      }
-
       // Simulação de envio para API
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -147,6 +94,7 @@ const EditarPerfil = ({ usuario }) => {
         message: "Perfil atualizado com sucesso!",
         position: "bottomRight",
         timeout: 4000,
+        backgroundColor: "#10b981",
       });
     } catch (error) {
       iziToast.error({
@@ -155,286 +103,278 @@ const EditarPerfil = ({ usuario }) => {
         position: "bottomRight",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const mostrarErro = (campo) => {
-    return erros[campo] ? (
-      <span className="text-red-500 text-sm">{erros[campo]}</span>
-    ) : null;
   };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Meu Perfil</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Meu Perfil</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Foto de perfil */}
-        <div className="flex flex-col items-center mb-6">
-          <div className="relative">
-            <img
-              src={previewImagem || "https://via.placeholder.com/150"}
-              alt="Foto de perfil"
-              className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-            />
-            <label className="absolute bottom-0 right-0 bg-brightColor text-white p-2 rounded-full cursor-pointer">
-              <FiCamera />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImagemChange}
-                className="hidden"
+      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
+        {/* Header com foto e informações básicas */}
+        <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative">
+              <img
+                src={previewImagem || usuario.fotoPerfil}
+                alt="Foto do Perfil"
+                className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
               />
-            </label>
+              <label className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow-md cursor-pointer hover:bg-gray-100 transition-colors">
+                <FiCamera className="text-green-600" size={20} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImagemChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold">{formData.nome}</h3>
+              <p className="text-white text-opacity-90 mb-1">
+                {formData.email}
+              </p>
+              <p className="text-sm text-white text-opacity-80">
+                Fornecedor desde {usuario.dataCadastro}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
-            Clique no ícone para alterar sua foto
-          </p>
         </div>
 
-        {/* Dados pessoais */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-semibold mb-4">Dados Pessoais</h3>
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Coluna da esquerda */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4">
+                Informações Pessoais
+              </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Nome do Restaurante/Estabelecimento *
-              </label>
-              <input
-                type="text"
-                name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.nome ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("nome")}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Telefone
+                </label>
+                <InputMask
+                  mask="(99) 99999-9999"
+                  maskChar={null}
+                  name="telefone"
+                  value={formData.telefone}
+                  onChange={handleChange}
+                >
+                  {(inputProps) => (
+                    <input
+                      {...inputProps}
+                      type="tel"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                      required
+                    />
+                  )}
+                </InputMask>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.email ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("email")}
-            </div>
+            {/* Coluna da direita */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4">
+                Endereço
+              </h3>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Telefone *
-              </label>
-              <InputMask
-                mask="(99) 99999-9999"
-                maskChar={null}
-                name="telefone"
-                value={formData.telefone}
-                onChange={handleChange}
-              >
-                {(inputProps) => (
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-1">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    CEP
+                  </label>
+                  <InputMask
+                    mask="99999-999"
+                    maskChar={null}
+                    name="cep"
+                    value={formData.cep}
+                    onChange={(e) => {
+                      handleChange(e);
+                      buscarCEP(e.target.value);
+                    }}
+                  >
+                    {(inputProps) => (
+                      <input
+                        {...inputProps}
+                        type="text"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                        required
+                      />
+                    )}
+                  </InputMask>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Rua
+                  </label>
                   <input
-                    {...inputProps}
                     type="text"
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                      erros.telefone ? "border-red-500" : "border-gray-300"
-                    }`}
+                    name="rua"
+                    value={formData.rua}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
                     required
                   />
-                )}
-              </InputMask>
-              {mostrarErro("telefone")}
-            </div>
-          </div>
-        </div>
+                </div>
+              </div>
 
-        {/* Endereço */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-semibold mb-4">Endereço</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                CEP *
-              </label>
-              <InputMask
-                mask="99999-999"
-                maskChar={null}
-                name="cep"
-                value={formData.cep}
-                onChange={(e) => {
-                  handleChange(e);
-                  buscarCEP(e.target.value);
-                }}
-              >
-                {(inputProps) => (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Número
+                  </label>
                   <input
-                    {...inputProps}
                     type="text"
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                      erros.cep ? "border-red-500" : "border-gray-300"
-                    }`}
+                    name="numero"
+                    value={formData.numero}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
                     required
                   />
-                )}
-              </InputMask>
-              {mostrarErro("cep")}
-            </div>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Complemento
+                  </label>
+                  <input
+                    type="text"
+                    name="complemento"
+                    value={formData.complemento}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                  />
+                </div>
+              </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-gray-700 font-medium mb-2">
-                Endereço *
-              </label>
-              <input
-                type="text"
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.endereco ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("endereco")}
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Número *
-              </label>
-              <input
-                type="text"
-                name="numero"
-                value={formData.numero}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.numero ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("numero")}
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Complemento
-              </label>
-              <input
-                type="text"
-                name="complemento"
-                value={formData.complemento}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Cidade *
-              </label>
-              <input
-                type="text"
-                name="cidade"
-                value={formData.cidade}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.cidade ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("cidade")}
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Estado *
-              </label>
-              <input
-                type="text"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.estado ? "border-red-500" : "border-gray-300"
-                }`}
-                required
-              />
-              {mostrarErro("estado")}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Cidade
+                  </label>
+                  <input
+                    type="text"
+                    name="cidade"
+                    value={formData.cidade}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Estado
+                  </label>
+                  <input
+                    type="text"
+                    name="estado"
+                    value={formData.estado}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                    required
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Senha */}
-        <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-semibold mb-4">Alterar Senha</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Preencha apenas se desejar alterar sua senha atual
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Nova Senha
-              </label>
-              <input
-                type="password"
-                name="senha"
-                value={formData.senha}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.senha ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {mostrarErro("senha")}
+          {/* Seção de senha */}
+          <div className="mt-8 border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">
+              Alterar Senha
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Senha Atual
+                </label>
+                <input
+                  type="password"
+                  name="senhaAtual"
+                  value={formData.senhaAtual}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Nova Senha
+                </label>
+                <input
+                  type="password"
+                  name="novaSenha"
+                  value={formData.novaSenha}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Confirmar Nova Senha
+                </label>
+                <input
+                  type="password"
+                  name="confirmarSenha"
+                  value={formData.confirmarSenha}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none shadow-sm"
+                />
+              </div>
             </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Confirmar Nova Senha
-              </label>
-              <input
-                type="password"
-                name="confirmarSenha"
-                value={formData.confirmarSenha}
-                onChange={handleChange}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none ${
-                  erros.confirmarSenha ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {mostrarErro("confirmarSenha")}
-            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Deixe os campos em branco para manter a senha atual.
+            </p>
           </div>
-        </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex items-center gap-2 bg-brightColor text-white py-3 px-8 rounded-lg hover:bg-brightColor/90 transition-colors disabled:bg-gray-400"
-          >
-            {isLoading ? (
-              <>
-                <span className="animate-spin">⟳</span> Salvando...
-              </>
-            ) : (
-              <>
-                <FiSave /> Salvar Alterações
-              </>
-            )}
-          </button>
-        </div>
-      </form>
+          {/* Botões */}
+          <div className="flex justify-center gap-4 mt-8">
+            <button
+              type="button"
+              onClick={handleCancelar}
+              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
@@ -444,12 +384,13 @@ EditarPerfil.propTypes = {
     nome: PropTypes.string,
     email: PropTypes.string,
     telefone: PropTypes.string,
-    cep: PropTypes.string,
     endereco: PropTypes.string,
     numero: PropTypes.string,
     complemento: PropTypes.string,
     cidade: PropTypes.string,
     estado: PropTypes.string,
+    cep: PropTypes.string,
+    dataCadastro: PropTypes.string,
     fotoPerfil: PropTypes.string,
   }),
 };
@@ -459,13 +400,14 @@ EditarPerfil.defaultProps = {
     nome: "",
     email: "",
     telefone: "",
-    cep: "",
     endereco: "",
     numero: "",
     complemento: "",
     cidade: "",
     estado: "",
-    fotoPerfil: null,
+    cep: "",
+    dataCadastro: "",
+    fotoPerfil: "https://via.placeholder.com/150",
   },
 };
 

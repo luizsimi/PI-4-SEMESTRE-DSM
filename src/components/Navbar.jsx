@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-scroll";
-import { BiRestaurant } from "react-icons/bi";
 import { AiOutlineMenuUnfold, AiOutlineClose } from "react-icons/ai";
 import { BiChevronDown } from "react-icons/bi";
+import { FaUserCircle } from "react-icons/fa";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
 import InputMask from "react-input-mask";
@@ -302,27 +302,27 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
   return (
     isOpen && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 p-4 backdrop-blur-[2px]">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative overflow-hidden">
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-[2px]">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden">
           {/* Header estilizado */}
-          <div className="bg-gradient-to-r from-brightColor to-brightColor/80 p-5 text-white">
-            <h2 className="text-xl font-bold text-center">
+          <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
+            <h2 className="text-2xl font-bold text-center">
               {isLogin ? "Acesse sua conta" : "Crie sua conta"}
             </h2>
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+              className="absolute top-5 right-5 text-white hover:text-gray-200 transition-colors"
             >
-              <AiOutlineClose size={22} />
+              <AiOutlineClose size={24} />
             </button>
           </div>
 
           {/* Botões de alternar entre login e cadastro */}
           <div className="flex border-b border-gray-200">
             <button
-              className={`flex-1 py-3 px-4 font-medium text-sm transition-colors duration-200 ${
+              className={`flex-1 py-4 px-5 font-medium text-base transition-colors duration-200 ${
                 isLogin
-                  ? "text-brightColor border-b-2 border-brightColor"
+                  ? "text-green-600 border-b-2 border-green-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => setIsLogin(true)}
@@ -330,9 +330,9 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
               Login
             </button>
             <button
-              className={`flex-1 py-3 px-4 font-medium text-sm transition-colors duration-200 ${
+              className={`flex-1 py-4 px-5 font-medium text-base transition-colors duration-200 ${
                 !isLogin
-                  ? "text-brightColor border-b-2 border-brightColor"
+                  ? "text-green-600 border-b-2 border-green-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => setIsLogin(false)}
@@ -342,7 +342,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
           </div>
 
           {/* Corpo do formulário com scrolling interno */}
-          <div className="max-h-[60vh] overflow-y-auto p-6">
+          <div className="max-h-[70vh] overflow-y-auto p-6">
             <form onSubmit={handleSubmit} className="flex flex-col">
               {isLogin ? (
                 <div className="space-y-4">
@@ -354,7 +354,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                       <input
                         type="email"
                         placeholder="Seu email"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none bg-gray-50"
+                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none bg-gray-50"
                         required
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -379,7 +379,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                       <input
                         type="password"
                         placeholder="Sua senha"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brightColor focus:border-brightColor outline-none bg-gray-50"
+                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none bg-gray-50"
                         required
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -404,7 +404,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                       <input
                         id="remember-me"
                         type="checkbox"
-                        className="h-4 w-4 text-brightColor focus:ring-brightColor border-gray-300 rounded"
+                        className="h-4 w-4 text-green-600 focus:ring-green-600 border-gray-300 rounded"
                       />
                       <label
                         htmlFor="remember-me"
@@ -415,7 +415,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                     </div>
                     <a
                       href="#"
-                      className="text-sm font-medium text-brightColor hover:text-brightColor/80"
+                      className="text-sm font-medium text-green-600 hover:text-green-500"
                     >
                       Esqueceu a senha?
                     </a>
@@ -423,13 +423,13 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
                   <button
                     type="submit"
-                    className="w-full py-3 px-4 mt-2 bg-brightColor text-white font-medium rounded-lg hover:bg-brightColor/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brightColor"
+                    className="w-full py-4 px-6 mt-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 text-lg"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <span className="flex items-center justify-center">
                         <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -458,16 +458,16 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
               ) : (
                 <div className="space-y-5">
                   {/* Tipo de usuário */}
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-700 mb-4">
                       Tipo de conta
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       <button
                         type="button"
                         className={`p-3 rounded-lg text-center transition-all ${
                           tipoUsuario === "usuario"
-                            ? "bg-brightColor text-white shadow-sm"
+                            ? "bg-green-600 text-white shadow-sm"
                             : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                         }`}
                         onClick={() => setTipoUsuario("usuario")}
@@ -481,7 +481,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                         type="button"
                         className={`p-3 rounded-lg text-center transition-all ${
                           tipoUsuario === "fornecedor"
-                            ? "bg-brightColor text-white shadow-sm"
+                            ? "bg-green-600 text-white shadow-sm"
                             : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                         }`}
                         onClick={() => setTipoUsuario("fornecedor")}
@@ -496,10 +496,10 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
                   {/* Informações pessoais - versão simplificada */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    <h3 className="text-base font-medium text-gray-700 mb-4">
                       Informações Pessoais
                     </h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <input
                         type="text"
                         name="nome"
@@ -600,11 +600,11 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
                   {/* Endereço */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    <h3 className="text-base font-medium text-gray-700 mb-4">
                       Endereço
                     </h3>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-4 gap-3">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-4 gap-4">
                         <div className="col-span-1">
                           <InputMask
                             mask="99999-999"
@@ -672,10 +672,10 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
                   {/* Senha */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    <h3 className="text-base font-medium text-gray-700 mb-4">
                       Senha
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
                           type="password"
@@ -712,12 +712,12 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                   {/* Pagamento para fornecedores */}
                   {tipoUsuario === "fornecedor" && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-3">
+                      <h3 className="text-base font-medium text-gray-700 mb-4">
                         Dados de Pagamento
                       </h3>
-                      <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-lg mb-3">
+                      <div className="p-5 bg-green-50 border border-green-100 rounded-lg mb-4">
                         <div className="flex items-center gap-2">
-                          <span className="bg-yellow-400 p-1 rounded-md">
+                          <span className="bg-green-400 p-1 rounded-md">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               className="h-4 w-4 text-white"
@@ -734,18 +734,18 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                             </svg>
                           </span>
                           <div>
-                            <span className="font-medium text-yellow-800 block">
+                            <span className="font-medium text-green-800 block">
                               Plano Premium
                             </span>
-                            <span className="text-sm text-yellow-700">
+                            <span className="text-sm text-green-700">
                               R$ 20,00/mês
                             </span>
                           </div>
                         </div>
 
                         {/* Bandeiras aceitas */}
-                        <div className="mt-3 pt-3 border-t border-yellow-200">
-                          <div className="text-xs text-yellow-700 mb-2">
+                        <div className="mt-3 pt-3 border-t border-green-200">
+                          <div className="text-xs text-green-700 mb-2">
                             Aceitamos as principais bandeiras:
                           </div>
                           <div className="flex items-center flex-wrap gap-2">
@@ -798,7 +798,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                         )}
                       </div>
 
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div className="relative">
                           <InputMask
                             mask="9999 9999 9999 9999"
@@ -931,16 +931,16 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
                     </div>
                   )}
 
-                  <div className="pt-4">
+                  <div className="pt-5">
                     <button
                       type="submit"
-                      className="w-full py-3 px-4 bg-brightColor text-white font-medium rounded-lg hover:bg-brightColor/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brightColor"
+                      className="w-full py-4 px-6 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 text-lg"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <span className="flex items-center justify-center">
                           <svg
-                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -982,12 +982,50 @@ Modal.propTypes = {
   onLogin: PropTypes.func.isRequired,
 };
 
-const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
+const Navbar = ({
+  onLogin,
+  usuarioLogado,
+  onLogout,
+  onNavigate,
+  onEditarPerfil,
+}) => {
   const [menu, setMenu] = useState(false);
   const handleChange = () => setMenu(!menu);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrolled]);
+
+  useEffect(() => {
+    // Fechar o menu do usuário ao clicar fora dele
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const irParaDashboard = () => {
     if (usuarioLogado?.tipo === "fornecedor") {
@@ -995,49 +1033,119 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
     }
   };
 
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
+  };
+
+  const handleEditarPerfil = () => {
+    // Implementar navegação para a página de editar perfil
+    iziToast.info({
+      title: "Perfil",
+      message: "Funcionalidade de editar perfil será implementada em breve!",
+      position: "topRight",
+      timeout: 3000,
+    });
+    setUserMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    onLogout();
+    setUserMenuOpen(false);
+    iziToast.success({
+      title: "Logout",
+      message: "Você saiu da sua conta com sucesso",
+      position: "topRight",
+      timeout: 3000,
+    });
+  };
+
+  const UserMenu = () => (
+    <div
+      ref={userMenuRef}
+      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
+    >
+      <div className="px-4 py-2 border-b border-gray-100">
+        <p className="text-sm font-medium text-gray-900">
+          {usuarioLogado.nome}
+        </p>
+        <p className="text-xs text-gray-500 truncate">{usuarioLogado.email}</p>
+      </div>
+
+      {usuarioLogado.tipo === "fornecedor" && (
+        <button
+          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+          onClick={() => {
+            setUserMenuOpen(false);
+            irParaDashboard();
+          }}
+        >
+          Dashboard
+        </button>
+      )}
+
+      <button
+        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+        onClick={() => {
+          setUserMenuOpen(false);
+          onEditarPerfil();
+        }}
+      >
+        Editar Perfil
+      </button>
+
+      <button
+        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+        onClick={() => {
+          setUserMenuOpen(false);
+          handleLogout();
+        }}
+      >
+        Sair
+      </button>
+    </div>
+  );
+
   return (
-    <div className="fixed w-full z-30">
-      <div>
-        <div className="flex flex-row justify-between p-5 md:px-32 px-5 bg-white shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
-          <div className="flex flex-row items-center cursor-pointer">
-            <span>
-              <BiRestaurant size={32} />
-            </span>
-            <h1 className="text-xl font-semibold">LeveFit</h1>
-          </div>
-          <nav className="hidden md:flex flex-row items-center text-lg font-medium gap-8">
-            <Link
-              to="home"
-              spy
-              smooth
-              duration={500}
-              className="hover:text-brightColor transition-all cursor-pointer"
-            >
-              Home
-            </Link>
-            <div className="relative group">
-              <div className="flex items-center gap-1">
-                <Link
-                  to="dishes"
-                  spy
-                  smooth
-                  duration={500}
-                  className="hover:text-brightColor transition-all cursor-pointer"
-                >
-                  Pratos
-                </Link>
-                <BiChevronDown className="cursor-pointer" size={25} />
-              </div>
-              <ul className="absolute hidden space-y-2 group-hover:block bg-white border border-gray-300 rounded-lg p-5">
+    <div
+      className={`fixed w-full z-50 ${
+        scrolled ? "bg-white shadow-md" : "bg-transparent"
+      } transition-all duration-300`}
+    >
+      <div className="container mx-auto flex flex-row justify-between items-center p-4">
+        <div className="flex items-center">
+          <Link to="home" spy smooth duration={500}>
+            <h1 className="text-2xl font-semibold text-green-600 cursor-pointer">
+              LeveFit
+            </h1>
+          </Link>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-8">
+          <Link
+            to="home"
+            spy
+            smooth
+            duration={500}
+            className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+          >
+            Home
+          </Link>
+          <div className="relative group">
+            <div className="flex items-center gap-1 text-gray-700 hover:text-green-600 transition-all cursor-pointer">
+              <span>Pratos</span>
+              <BiChevronDown />
+            </div>
+            <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+              <ul className="py-2">
                 <li>
                   <Link
                     to="dishes"
                     spy
                     smooth
                     duration={500}
-                    className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
+                    className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
                   >
-                    Ave
+                    Todos os Pratos
                   </Link>
                 </li>
                 <li>
@@ -1046,9 +1154,9 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                     spy
                     smooth
                     duration={500}
-                    className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
+                    className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
                   >
-                    Bovina
+                    Mais vendidos
                   </Link>
                 </li>
                 <li>
@@ -1057,30 +1165,124 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                     spy
                     smooth
                     duration={500}
-                    className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
-                  >
-                    Peixe
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="dishes"
-                    spy
-                    smooth
-                    duration={500}
-                    className="text-gray-800 hover:text-brightColor transition-all cursor-pointer"
+                    className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
                   >
                     Avaliados
                   </Link>
                 </li>
               </ul>
             </div>
+          </div>
+          <Link
+            to="about"
+            spy
+            smooth
+            duration={500}
+            className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+          >
+            Sobre
+          </Link>
+          <Link
+            to="menu"
+            spy
+            smooth
+            duration={500}
+            className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+          >
+            Destaques
+          </Link>
+          <Link
+            to="review"
+            spy
+            smooth
+            duration={500}
+            className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+          >
+            Avaliações
+          </Link>
+
+          {!usuarioLogado?.logado ? (
+            <button
+              onClick={openModal}
+              className="px-6 py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full font-medium"
+            >
+              Login
+            </button>
+          ) : (
+            <div className="flex items-center gap-4">
+              {/* User profile icon with dropdown menu */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={toggleUserMenu}
+                  className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-all"
+                >
+                  <FaUserCircle className="text-2xl text-green-600" />
+                  <span className="font-medium">
+                    {usuarioLogado.nome || "Usuário"}
+                  </span>
+                  <BiChevronDown
+                    className={`transition-transform ${
+                      userMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* User dropdown menu */}
+                {userMenuOpen && <UserMenu />}
+              </div>
+            </div>
+          )}
+        </nav>
+
+        {/* Resto do código do menu mobile */}
+        <div className="md:hidden flex items-center">
+          {menu ? (
+            <AiOutlineClose
+              size={25}
+              className="text-gray-700"
+              onClick={handleChange}
+            />
+          ) : (
+            <AiOutlineMenuUnfold
+              size={25}
+              className="text-gray-700"
+              onClick={handleChange}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Menu Mobile - precisamos atualizar para incluir o ícone de usuário */}
+      {menu && (
+        <div className="md:hidden bg-white shadow-lg absolute w-full transition-all">
+          <div className="flex flex-col p-5">
+            <Link
+              to="home"
+              spy
+              smooth
+              duration={500}
+              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
+              onClick={handleChange}
+            >
+              Home
+            </Link>
+            <Link
+              to="dishes"
+              spy
+              smooth
+              duration={500}
+              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
+              onClick={handleChange}
+            >
+              Pratos
+            </Link>
             <Link
               to="about"
               spy
               smooth
               duration={500}
-              className="hover:text-brightColor transition-all cursor-pointer"
+              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
+              onClick={handleChange}
             >
               Sobre
             </Link>
@@ -1089,7 +1291,8 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
               spy
               smooth
               duration={500}
-              className="hover:text-brightColor transition-all cursor-pointer"
+              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
+              onClick={handleChange}
             >
               Destaques
             </Link>
@@ -1098,47 +1301,74 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
               spy
               smooth
               duration={500}
-              className="hover:text-brightColor transition-all cursor-pointer"
+              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
+              onClick={handleChange}
             >
               Avaliações
             </Link>
 
             {!usuarioLogado?.logado ? (
               <button
-                onClick={openModal}
-                className="px-6 py-1 border-2 border-brightColor text-brightColor hover:bg-brightColor hover:text-white transition-all rounded-full"
+                onClick={() => {
+                  openModal();
+                  handleChange();
+                }}
+                className="mt-4 w-full py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full"
               >
                 Login
               </button>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="mt-4 flex flex-col gap-3">
+                {/* Mostrar informações do usuário no mobile */}
+                <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                  <FaUserCircle className="text-2xl text-green-600 mr-3" />
+                  <div>
+                    <p className="font-medium">
+                      {usuarioLogado.nome || "Usuário"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {usuarioLogado.tipo === "fornecedor"
+                        ? "Fornecedor"
+                        : "Cliente"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleEditarPerfil}
+                  className="w-full py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full"
+                >
+                  Editar Perfil
+                </button>
+
                 {usuarioLogado.tipo === "fornecedor" && (
                   <button
-                    onClick={irParaDashboard}
-                    className="px-6 py-1 bg-brightColor text-white hover:bg-brightColor/90 transition-all rounded-full"
+                    onClick={() => {
+                      irParaDashboard();
+                      handleChange();
+                    }}
+                    className="w-full py-2 bg-green-600 text-white hover:bg-green-700 transition-all rounded-full"
                   >
                     Dashboard
                   </button>
                 )}
+
                 <button
-                  onClick={onLogout}
-                  className="px-6 py-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-full"
+                  onClick={() => {
+                    onLogout();
+                    handleChange();
+                  }}
+                  className="w-full py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-full"
                 >
                   Sair
                 </button>
               </div>
             )}
-          </nav>
-          <div className="md:hidden flex items-center">
-            {menu ? (
-              <AiOutlineClose size={25} onClick={handleChange} />
-            ) : (
-              <AiOutlineMenuUnfold size={25} onClick={handleChange} />
-            )}
           </div>
         </div>
-        <Modal isOpen={isModalOpen} closeModal={closeModal} onLogin={onLogin} />
-      </div>
+      )}
+
+      <Modal isOpen={isModalOpen} closeModal={closeModal} onLogin={onLogin} />
     </div>
   );
 };
@@ -1147,9 +1377,12 @@ Navbar.propTypes = {
   onLogin: PropTypes.func.isRequired,
   onLogout: PropTypes.func.isRequired,
   onNavigate: PropTypes.func.isRequired,
+  onEditarPerfil: PropTypes.func.isRequired,
   usuarioLogado: PropTypes.shape({
     logado: PropTypes.bool,
     tipo: PropTypes.string,
+    nome: PropTypes.string,
+    email: PropTypes.string,
   }),
 };
 
@@ -1157,6 +1390,8 @@ Navbar.defaultProps = {
   usuarioLogado: {
     logado: false,
     tipo: "",
+    nome: "",
+    email: "",
   },
 };
 
