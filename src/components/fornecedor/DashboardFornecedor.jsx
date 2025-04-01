@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { FiUser, FiList, FiPlusCircle, FiLogOut } from "react-icons/fi";
+import { useState } from "react";
+import { FiUser, FiList, FiPlusCircle, FiLogOut, FiStar } from "react-icons/fi";
 import AdicionarPrato from "./AdicionarPrato";
 import MeusPratos from "./MeusPratos";
 import EditarPerfil from "./EditarPerfil";
+import AvaliacoesPratos from "./AvaliacoesPratos";
 import PropTypes from "prop-types";
 
 const DashboardFornecedor = ({ onLogout }) => {
@@ -29,6 +30,8 @@ const DashboardFornecedor = ({ onLogout }) => {
         return <MeusPratos />;
       case "editar-perfil":
         return <EditarPerfil usuario={usuario} />;
+      case "avaliacoes":
+        return <AvaliacoesPratos />;
       default:
         return <MeusPratos />;
     }
@@ -64,65 +67,73 @@ const DashboardFornecedor = ({ onLogout }) => {
         </div>
       </header>
 
+      {/* Container principal */}
       <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          {/* Navegação */}
-          <div className="flex flex-wrap md:flex-nowrap border-b border-gray-200">
-            <button
-              onClick={() => setTabAtiva("meus-pratos")}
-              className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
-                tabAtiva === "meus-pratos"
-                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
-              }`}
-            >
-              <FiList
-                className={
-                  tabAtiva === "meus-pratos"
-                    ? "text-green-600"
-                    : "text-gray-500"
-                }
-              />
-              <span>Meus Pratos</span>
-            </button>
-            <button
-              onClick={() => setTabAtiva("adicionar-prato")}
-              className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
-                tabAtiva === "adicionar-prato"
-                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
-              }`}
-            >
-              <FiPlusCircle
-                className={
-                  tabAtiva === "adicionar-prato"
-                    ? "text-green-600"
-                    : "text-gray-500"
-                }
-              />
-              <span>Adicionar Prato</span>
-            </button>
-            <button
-              onClick={() => setTabAtiva("editar-perfil")}
-              className={`flex items-center gap-2 px-6 py-4 text-lg font-medium transition-colors duration-300 ${
-                tabAtiva === "editar-perfil"
-                  ? "text-green-600 border-b-2 border-green-600 bg-green-50"
-                  : "text-gray-600 hover:bg-green-50 hover:text-green-600"
-              }`}
-            >
-              <FiUser
-                className={
-                  tabAtiva === "editar-perfil"
-                    ? "text-green-600"
-                    : "text-gray-500"
-                }
-              />
-              <span>Meu Perfil</span>
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8">
+          {/* Menu lateral */}
+          <div className="bg-white rounded-xl shadow-md p-5 h-fit">
+            <nav>
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      tabAtiva === "meus-pratos"
+                        ? "bg-green-100 text-green-700"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setTabAtiva("meus-pratos")}
+                  >
+                    <FiList />
+                    <span>Meus Pratos</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      tabAtiva === "adicionar-prato"
+                        ? "bg-green-100 text-green-700"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setTabAtiva("adicionar-prato")}
+                  >
+                    <FiPlusCircle />
+                    <span>Adicionar Prato</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      tabAtiva === "avaliacoes"
+                        ? "bg-green-100 text-green-700"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setTabAtiva("avaliacoes")}
+                  >
+                    <FiStar />
+                    <span>Avaliações</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      tabAtiva === "editar-perfil"
+                        ? "bg-green-100 text-green-700"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setTabAtiva("editar-perfil")}
+                  >
+                    <FiUser />
+                    <span>Editar Perfil</span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
 
           {/* Conteúdo principal */}
-          <div className="p-6">{renderizarConteudo()}</div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            {renderizarConteudo()}
+          </div>
         </div>
       </div>
     </div>

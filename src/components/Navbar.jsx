@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-scroll";
 import { AiOutlineMenuUnfold, AiOutlineClose } from "react-icons/ai";
 import { BiChevronDown } from "react-icons/bi";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaWhatsapp, FaStar, FaRegStar } from "react-icons/fa";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
 import InputMask from "react-input-mask";
@@ -982,6 +982,240 @@ Modal.propTypes = {
   onLogin: PropTypes.func.isRequired,
 };
 
+// Modal para exibir os pedidos via WhatsApp
+const PedidosWhatsappModal = ({ isOpen, closeModal }) => {
+  // Estado para controlar qual pedido está sendo avaliado e com quantas estrelas
+  const [avaliacaoAberta, setAvaliacaoAberta] = useState(null);
+  const [estrelas, setEstrelas] = useState(0);
+  const [comentario, setComentario] = useState("");
+  const [pedidosAvaliados, setPedidosAvaliados] = useState([]);
+
+  // Dados mockados de pedidos para demonstração
+  const pedidos = [
+    {
+      id: 1,
+      data: "05/04/2025",
+      restaurante: "Fit & Fresh",
+      prato: "Salada Caesar com Frango Grelhado",
+      status: "Entregue",
+      valor: "R$ 35,90",
+      telefone: "11987654321",
+    },
+    {
+      id: 2,
+      data: "03/04/2025",
+      restaurante: "Nutri Mix",
+      prato: "Bowl de Açaí com Granola",
+      status: "Em preparo",
+      valor: "R$ 29,90",
+      telefone: "11912345678",
+    },
+    {
+      id: 3,
+      data: "01/04/2025",
+      restaurante: "Veggie Land",
+      prato: "Hambúrguer Vegetariano com Batata Doce",
+      status: "Confirmado",
+      valor: "R$ 42,50",
+      telefone: "11955554444",
+    },
+  ];
+
+  const abrirWhatsapp = (telefone, prato) => {
+    const mensagem = encodeURIComponent(
+      `Olá! Gostaria de saber informações sobre meu pedido: ${prato}`
+    );
+    window.open(`https://wa.me/55${telefone}?text=${mensagem}`, "_blank");
+  };
+
+  const iniciarAvaliacao = (pedidoId) => {
+    setAvaliacaoAberta(pedidoId);
+    setEstrelas(0);
+    setComentario("");
+  };
+
+  const finalizarAvaliacao = () => {
+    if (estrelas > 0) {
+      // Em um ambiente real, enviaríamos essa avaliação para o servidor
+      setPedidosAvaliados([...pedidosAvaliados, avaliacaoAberta]);
+
+      iziToast.success({
+        title: "Avaliação enviada!",
+        message: "Obrigado por avaliar seu pedido",
+        position: "bottomRight",
+        timeout: 3000,
+      });
+    } else {
+      iziToast.error({
+        title: "Erro",
+        message: "Por favor, selecione pelo menos uma estrela",
+        position: "bottomRight",
+        timeout: 3000,
+      });
+      return;
+    }
+
+    setAvaliacaoAberta(null);
+    setEstrelas(0);
+    setComentario("");
+  };
+
+  const renderEstrelas = (quantidade, total = 5) => {
+    return Array.from({ length: total }, (_, i) => (
+      <span
+        key={i}
+        className="cursor-pointer"
+        onClick={() => (avaliacaoAberta ? setEstrelas(i + 1) : null)}
+      >
+        {i < quantidade ? (
+          <FaStar className="text-yellow-400 text-xl" />
+        ) : (
+          <FaRegStar className="text-yellow-400 text-xl" />
+        )}
+      </span>
+    ));
+  };
+
+  return (
+    isOpen && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-[2px]">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden">
+          {/* Header estilizado */}
+          <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
+            <h2 className="text-2xl font-bold text-center">Meus Pedidos</h2>
+            <button
+              onClick={closeModal}
+              className="absolute top-5 right-5 text-white hover:text-gray-200 transition-colors"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+          </div>
+
+          {/* Lista de pedidos */}
+          <div className="max-h-[70vh] overflow-y-auto p-6">
+            {pedidos.length > 0 ? (
+              <div className="space-y-4">
+                {pedidos.map((pedido) => (
+                  <div
+                    key={pedido.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-medium text-lg">{pedido.prato}</h3>
+                        <p className="text-gray-600 text-sm">
+                          {pedido.restaurante}
+                        </p>
+                      </div>
+                      <div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium 
+                          ${
+                            pedido.status === "Entregue"
+                              ? "bg-green-100 text-green-800"
+                              : pedido.status === "Em preparo"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {pedido.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Área de avaliação expandida */}
+                    {avaliacaoAberta === pedido.id && (
+                      <div className="mt-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 className="font-medium text-gray-800 mb-2">
+                          Avalie seu pedido
+                        </h4>
+                        <div className="flex mb-3">
+                          {renderEstrelas(estrelas)}
+                        </div>
+                        <textarea
+                          placeholder="Conte-nos sua experiência com este pedido (opcional)"
+                          className="w-full p-3 border border-gray-300 rounded-lg mb-3 resize-none"
+                          rows="3"
+                          value={comentario}
+                          onChange={(e) => setComentario(e.target.value)}
+                        ></textarea>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setAvaliacaoAberta(null)}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={finalizarAvaliacao}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                          >
+                            Enviar avaliação
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-500">
+                          {pedido.data}
+                        </span>
+                        <span className="font-bold">{pedido.valor}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {pedido.status === "Entregue" &&
+                          !pedidosAvaliados.includes(pedido.id) && (
+                            <button
+                              onClick={() => iniciarAvaliacao(pedido.id)}
+                              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                              <FaStar size={16} />
+                              <span>Avaliar</span>
+                            </button>
+                          )}
+
+                        {pedidosAvaliados.includes(pedido.id) && (
+                          <div className="flex items-center gap-1 text-gray-600 px-4 py-2">
+                            <FaStar className="text-yellow-400" />
+                            <span>Avaliado</span>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() =>
+                            abrirWhatsapp(pedido.telefone, pedido.prato)
+                          }
+                          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <FaWhatsapp size={18} />
+                          <span>WhatsApp</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-gray-500 text-lg">
+                  Você ainda não possui pedidos.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  );
+};
+
+PedidosWhatsappModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  closeModal: PropTypes.func.isRequired,
+};
+
 const Navbar = ({
   onLogin,
   usuarioLogado,
@@ -992,8 +1226,11 @@ const Navbar = ({
   const [menu, setMenu] = useState(false);
   const handleChange = () => setMenu(!menu);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPedidosModalOpen, setIsPedidosModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const openPedidosModal = () => setIsPedidosModalOpen(true);
+  const closePedidosModal = () => setIsPedidosModalOpen(false);
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
@@ -1082,6 +1319,16 @@ const Navbar = ({
           Dashboard
         </button>
       )}
+
+      <button
+        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+        onClick={() => {
+          setUserMenuOpen(false);
+          openPedidosModal();
+        }}
+      >
+        Meus Pedidos
+      </button>
 
       <button
         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
@@ -1336,7 +1583,7 @@ const Navbar = ({
 
                 <button
                   onClick={handleEditarPerfil}
-                  className="w-full py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full"
+                  className="w-full py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all rounded-full"
                 >
                   Editar Perfil
                 </button>
@@ -1369,6 +1616,10 @@ const Navbar = ({
       )}
 
       <Modal isOpen={isModalOpen} closeModal={closeModal} onLogin={onLogin} />
+      <PedidosWhatsappModal
+        isOpen={isPedidosModalOpen}
+        closeModal={closePedidosModal}
+      />
     </div>
   );
 };

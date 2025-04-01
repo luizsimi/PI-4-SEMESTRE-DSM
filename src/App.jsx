@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import Sobre from "./components/Sobre";
@@ -7,11 +7,13 @@ import Footer from "./components/Footer";
 import Pratos from "./components/Pratos";
 import Review from "./components/Review";
 import DashboardFornecedor from "./components/fornecedor/DashboardFornecedor";
-import EditarPerfil from "./components/EditarPerfil";
+import EditarPerfil from "./components/fornecedor/EditarPerfil";
 import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState("home");
+  const [isPerfilModalOpen, setIsPerfilModalOpen] = useState(false);
 
   // Simular um usuário logado ou não (em produção, viria de um contexto/estado global)
   const [usuarioLogado, setUsuarioLogado] = useState({
@@ -47,6 +49,16 @@ const App = () => {
       ...dadosUsuario,
     });
 
+    // Salvar no localStorage para persistir entre recarregamentos da página
+    localStorage.setItem(
+      "usuarioLogado",
+      JSON.stringify({
+        logado: true,
+        tipo: tipo,
+        ...dadosUsuario,
+      })
+    );
+
     if (tipo === "fornecedor") {
       setCurrentPage("dashboard");
     }
@@ -62,6 +74,10 @@ const App = () => {
       telefone: "",
       endereco: "",
     });
+
+    // Remover do localStorage
+    localStorage.removeItem("usuarioLogado");
+
     setCurrentPage("home");
   };
 
@@ -73,10 +89,17 @@ const App = () => {
 
   // Função para atualizar dados do usuário
   const atualizarPerfilUsuario = (dadosAtualizados) => {
-    setUsuarioLogado({
+    const novosDadosUsuario = {
       ...usuarioLogado,
       ...dadosAtualizados,
-    });
+    };
+
+    setUsuarioLogado(novosDadosUsuario);
+
+    // Atualizar no localStorage
+    if (novosDadosUsuario.logado) {
+      localStorage.setItem("usuarioLogado", JSON.stringify(novosDadosUsuario));
+    }
 
     iziToast.success({
       title: "Perfil atualizado",
@@ -96,7 +119,7 @@ const App = () => {
   // Redirecionar para a página de edição de perfil
   const irParaEditarPerfil = () => {
     if (usuarioLogado.logado) {
-      setCurrentPage("editar-perfil");
+      setIsPerfilModalOpen(true);
     } else {
       iziToast.error({
         title: "Erro",
@@ -106,6 +129,18 @@ const App = () => {
       });
     }
   };
+
+  const fecharModalPerfil = () => {
+    setIsPerfilModalOpen(false);
+  };
+
+  // Verificar se há usuário logado no localStorage ao iniciar a aplicação
+  useEffect(() => {
+    const usuarioSalvo = localStorage.getItem("usuarioLogado");
+    if (usuarioSalvo) {
+      setUsuarioLogado(JSON.parse(usuarioSalvo));
+    }
+  }, []);
 
   // Renderizar página baseado no estado atual
   const renderizarPagina = () => {
@@ -177,7 +212,11 @@ const App = () => {
               </div>
 
               <div id="review">
-                <Review />
+                <Review
+                  usuarioLogado={usuarioLogado.logado}
+                  onEditarPerfil={irParaEditarPerfil}
+                  onLogout={fazerLogout}
+                />
               </div>
 
               {/* Botão para teste - acessar Dashboard diretamente */}
@@ -191,6 +230,40 @@ const App = () => {
               </div>
             </main>
             <Footer />
+
+            {/* Modal de Edição de Perfil */}
+            {isPerfilModalOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4 overflow-y-auto">
+                <div className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <button
+                    onClick={fecharModalPerfil}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                  <EditarPerfil
+                    usuario={usuarioLogado}
+                    onSave={(dados) => {
+                      atualizarPerfilUsuario(dados);
+                      fecharModalPerfil();
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </>
         );
     }

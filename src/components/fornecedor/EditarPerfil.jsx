@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
 
-const EditarPerfil = ({ usuario }) => {
+const EditarPerfil = ({ usuario, onSave }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImagem, setPreviewImagem] = useState(null);
   const [formData, setFormData] = useState({
@@ -87,8 +87,22 @@ const EditarPerfil = ({ usuario }) => {
 
     try {
       // Simulação de envio para API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Preparar dados para envio
+      const dadosAtualizados = {
+        nome: formData.nome,
+        email: formData.email,
+        telefone: formData.telefone,
+        cep: formData.cep,
+        endereco: formData.rua,
+        numero: formData.numero,
+        complemento: formData.complemento,
+        cidade: formData.cidade,
+        estado: formData.estado,
+      };
+
+      // Notificar sucesso
       iziToast.success({
         title: "Sucesso!",
         message: "Perfil atualizado com sucesso!",
@@ -96,6 +110,11 @@ const EditarPerfil = ({ usuario }) => {
         timeout: 4000,
         backgroundColor: "#10b981",
       });
+
+      // Chamar função de callback com dados atualizados
+      if (onSave && typeof onSave === "function") {
+        onSave(dadosAtualizados);
+      }
     } catch (error) {
       iziToast.error({
         title: "Erro",
@@ -393,6 +412,7 @@ EditarPerfil.propTypes = {
     dataCadastro: PropTypes.string,
     fotoPerfil: PropTypes.string,
   }),
+  onSave: PropTypes.func,
 };
 
 EditarPerfil.defaultProps = {

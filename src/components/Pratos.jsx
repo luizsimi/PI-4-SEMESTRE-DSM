@@ -19,7 +19,7 @@ const MenuItem = ({ img, alt, title, isActive, onClick }) => {
     >
       <div
         className={`w-32 h-32 rounded-full overflow-hidden border-4 ${
-          isActive ? "border-brightColor" : "border-transparent"
+          isActive ? "border-green-600" : "border-transparent"
         }`}
       >
         <img
@@ -30,8 +30,8 @@ const MenuItem = ({ img, alt, title, isActive, onClick }) => {
       </div>
       <p
         className={`font-semibold text-xl mt-2 transition-colors duration-300 ${
-          isActive ? "text-brightColor" : "text-black"
-        } group-hover:text-brightColor`}
+          isActive ? "text-green-600" : "text-black"
+        } group-hover:text-green-600`}
       >
         {title}
       </p>

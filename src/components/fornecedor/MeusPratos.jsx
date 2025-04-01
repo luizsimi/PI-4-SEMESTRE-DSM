@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FiEdit2, FiTrash2, FiSearch } from "react-icons/fi";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
@@ -106,6 +106,154 @@ const MeusPratos = () => {
 
   const pratosFiltrados = pratosLimpar();
 
+  // Layout para telas grandes (desktop)
+  const renderTabelaDesktop = () => (
+    <div className="overflow-hidden rounded-lg shadow-md border border-gray-100">
+      <div className="overflow-x-auto">
+        <table className="w-full divide-y divide-gray-200">
+          <thead className="bg-green-50">
+            <tr>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
+              >
+                Prato
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
+              >
+                Categoria
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
+              >
+                Preço
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
+              >
+                Calorias
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
+              >
+                Ações
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {pratosFiltrados.map((prato) => (
+              <tr
+                key={prato.id}
+                className="hover:bg-green-50 transition-colors duration-150"
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-12 w-16">
+                      <img
+                        className="h-12 w-16 object-cover rounded shadow-sm"
+                        src={prato.imagem}
+                        alt={prato.nome}
+                      />
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">
+                        {prato.nome}
+                      </div>
+                      <div className="text-xs text-gray-500 line-clamp-1 max-w-xs">
+                        {prato.descricao}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    {getNomeCategoria(prato.categoria)}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                  R$ {prato.preco.toFixed(2)}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700">
+                  {prato.informacaoNutricional.calorias} kcal
+                </td>
+                <td className="px-4 py-3 text-sm font-medium">
+                  <div className="flex space-x-2">
+                    <button className="p-1.5 bg-blue-50 rounded-md text-blue-600 hover:bg-blue-100 transition-colors">
+                      <FiEdit2 size={16} />
+                    </button>
+                    <button
+                      className="p-1.5 bg-red-50 rounded-md text-red-600 hover:bg-red-100 transition-colors"
+                      onClick={() => handleExcluir(prato.id)}
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  // Layout para dispositivos móveis
+  const renderCardsMobile = () => (
+    <div className="space-y-3 md:hidden">
+      {pratosFiltrados.map((prato) => (
+        <div
+          key={prato.id}
+          className="bg-white rounded-lg shadow p-4 border border-gray-200"
+        >
+          <div className="flex space-x-3">
+            <img
+              src={prato.imagem}
+              alt={prato.nome}
+              className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium text-gray-900 truncate">
+                {prato.nome}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                {prato.descricao}
+              </p>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  {getNomeCategoria(prato.categoria)}
+                </span>
+                <span className="text-xs font-medium text-gray-700">
+                  R$ {prato.preco.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <span className="text-xs text-gray-500">
+                  {prato.informacaoNutricional.calorias} kcal
+                </span>
+                <div className="flex space-x-2">
+                  <button className="p-1.5 bg-blue-50 rounded-md text-blue-600 hover:bg-blue-100 transition-colors">
+                    <FiEdit2 size={16} />
+                  </button>
+                  <button
+                    className="p-1.5 bg-red-50 rounded-md text-red-600 hover:bg-red-100 transition-colors"
+                    onClick={() => handleExcluir(prato.id)}
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Meus Pratos</h2>
@@ -150,96 +298,13 @@ const MeusPratos = () => {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg shadow-md border border-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-green-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
-                >
-                  Prato
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
-                >
-                  Categoria
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
-                >
-                  Preço
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
-                >
-                  Calorias
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-xs font-medium text-green-700 uppercase tracking-wider"
-                >
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {pratosFiltrados.map((prato) => (
-                <tr
-                  key={prato.id}
-                  className="hover:bg-green-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-14 w-20">
-                        <img
-                          className="h-14 w-20 object-cover rounded shadow-sm"
-                          src={prato.imagem}
-                          alt={prato.nome}
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {prato.nome}
-                        </div>
-                        <div className="text-sm text-gray-500 line-clamp-1 max-w-xs">
-                          {prato.descricao}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      {getNomeCategoria(prato.categoria)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                    R$ {prato.preco.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {prato.informacaoNutricional.calorias} kcal
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-3">
-                      <button className="p-1.5 bg-blue-50 rounded-md text-blue-600 hover:bg-blue-100 transition-colors">
-                        <FiEdit2 size={18} />
-                      </button>
-                      <button
-                        className="p-1.5 bg-red-50 rounded-md text-red-600 hover:bg-red-100 transition-colors"
-                        onClick={() => handleExcluir(prato.id)}
-                      >
-                        <FiTrash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Visualização para dispositivos móveis */}
+          {renderCardsMobile()}
+
+          {/* Visualização para desktop */}
+          <div className="hidden md:block">{renderTabelaDesktop()}</div>
+        </>
       )}
     </div>
   );
