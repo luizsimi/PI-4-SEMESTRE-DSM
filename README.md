@@ -2,7 +2,7 @@
 
 ## Sobre o Projeto
 
-O LeveFit é uma plataforma de delivery de comida saudável que conecta fornecedores e clientes. O sistema permite que fornecedores cadastrem seus pratos saudáveis com informações nutricionais, enquanto os clientes podem navegar pelo catálogo, filtrar por categorias, e realizar pedidos.
+O LeveFit é uma plataforma de delivery de comida saudável que conecta fornecedores e clientes. O sistema permite que fornecedores cadastrem seus pratos saudáveis com informações nutricionais, enquanto os clientes podem navegar pelo catálogo, filtrar por categorias, e realizar pedidos via whatsapp.
 
 ## Tecnologias Utilizadas
 
@@ -36,10 +36,11 @@ O LeveFit é uma plataforma de delivery de comida saudável que conecta forneced
 - Filtros por categoria, disponibilidade e preço
 - Visualização de informações nutricionais
 - Avaliação de pratos consumidos
-- Processamento de pagamentos via Mercado Pago
+- Pagamentos via WhatsApp direto com o restaurante
 
 ### Para Fornecedores
 
+- Pagamento via Mercado Pago para ter acesso a ter seu catalogo de pratos em nosso site
 - Dashboard de gerenciamento
 - Cadastro e edição de pratos
 - Upload de imagens
@@ -98,8 +99,9 @@ O sistema utiliza tokens JWT via Laravel Sanctum para autenticação. Os tokens 
 
 ## Desenvolvedores
 
-- [Seu Nome]
-- [Outros desenvolvedores]
+- ABNER DE SOUZA (DOCUMENTAÇÃO/DESIGN)
+- DARLAN DOS SANTOS (BACK-END)
+- LUIZ HENRIQUE SIMIONATO (FRONT-END/ DESIGN)
 
 ## Licença
 
