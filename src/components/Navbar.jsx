@@ -15,8 +15,222 @@ import {
   validarCEP,
 } from "../utils/validations";
 
-const Modal = ({ isOpen, closeModal, onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
+const LoginModal = ({ isOpen, closeModal, onLogin, openCadastroModal }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Simulação de login
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      iziToast.success({
+        title: "Sucesso!",
+        message: "Login realizado com sucesso!",
+        position: "bottomRight",
+        timeout: 4000,
+        transitionIn: "bounceInLeft",
+        transitionOut: "bounceOutRight",
+        messageColor: "#ffffff",
+        titleColor: "#ffffff",
+        backgroundColor: "#10b981",
+        class: "rounded-lg shadow-lg text-lg",
+        icon: "ico-success",
+      });
+
+      // Chamar a função de login do componente pai
+      onLogin("usuario");
+      closeModal();
+    } catch (error) {
+      console.error("Erro no processamento:", error);
+      iziToast.error({
+        title: "Erro",
+        message: "Erro ao fazer login.",
+        position: "topRight",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    isOpen && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-sm transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden transform transition-all duration-300 scale-100 animate-fadeIn">
+          {/* Cabeçalho com gradiente */}
+          <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8 relative">
+            <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('https://images.unsplash.com/photo-1576866209830-589e1bfbaa4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60')] bg-cover bg-center opacity-15 mix-blend-overlay"></div>
+
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 bg-white bg-opacity-20 p-1.5 rounded-full text-white hover:bg-opacity-40 transition-all z-10"
+            >
+              <AiOutlineClose size={16} />
+            </button>
+
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold text-white">
+                Bem-vindo(a) de volta
+              </h2>
+              <p className="text-white text-opacity-80 mt-1">
+                Acesse sua conta para continuar
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="w-5 h-5 text-green-500"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="Seu email"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Senha
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="w-5 h-5 text-green-500"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clipRule="evenodd"
+                      ></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="Sua senha"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
+                    Lembrar
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+                >
+                  Esqueceu a senha?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 px-5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg hover:shadow-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 focus:outline-none flex items-center justify-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Entrando...
+                  </span>
+                ) : (
+                  "Entrar"
+                )}
+              </button>
+
+              <div className="mt-6 text-center">
+                <div className="relative my-3">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-sm text-gray-500">
+                      ou
+                    </span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  Não tem uma conta?{" "}
+                  <button
+                    className="text-green-600 font-medium hover:underline transition-all"
+                    onClick={() => {
+                      closeModal();
+                      openCadastroModal();
+                    }}
+                  >
+                    Cadastre-se
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )
+  );
+};
+
+LoginModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  closeModal: PropTypes.func.isRequired,
+  onLogin: PropTypes.func.isRequired,
+  openCadastroModal: PropTypes.func.isRequired,
+};
+
+const CadastroModal = ({ isOpen, closeModal, onLogin, openLoginModal }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tipoUsuario, setTipoUsuario] = useState("usuario");
   const [mercadoPagoReady, setMercadoPagoReady] = useState(false);
@@ -239,13 +453,13 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
     try {
       // Validar formulário
-      if (!isLogin && !validarFormulario()) {
+      if (!validarFormulario()) {
         setIsSubmitting(false);
         return;
       }
 
       // Se for fornecedor, validar o cartão com Mercado Pago
-      if (!isLogin && tipoUsuario === "fornecedor") {
+      if (tipoUsuario === "fornecedor") {
         const tokenGerado = await gerarTokenCartao();
         if (!tokenGerado) {
           setIsSubmitting(false);
@@ -263,9 +477,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
       iziToast.success({
         title: "Sucesso!",
-        message: isLogin
-          ? "Login realizado com sucesso!"
-          : "Cadastro realizado com sucesso!",
+        message: "Cadastro realizado com sucesso!",
         position: "bottomRight",
         timeout: 4000,
         transitionIn: "bounceInLeft",
@@ -284,9 +496,7 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
       console.error("Erro no processamento:", error);
       iziToast.error({
         title: "Erro",
-        message: isLogin
-          ? "Erro ao fazer login."
-          : "Ocorreu um erro ao cadastrar.",
+        message: "Ocorreu um erro ao cadastrar.",
         position: "topRight",
       });
     } finally {
@@ -302,672 +512,474 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
 
   return (
     isOpen && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-[2px]">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden">
-          {/* Header estilizado */}
-          <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
-            <h2 className="text-2xl font-bold text-center">
-              {isLogin ? "Acesse sua conta" : "Crie sua conta"}
-            </h2>
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-sm transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[650px] relative overflow-hidden transform transition-all duration-300 scale-100 animate-fadeIn max-h-[90vh] overflow-y-auto">
+          {/* Cabeçalho com gradiente */}
+          <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-8 relative">
+            <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=60')] bg-cover bg-center opacity-15 mix-blend-overlay"></div>
+
             <button
               onClick={closeModal}
-              className="absolute top-5 right-5 text-white hover:text-gray-200 transition-colors"
+              className="absolute top-4 right-4 bg-white bg-opacity-20 p-1.5 rounded-full text-white hover:bg-opacity-40 transition-all z-10"
             >
-              <AiOutlineClose size={24} />
+              <AiOutlineClose size={16} />
             </button>
+
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold text-white">Crie sua conta</h2>
+              <p className="text-white text-opacity-80 mt-1">
+                Comece sua jornada com o LeveFit hoje
+              </p>
+            </div>
           </div>
 
-          {/* Botões de alternar entre login e cadastro */}
-          <div className="flex border-b border-gray-200">
-            <button
-              className={`flex-1 py-4 px-5 font-medium text-base transition-colors duration-200 ${
-                isLogin
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              onClick={() => setIsLogin(true)}
-            >
-              Login
-            </button>
-            <button
-              className={`flex-1 py-4 px-5 font-medium text-base transition-colors duration-200 ${
-                !isLogin
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-              onClick={() => setIsLogin(false)}
-            >
-              Cadastro
-            </button>
-          </div>
-
-          {/* Corpo do formulário com scrolling interno */}
-          <div className="max-h-[70vh] overflow-y-auto p-6">
-            <form onSubmit={handleSubmit} className="flex flex-col">
-              {isLogin ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        placeholder="Seu email"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none bg-gray-50"
-                        required
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Senha
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        placeholder="Sua senha"
-                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none bg-gray-50"
-                        required
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center">
-                      <input
-                        id="remember-me"
-                        type="checkbox"
-                        className="h-4 w-4 text-green-600 focus:ring-green-600 border-gray-300 rounded"
-                      />
-                      <label
-                        htmlFor="remember-me"
-                        className="ml-2 block text-sm text-gray-700"
-                      >
-                        Lembrar
-                      </label>
-                    </div>
-                    <a
-                      href="#"
-                      className="text-sm font-medium text-green-600 hover:text-green-500"
-                    >
-                      Esqueceu a senha?
-                    </a>
-                  </div>
-
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Tipo de conta
+                </label>
+                <div className="grid grid-cols-2 gap-3">
                   <button
-                    type="submit"
-                    className="w-full py-4 px-6 mt-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 text-lg"
-                    disabled={isSubmitting}
+                    type="button"
+                    className={`p-3 rounded-lg text-center transition-all duration-300 ${
+                      tipoUsuario === "usuario"
+                        ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                        : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setTipoUsuario("usuario")}
                   >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Entrando...
-                      </span>
-                    ) : (
-                      "Entrar"
-                    )}
+                    <span className="block font-medium text-sm">Usuário</span>
+                    <span className="text-xs opacity-90 block">
+                      Para clientes
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`p-3 rounded-lg text-center transition-all duration-300 ${
+                      tipoUsuario === "fornecedor"
+                        ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                        : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setTipoUsuario("fornecedor")}
+                  >
+                    <span className="block font-medium text-sm">
+                      Fornecedor
+                    </span>
+                    <span className="text-xs opacity-90 block">
+                      Para restaurantes
+                    </span>
                   </button>
                 </div>
-              ) : (
-                <div className="space-y-5">
-                  {/* Tipo de usuário */}
-                  <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-700 mb-4">
-                      Tipo de conta
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        className={`p-3 rounded-lg text-center transition-all ${
-                          tipoUsuario === "usuario"
-                            ? "bg-green-600 text-white shadow-sm"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                        onClick={() => setTipoUsuario("usuario")}
-                      >
-                        <span className="block font-medium">Usuário</span>
-                        <span className="text-xs opacity-80 mt-1 block">
-                          Para clientes
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`p-3 rounded-lg text-center transition-all ${
-                          tipoUsuario === "fornecedor"
-                            ? "bg-green-600 text-white shadow-sm"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
-                        onClick={() => setTipoUsuario("fornecedor")}
-                      >
-                        <span className="block font-medium">Fornecedor</span>
-                        <span className="text-xs opacity-80 mt-1 block">
-                          Para restaurantes
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+              </div>
 
-                  {/* Informações pessoais - versão simplificada */}
+              {/* Informações pessoais */}
+              <div className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 ml-1 flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2 text-green-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Informações Pessoais
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <h3 className="text-base font-medium text-gray-700 mb-4">
-                      Informações Pessoais
-                    </h3>
-                    <div className="space-y-4">
-                      <input
-                        type="text"
-                        name="nome"
-                        value={formData.nome}
-                        onChange={handleInputChange}
-                        placeholder="Nome Completo"
-                        className={`w-full p-3 border rounded-lg outline-none ${
-                          erros.nome ? "border-red-500" : "border-gray-300"
-                        }`}
-                        required
-                      />
-                      {mostrarErro("nome")}
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <InputMask
-                            mask="999.999.999-99"
-                            maskChar={null}
-                            name="cpf"
-                            value={formData.cpf}
-                            onChange={handleInputChange}
-                          >
-                            {(inputProps) => (
-                              <input
-                                {...inputProps}
-                                type="text"
-                                placeholder="CPF"
-                                className={`w-full p-3 border rounded-lg outline-none ${
-                                  erros.cpf
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                }`}
-                                required
-                              />
-                            )}
-                          </InputMask>
-                          {mostrarErro("cpf")}
-                        </div>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="Email"
-                          className={`w-full p-3 border rounded-lg outline-none ${
-                            erros.email ? "border-red-500" : "border-gray-300"
-                          }`}
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <InputMask
-                          mask="(99) 99999-9999"
-                          maskChar={null}
-                          name="telefone"
-                          value={formData.telefone}
-                          onChange={handleInputChange}
-                        >
-                          {(inputProps) => (
-                            <input
-                              {...inputProps}
-                              type="tel"
-                              placeholder="Telefone"
-                              className={`w-full p-3 border rounded-lg outline-none ${
-                                erros.telefone
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                              required
-                            />
-                          )}
-                        </InputMask>
-                        <InputMask
-                          mask="99/99/9999"
-                          maskChar={null}
-                          name="dataNascimento"
-                          value={formData.dataNascimento}
-                          onChange={handleInputChange}
-                        >
-                          {(inputProps) => (
-                            <input
-                              {...inputProps}
-                              type="text"
-                              placeholder="Data de Nascimento"
-                              className={`w-full p-3 border rounded-lg outline-none ${
-                                erros.dataNascimento
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }`}
-                              required
-                            />
-                          )}
-                        </InputMask>
-                      </div>
-                    </div>
+                    <input
+                      type="text"
+                      name="nome"
+                      value={formData.nome}
+                      onChange={handleInputChange}
+                      placeholder="Nome completo"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.nome
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("nome")}
                   </div>
 
-                  {/* Endereço */}
                   <div>
-                    <h3 className="text-base font-medium text-gray-700 mb-4">
-                      Endereço
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-4 gap-4">
-                        <div className="col-span-1">
-                          <InputMask
-                            mask="99999-999"
-                            maskChar={null}
-                            name="cep"
-                            value={formData.cep}
-                            onChange={(e) => {
-                              handleInputChange(e);
-                              buscarCEP(e.target.value);
-                            }}
-                          >
-                            {(inputProps) => (
-                              <input
-                                {...inputProps}
-                                type="text"
-                                placeholder="CEP"
-                                className={`w-full p-3 border rounded-lg outline-none ${
-                                  erros.cep
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                }`}
-                                required
-                              />
-                            )}
-                          </InputMask>
-                        </div>
-                        <div className="col-span-3">
-                          <input
-                            type="text"
-                            name="rua"
-                            value={formData.rua}
-                            onChange={handleInputChange}
-                            placeholder="Rua"
-                            className={`w-full p-3 border rounded-lg outline-none ${
-                              erros.rua ? "border-red-500" : "border-gray-300"
-                            }`}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <input
-                          type="text"
-                          name="numero"
-                          value={formData.numero}
-                          onChange={handleInputChange}
-                          placeholder="Número"
-                          className={`w-full p-3 border rounded-lg outline-none ${
-                            erros.numero ? "border-red-500" : "border-gray-300"
-                          }`}
-                          required
-                        />
-                        <input
-                          type="text"
-                          name="complemento"
-                          value={formData.complemento}
-                          onChange={handleInputChange}
-                          placeholder="Complemento"
-                          className="w-full p-3 border border-gray-300 rounded-lg outline-none"
-                        />
-                      </div>
-                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Email"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.email
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("email")}
                   </div>
 
-                  {/* Senha */}
                   <div>
-                    <h3 className="text-base font-medium text-gray-700 mb-4">
-                      Senha
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <input
-                          type="password"
-                          name="senha"
-                          value={formData.senha}
-                          onChange={handleInputChange}
-                          placeholder="Senha"
-                          className={`w-full p-3 border rounded-lg outline-none ${
-                            erros.senha ? "border-red-500" : "border-gray-300"
-                          }`}
-                          required
-                        />
-                        {mostrarErro("senha")}
-                      </div>
-                      <div>
-                        <input
-                          type="password"
-                          name="confirmarSenha"
-                          value={formData.confirmarSenha}
-                          onChange={handleInputChange}
-                          placeholder="Confirmar Senha"
-                          className={`w-full p-3 border rounded-lg outline-none ${
-                            erros.confirmarSenha
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          }`}
-                          required
-                        />
-                        {mostrarErro("confirmarSenha")}
-                      </div>
-                    </div>
+                    <input
+                      type="text"
+                      name="cpf"
+                      value={formData.cpf}
+                      onChange={handleInputChange}
+                      placeholder="CPF"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.cpf
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("cpf")}
                   </div>
 
-                  {/* Pagamento para fornecedores */}
-                  {tipoUsuario === "fornecedor" && (
-                    <div>
-                      <h3 className="text-base font-medium text-gray-700 mb-4">
-                        Dados de Pagamento
-                      </h3>
-                      <div className="p-5 bg-green-50 border border-green-100 rounded-lg mb-4">
-                        <div className="flex items-center gap-2">
-                          <span className="bg-green-400 p-1 rounded-md">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-white"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              />
-                            </svg>
-                          </span>
-                          <div>
-                            <span className="font-medium text-green-800 block">
-                              Plano Premium
-                            </span>
-                            <span className="text-sm text-green-700">
-                              R$ 20,00/mês
-                            </span>
-                          </div>
-                        </div>
+                  <div>
+                    <input
+                      type="text"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handleInputChange}
+                      placeholder="Telefone"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.telefone
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("telefone")}
+                  </div>
+                </div>
+              </div>
 
-                        {/* Bandeiras aceitas */}
-                        <div className="mt-3 pt-3 border-t border-green-200">
-                          <div className="text-xs text-green-700 mb-2">
-                            Aceitamos as principais bandeiras:
-                          </div>
-                          <div className="flex items-center flex-wrap gap-2">
-                            <img
-                              src="https://cdn.iconscout.com/icon/free/png-256/free-visa-3-226460.png"
-                              alt="Visa"
-                              className="h-6"
-                            />
-                            <img
-                              src="https://cdn.iconscout.com/icon/free/png-256/free-mastercard-3-226462.png"
-                              alt="Mastercard"
-                              className="h-6"
-                            />
-                            <img
-                              src="https://logosmarcas.net/wp-content/uploads/2021/03/Elo-Logo.png"
-                              alt="Elo"
-                              className="h-6"
-                            />
-                            <img
-                              src="https://cdn.iconscout.com/icon/free/png-256/free-american-express-3-226461.png"
-                              alt="American Express"
-                              className="h-6"
-                            />
-                            <img
-                              src="https://cdn.worldvectorlogo.com/logos/hipercard-1.svg"
-                              alt="Hipercard"
-                              className="h-6"
-                            />
-                          </div>
-                        </div>
+              {/* Endereço */}
+              <div className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 ml-1 flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2 text-green-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Endereço
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-1">
+                    <input
+                      type="text"
+                      name="cep"
+                      value={formData.cep}
+                      onChange={handleInputChange}
+                      placeholder="CEP"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.cep
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("cep")}
+                  </div>
 
-                        {mercadoPagoReady && (
-                          <div className="mt-2 text-xs text-green-600 flex items-center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 mr-1"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            Pagamento seguro via Mercado Pago
-                          </div>
-                        )}
-                      </div>
+                  <div className="md:col-span-2">
+                    <input
+                      type="text"
+                      name="rua"
+                      value={formData.rua}
+                      onChange={handleInputChange}
+                      placeholder="Rua"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.rua
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("rua")}
+                  </div>
 
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <InputMask
-                            mask="9999 9999 9999 9999"
-                            maskChar={null}
-                            name="cartao.numero"
-                            value={formData.cartao.numero}
-                            onChange={handleInputChange}
-                          >
-                            {(inputProps) => (
-                              <input
-                                {...inputProps}
-                                type="text"
-                                placeholder="Número do cartão"
-                                className={`w-full p-3 pl-10 border rounded-lg outline-none ${
-                                  erros["cartao.numero"]
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                                }`}
-                                required
-                              />
-                            )}
-                          </InputMask>
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              />
-                            </svg>
-                          </span>
-                          {erros["cartao.numero"] && (
-                            <span className="text-red-500 text-xs">
-                              {erros["cartao.numero"]}
-                            </span>
-                          )}
-                        </div>
+                  <div>
+                    <input
+                      type="text"
+                      name="numero"
+                      value={formData.numero}
+                      onChange={handleInputChange}
+                      placeholder="Número"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.numero
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("numero")}
+                  </div>
 
-                        <input
-                          type="text"
-                          name="cartao.titular"
-                          value={formData.cartao.titular}
-                          onChange={handleInputChange}
-                          placeholder="Nome do titular (como está no cartão)"
-                          className={`w-full p-3 border rounded-lg outline-none ${
-                            erros["cartao.titular"]
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          }`}
-                          required
-                        />
-                        {erros["cartao.titular"] && (
-                          <span className="text-red-500 text-xs">
-                            {erros["cartao.titular"]}
-                          </span>
-                        )}
+                  <div className="md:col-span-2">
+                    <input
+                      type="text"
+                      name="complemento"
+                      value={formData.complemento}
+                      onChange={handleInputChange}
+                      placeholder="Complemento"
+                      className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+              </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <InputMask
-                              mask="99/99"
-                              maskChar={null}
-                              name="cartao.validade"
-                              value={formData.cartao.validade}
-                              onChange={handleInputChange}
-                            >
-                              {(inputProps) => (
-                                <input
-                                  {...inputProps}
-                                  type="text"
-                                  placeholder="Validade (MM/AA)"
-                                  className={`w-full p-3 border rounded-lg outline-none ${
-                                    erros["cartao.validade"]
-                                      ? "border-red-500"
-                                      : "border-gray-300"
-                                  }`}
-                                  required
-                                />
-                              )}
-                            </InputMask>
-                            {erros["cartao.validade"] && (
-                              <span className="text-red-500 text-xs">
-                                {erros["cartao.validade"]}
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <InputMask
-                              mask="999"
-                              maskChar={null}
-                              name="cartao.cvv"
-                              value={formData.cartao.cvv}
-                              onChange={handleInputChange}
-                            >
-                              {(inputProps) => (
-                                <input
-                                  {...inputProps}
-                                  type="text"
-                                  placeholder="CVV"
-                                  className={`w-full p-3 border rounded-lg outline-none ${
-                                    erros["cartao.cvv"]
-                                      ? "border-red-500"
-                                      : "border-gray-300"
-                                  }`}
-                                  required
-                                />
-                              )}
-                            </InputMask>
-                            {erros["cartao.cvv"] && (
-                              <span className="text-red-500 text-xs">
-                                {erros["cartao.cvv"]}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+              {/* Senhas */}
+              <div className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 ml-1 flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2 text-green-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Segurança
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <input
+                      type="password"
+                      name="senha"
+                      value={formData.senha}
+                      onChange={handleInputChange}
+                      placeholder="Senha"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.senha
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("senha")}
+                    <p className="text-xs text-gray-500 mt-1 ml-1">
+                      Min. 8 caracteres com maiúsculas, minúsculas e números
+                    </p>
+                  </div>
 
-                        {erros.pagamento && (
-                          <div className="bg-red-50 p-2 rounded-lg border border-red-200 text-red-600 text-sm">
-                            {erros.pagamento}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <input
+                      type="password"
+                      name="confirmarSenha"
+                      value={formData.confirmarSenha}
+                      onChange={handleInputChange}
+                      placeholder="Confirmar Senha"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.confirmarSenha
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("confirmarSenha")}
+                  </div>
+                </div>
+              </div>
 
-                  <div className="pt-5">
-                    <button
-                      type="submit"
-                      className="w-full py-4 px-6 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 text-lg"
-                      disabled={isSubmitting}
+              {/* Pagamento para fornecedores */}
+              {tipoUsuario === "fornecedor" && (
+                <div className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2 ml-1 flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-2 text-green-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center">
-                          <svg
-                            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Cadastrando...
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 002-2H4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Dados de Pagamento
+                  </h3>
+                  <div className="p-3 bg-green-50 border border-green-100 rounded-lg mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-green-500 p-1 rounded-md">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          />
+                        </svg>
+                      </span>
+                      <div>
+                        <span className="font-medium text-green-800 block text-sm">
+                          Plano Premium
                         </span>
-                      ) : (
-                        "Cadastrar"
-                      )}
-                    </button>
+                        <span className="text-xs text-green-700">
+                          R$ 20,00/mês
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      name="cartao.numero"
+                      value={formData.cartao.numero}
+                      onChange={handleInputChange}
+                      placeholder="Número do cartão"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros["cartao.numero"]
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {erros["cartao.numero"] && (
+                      <span className="text-red-500 text-xs">
+                        {erros["cartao.numero"]}
+                      </span>
+                    )}
+
+                    <input
+                      type="text"
+                      name="cartao.titular"
+                      value={formData.cartao.titular}
+                      onChange={handleInputChange}
+                      placeholder="Nome do titular"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros["cartao.titular"]
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {erros["cartao.titular"] && (
+                      <span className="text-red-500 text-xs">
+                        {erros["cartao.titular"]}
+                      </span>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="text"
+                          name="cartao.validade"
+                          value={formData.cartao.validade}
+                          onChange={handleInputChange}
+                          placeholder="Validade (MM/AA)"
+                          className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                            erros["cartao.validade"]
+                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                              : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                          }`}
+                        />
+                        {erros["cartao.validade"] && (
+                          <span className="text-red-500 text-xs">
+                            {erros["cartao.validade"]}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          name="cartao.cvv"
+                          value={formData.cartao.cvv}
+                          onChange={handleInputChange}
+                          placeholder="CVV"
+                          className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                            erros["cartao.cvv"]
+                              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                              : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                          }`}
+                        />
+                        {erros["cartao.cvv"] && (
+                          <span className="text-red-500 text-xs">
+                            {erros["cartao.cvv"]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
+
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  className="w-full py-3 px-5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg hover:shadow-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 focus:outline-none flex items-center justify-center"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Cadastrando...
+                    </span>
+                  ) : (
+                    "Cadastrar"
+                  )}
+                </button>
+
+                <div className="mt-4 text-center">
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-xs text-gray-500">
+                        ou
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Já tem uma conta?{" "}
+                    <button
+                      className="text-green-600 font-medium hover:underline transition-all"
+                      onClick={() => {
+                        closeModal();
+                        openLoginModal();
+                      }}
+                    >
+                      Faça login
+                    </button>
+                  </p>
+                </div>
+              </div>
             </form>
           </div>
         </div>
@@ -976,10 +988,11 @@ const Modal = ({ isOpen, closeModal, onLogin }) => {
   );
 };
 
-Modal.propTypes = {
+CadastroModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   closeModal: PropTypes.func.isRequired,
   onLogin: PropTypes.func.isRequired,
+  openLoginModal: PropTypes.func.isRequired,
 };
 
 // Modal para exibir os pedidos via WhatsApp
@@ -1225,10 +1238,13 @@ const Navbar = ({
 }) => {
   const [menu, setMenu] = useState(false);
   const handleChange = () => setMenu(!menu);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
   const [isPedidosModalOpen, setIsPedidosModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openLoginModal = () => setIsLoginModalOpen(true);
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+  const openCadastroModal = () => setIsCadastroModalOpen(true);
+  const closeCadastroModal = () => setIsCadastroModalOpen(false);
   const openPedidosModal = () => setIsPedidosModalOpen(true);
   const closePedidosModal = () => setIsPedidosModalOpen(false);
   const [scrolled, setScrolled] = useState(false);
@@ -1275,10 +1291,13 @@ const Navbar = ({
   };
 
   const handleEditarPerfil = () => {
-    // Implementar navegação para a página de editar perfil
+    // Chamar a função onEditarPerfil que foi passada como prop
+    onEditarPerfil();
+
+    // Feedback visual para o usuário
     iziToast.info({
       title: "Perfil",
-      message: "Funcionalidade de editar perfil será implementada em breve!",
+      message: "Abrindo página de edição de perfil...",
       position: "topRight",
       timeout: 3000,
     });
@@ -1334,7 +1353,7 @@ const Navbar = ({
         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
         onClick={() => {
           setUserMenuOpen(false);
-          onEditarPerfil();
+          handleEditarPerfil();
         }}
       >
         Editar Perfil
@@ -1449,12 +1468,40 @@ const Navbar = ({
           </Link>
 
           {!usuarioLogado?.logado ? (
-            <button
-              onClick={openModal}
-              className="px-6 py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full font-medium"
-            >
-              Login
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={openCadastroModal}
+                className="px-6 py-2.5 bg-white text-green-600 hover:text-green-700 font-medium rounded-lg shadow-sm transition-all duration-300 flex items-center gap-1 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-green-600 after:transition-all after:duration-300"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                </svg>
+                Cadastro
+              </button>
+              <button
+                onClick={openLoginModal}
+                className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 flex items-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 000 4zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Login
+              </button>
+            </div>
           ) : (
             <div className="flex items-center gap-4">
               {/* User profile icon with dropdown menu */}
@@ -1555,15 +1602,46 @@ const Navbar = ({
             </Link>
 
             {!usuarioLogado?.logado ? (
-              <button
-                onClick={() => {
-                  openModal();
-                  handleChange();
-                }}
-                className="mt-4 w-full py-2 border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-full"
-              >
-                Login
-              </button>
+              <div className="mt-4 flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    openCadastroModal();
+                    handleChange();
+                  }}
+                  className="w-full py-2.5 bg-white text-green-600 hover:text-green-700 font-medium rounded-lg shadow-sm transition-all duration-300 flex items-center justify-center gap-1"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                  </svg>
+                  Cadastro
+                </button>
+                <button
+                  onClick={() => {
+                    openLoginModal();
+                    handleChange();
+                  }}
+                  className="w-full py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-1"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 000 4zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Login
+                </button>
+              </div>
             ) : (
               <div className="mt-4 flex flex-col gap-3">
                 {/* Mostrar informações do usuário no mobile */}
@@ -1582,8 +1660,22 @@ const Navbar = ({
                 </div>
 
                 <button
-                  onClick={handleEditarPerfil}
-                  className="w-full py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all rounded-full"
+                  onClick={() => {
+                    openPedidosModal();
+                    handleChange();
+                  }}
+                  className="w-full py-2 bg-green-100 text-green-700 hover:bg-green-200 transition-all rounded-lg flex items-center justify-center gap-2"
+                >
+                  <FaWhatsapp size={18} />
+                  Meus Pedidos
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleEditarPerfil();
+                    handleChange();
+                  }}
+                  className="w-full py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all rounded-lg"
                 >
                   Editar Perfil
                 </button>
@@ -1594,7 +1686,7 @@ const Navbar = ({
                       irParaDashboard();
                       handleChange();
                     }}
-                    className="w-full py-2 bg-green-600 text-white hover:bg-green-700 transition-all rounded-full"
+                    className="w-full py-2 bg-green-600 text-white hover:bg-green-700 transition-all rounded-lg"
                   >
                     Dashboard
                   </button>
@@ -1605,7 +1697,7 @@ const Navbar = ({
                     onLogout();
                     handleChange();
                   }}
-                  className="w-full py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-full"
+                  className="w-full py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-lg"
                 >
                   Sair
                 </button>
@@ -1615,7 +1707,18 @@ const Navbar = ({
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} closeModal={closeModal} onLogin={onLogin} />
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        closeModal={closeLoginModal}
+        onLogin={onLogin}
+        openCadastroModal={openCadastroModal}
+      />
+      <CadastroModal
+        isOpen={isCadastroModalOpen}
+        closeModal={closeCadastroModal}
+        onLogin={onLogin}
+        openLoginModal={openLoginModal}
+      />
       <PedidosWhatsappModal
         isOpen={isPedidosModalOpen}
         closeModal={closePedidosModal}
