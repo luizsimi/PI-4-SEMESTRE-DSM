@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
-import Sobre from "./components/Sobre";
 import Menu from "./components/Menu";
 import Footer from "./components/Footer";
 import Pratos from "./components/Pratos";
@@ -203,9 +202,7 @@ const App = () => {
                 <Pratos />
               </div>
 
-              <div id="sobre">
-                <Sobre />
-              </div>
+              <div id="sobre">{/* Componente Sobre removido */}</div>
 
               <div id="menu">
                 <Menu />
