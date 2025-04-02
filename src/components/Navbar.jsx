@@ -5,7 +5,6 @@ import { BiChevronDown } from "react-icons/bi";
 import { FaUserCircle, FaWhatsapp, FaStar, FaRegStar } from "react-icons/fa";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
-import InputMask from "react-input-mask";
 import PropTypes from "prop-types";
 import {
   validarCPF,
@@ -1229,24 +1228,613 @@ PedidosWhatsappModal.propTypes = {
   closeModal: PropTypes.func.isRequired,
 };
 
-const Navbar = ({
-  onLogin,
-  usuarioLogado,
-  onLogout,
-  onNavigate,
-  onEditarPerfil,
-}) => {
+// Modal para editar perfil do usuário
+const EditarPerfilModal = ({ isOpen, closeModal, usuarioLogado }) => {
+  const [formData, setFormData] = useState({
+    nome: usuarioLogado?.nome || "",
+    email: usuarioLogado?.email || "",
+    telefone: usuarioLogado?.telefone || "",
+    cpf: usuarioLogado?.cpf || "",
+    endereco: {
+      cep: usuarioLogado?.endereco?.cep || "",
+      rua: usuarioLogado?.endereco?.rua || "",
+      numero: usuarioLogado?.endereco?.numero || "",
+      complemento: usuarioLogado?.endereco?.complemento || "",
+      bairro: usuarioLogado?.endereco?.bairro || "",
+      cidade: usuarioLogado?.endereco?.cidade || "",
+      estado: usuarioLogado?.endereco?.estado || "",
+    },
+    senhaAtual: "",
+    novaSenha: "",
+    confirmarSenha: "",
+  });
+  const [erros, setErros] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("informacoes");
+
+  useEffect(() => {
+    // Atualiza os dados do formulário quando o usuário logado muda
+    if (usuarioLogado) {
+      setFormData({
+        nome: usuarioLogado.nome || "",
+        email: usuarioLogado.email || "",
+        telefone: usuarioLogado.telefone || "",
+        cpf: usuarioLogado.cpf || "",
+        endereco: {
+          cep: usuarioLogado.endereco?.cep || "",
+          rua: usuarioLogado.endereco?.rua || "",
+          numero: usuarioLogado.endereco?.numero || "",
+          complemento: usuarioLogado.endereco?.complemento || "",
+          bairro: usuarioLogado.endereco?.bairro || "",
+          cidade: usuarioLogado.endereco?.cidade || "",
+          estado: usuarioLogado.endereco?.estado || "",
+        },
+        senhaAtual: "",
+        novaSenha: "",
+        confirmarSenha: "",
+      });
+    }
+  }, [usuarioLogado]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // Limpar erro quando o campo for modificado
+    if (erros[name]) {
+      setErros((prev) => {
+        const newErros = { ...prev };
+        delete newErros[name];
+        return newErros;
+      });
+    }
+  };
+
+  const buscarCEP = async () => {
+    const cep = formData.endereco.cep.replace(/\D/g, "");
+    if (cep.length === 8) {
+      setIsSubmitting(true);
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (!data.erro) {
+          setFormData((prev) => ({
+            ...prev,
+            endereco: {
+              ...prev.endereco,
+              rua: data.logradouro,
+              bairro: data.bairro,
+              cidade: data.localidade,
+              estado: data.uf,
+            },
+          }));
+
+          // Limpar possíveis erros do endereço
+          setErros((prev) => {
+            const newErros = { ...prev };
+            delete newErros["endereco.rua"];
+            delete newErros["endereco.bairro"];
+            delete newErros["endereco.cidade"];
+            delete newErros["endereco.estado"];
+            return newErros;
+          });
+        } else {
+          setErros((prev) => ({
+            ...prev,
+            "endereco.cep": "CEP não encontrado",
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+        setErros((prev) => ({
+          ...prev,
+          "endereco.cep": "Erro ao buscar CEP",
+        }));
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const validateForm = () => {
+    const novosErros = {};
+
+    // Validações básicas
+    if (!formData.nome || formData.nome.trim().length < 3) {
+      novosErros.nome = "Nome deve ter no mínimo 3 caracteres";
+    }
+
+    if (!validarEmail(formData.email)) {
+      novosErros.email = "Email inválido";
+    }
+
+    // Validação do telefone (se estiver preenchido)
+    if (formData.telefone && formData.telefone.replace(/\D/g, "").length < 10) {
+      novosErros.telefone = "Telefone inválido";
+    }
+
+    // Validação do CPF (se estiver preenchido)
+    if (formData.cpf && !validarCPF(formData.cpf)) {
+      novosErros.cpf = "CPF inválido";
+    }
+
+    // Validação do CEP (se estiver preenchido)
+    if (formData.endereco.cep && !validarCEP(formData.endereco.cep)) {
+      novosErros["endereco.cep"] = "CEP inválido";
+    }
+
+    // Se a senha atual estiver preenchida, valida a nova senha
+    if (formData.senhaAtual) {
+      if (!formData.novaSenha) {
+        novosErros.novaSenha = "Nova senha é obrigatória";
+      } else if (!validarSenha(formData.novaSenha)) {
+        novosErros.novaSenha =
+          "Senha deve ter no mínimo 8 caracteres, uma letra maiúscula, uma minúscula e um número";
+      }
+
+      if (formData.novaSenha !== formData.confirmarSenha) {
+        novosErros.confirmarSenha = "As senhas não coincidem";
+      }
+    }
+
+    setErros(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Simulação de envio para o servidor
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      iziToast.success({
+        title: "Sucesso!",
+        message: "Perfil atualizado com sucesso!",
+        position: "topRight",
+        timeout: 3000,
+      });
+
+      closeModal();
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      iziToast.error({
+        title: "Erro",
+        message: "Ocorreu um erro ao atualizar seu perfil.",
+        position: "topRight",
+        timeout: 3000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const mostrarErro = (campo) => {
+    return erros[campo] ? (
+      <span className="text-red-500 text-xs">{erros[campo]}</span>
+    ) : null;
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4 backdrop-blur-sm transition-all duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[700px] relative overflow-hidden transform transition-all duration-300 scale-100 animate-fadeIn">
+        {/* Cabeçalho com gradiente */}
+        <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-6 relative">
+          <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=60')] bg-cover bg-center opacity-15 mix-blend-overlay"></div>
+
+          <button
+            onClick={closeModal}
+            className="absolute top-4 right-4 bg-white bg-opacity-20 p-1.5 rounded-full text-white hover:bg-opacity-40 transition-all z-10"
+          >
+            <AiOutlineClose size={16} />
+          </button>
+
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-white">Editar Perfil</h2>
+            <p className="text-white text-opacity-80 mt-1">
+              Atualize suas informações pessoais
+            </p>
+          </div>
+        </div>
+
+        <div className="p-5">
+          {/* Tabs de navegação */}
+          <div className="border-b border-gray-200 mb-5">
+            <div className="flex -mb-px">
+              <button
+                className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === "informacoes"
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => setActiveTab("informacoes")}
+              >
+                Informações Pessoais
+              </button>
+              <button
+                className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === "endereco"
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => setActiveTab("endereco")}
+              >
+                Endereço
+              </button>
+              <button
+                className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === "seguranca"
+                    ? "border-green-500 text-green-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => setActiveTab("seguranca")}
+              >
+                Segurança
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Tab de Informações Pessoais */}
+            {activeTab === "informacoes" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Nome completo
+                  </label>
+                  <input
+                    type="text"
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleInputChange}
+                    className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                      erros.nome
+                        ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                    }`}
+                  />
+                  {mostrarErro("nome")}
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                      erros.email
+                        ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                        : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                    }`}
+                  />
+                  {mostrarErro("email")}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Telefone
+                    </label>
+                    <input
+                      type="text"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handleInputChange}
+                      placeholder="(XX) XXXXX-XXXX"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.telefone
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("telefone")}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      CPF
+                    </label>
+                    <input
+                      type="text"
+                      name="cpf"
+                      value={formData.cpf}
+                      onChange={handleInputChange}
+                      placeholder="XXX.XXX.XXX-XX"
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.cpf
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("cpf")}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab de Endereço */}
+            {activeTab === "endereco" && (
+              <div className="space-y-4">
+                <div className="flex space-x-4">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      CEP
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="endereco.cep"
+                        value={formData.endereco.cep}
+                        onChange={handleInputChange}
+                        onBlur={buscarCEP}
+                        placeholder="00000-000"
+                        className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                          erros["endereco.cep"]
+                            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                            : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                        }`}
+                      />
+                      {mostrarErro("endereco.cep")}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Estado
+                    </label>
+                    <input
+                      type="text"
+                      name="endereco.estado"
+                      value={formData.endereco.estado}
+                      onChange={handleInputChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Cidade
+                  </label>
+                  <input
+                    type="text"
+                    name="endereco.cidade"
+                    value={formData.endereco.cidade}
+                    onChange={handleInputChange}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Bairro
+                  </label>
+                  <input
+                    type="text"
+                    name="endereco.bairro"
+                    value={formData.endereco.bairro}
+                    onChange={handleInputChange}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Rua
+                  </label>
+                  <input
+                    type="text"
+                    name="endereco.rua"
+                    value={formData.endereco.rua}
+                    onChange={handleInputChange}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Número
+                    </label>
+                    <input
+                      type="text"
+                      name="endereco.numero"
+                      value={formData.endereco.numero}
+                      onChange={handleInputChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Complemento
+                    </label>
+                    <input
+                      type="text"
+                      name="endereco.complemento"
+                      value={formData.endereco.complemento}
+                      onChange={handleInputChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab de Segurança */}
+            {activeTab === "seguranca" && (
+              <div className="space-y-4">
+                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-4">
+                  <p className="text-sm text-yellow-800">
+                    Para alterar sua senha, preencha sua senha atual e depois a
+                    nova senha.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Senha atual
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="senhaAtual"
+                      value={formData.senhaAtual}
+                      onChange={handleInputChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Nova senha
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="novaSenha"
+                      value={formData.novaSenha}
+                      onChange={handleInputChange}
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.novaSenha
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("novaSenha")}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    A senha deve ter no mínimo 8 caracteres, incluir letra
+                    maiúscula, minúscula e número.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Confirmar nova senha
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      name="confirmarSenha"
+                      value={formData.confirmarSenha}
+                      onChange={handleInputChange}
+                      className={`w-full p-2.5 border rounded-lg outline-none transition-all duration-200 ${
+                        erros.confirmarSenha
+                          ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+                          : "border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                      }`}
+                    />
+                    {mostrarErro("confirmarSenha")}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 focus:outline-none flex items-center justify-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Salvando...
+                  </span>
+                ) : (
+                  "Salvar alterações"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+EditarPerfilModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  closeModal: PropTypes.func.isRequired,
+  usuarioLogado: PropTypes.shape({
+    nome: PropTypes.string,
+    email: PropTypes.string,
+    telefone: PropTypes.string,
+    cpf: PropTypes.string,
+    endereco: PropTypes.shape({
+      cep: PropTypes.string,
+      rua: PropTypes.string,
+      numero: PropTypes.string,
+      complemento: PropTypes.string,
+      bairro: PropTypes.string,
+      cidade: PropTypes.string,
+      estado: PropTypes.string,
+    }),
+  }),
+};
+
+const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
   const [menu, setMenu] = useState(false);
   const handleChange = () => setMenu(!menu);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
   const [isPedidosModalOpen, setIsPedidosModalOpen] = useState(false);
+  const [isEditarPerfilModalOpen, setIsEditarPerfilModalOpen] = useState(false);
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
   const openCadastroModal = () => setIsCadastroModalOpen(true);
   const closeCadastroModal = () => setIsCadastroModalOpen(false);
   const openPedidosModal = () => setIsPedidosModalOpen(true);
   const closePedidosModal = () => setIsPedidosModalOpen(false);
+  const openEditarPerfilModal = () => setIsEditarPerfilModalOpen(true);
+  const closeEditarPerfilModal = () => setIsEditarPerfilModalOpen(false);
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
@@ -1291,15 +1879,15 @@ const Navbar = ({
   };
 
   const handleEditarPerfil = () => {
-    // Chamar a função onEditarPerfil que foi passada como prop
-    onEditarPerfil();
+    // Abrir o modal de edição de perfil
+    openEditarPerfilModal();
 
     // Feedback visual para o usuário
     iziToast.info({
       title: "Perfil",
-      message: "Abrindo página de edição de perfil...",
+      message: "Abrindo editor de perfil",
       position: "topRight",
-      timeout: 3000,
+      timeout: 2000,
     });
     setUserMenuOpen(false);
   };
@@ -1440,15 +2028,6 @@ const Navbar = ({
             </div>
           </div>
           <Link
-            to="about"
-            spy
-            smooth
-            duration={500}
-            className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
-          >
-            Sobre
-          </Link>
-          <Link
             to="menu"
             spy
             smooth
@@ -1569,16 +2148,6 @@ const Navbar = ({
               onClick={handleChange}
             >
               Pratos
-            </Link>
-            <Link
-              to="about"
-              spy
-              smooth
-              duration={500}
-              className="text-gray-700 hover:text-green-600 transition-all cursor-pointer py-3 border-b border-gray-100"
-              onClick={handleChange}
-            >
-              Sobre
             </Link>
             <Link
               to="menu"
@@ -1723,6 +2292,11 @@ const Navbar = ({
         isOpen={isPedidosModalOpen}
         closeModal={closePedidosModal}
       />
+      <EditarPerfilModal
+        isOpen={isEditarPerfilModalOpen}
+        closeModal={closeEditarPerfilModal}
+        usuarioLogado={usuarioLogado}
+      />
     </div>
   );
 };
@@ -1731,7 +2305,6 @@ Navbar.propTypes = {
   onLogin: PropTypes.func.isRequired,
   onLogout: PropTypes.func.isRequired,
   onNavigate: PropTypes.func.isRequired,
-  onEditarPerfil: PropTypes.func.isRequired,
   usuarioLogado: PropTypes.shape({
     logado: PropTypes.bool,
     tipo: PropTypes.string,
@@ -1748,19 +2321,5 @@ Navbar.defaultProps = {
     email: "",
   },
 };
-
-// Adicione isso no fim do arquivo antes do export default Navbar
-// Definindo uma classe global para remover a barra de rolagem
-const style = document.createElement("style");
-style.textContent = `
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
-document.head.appendChild(style);
 
 export default Navbar;
