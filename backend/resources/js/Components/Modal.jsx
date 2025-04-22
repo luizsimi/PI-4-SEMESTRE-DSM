@@ -1,65 +1,56 @@
-import {
-    Dialog,
-    DialogPanel,
-    Transition,
-    TransitionChild,
-} from '@headlessui/react';
+import React from "react";
 
-export default function Modal({
-    children,
-    show = false,
-    maxWidth = '2xl',
-    closeable = true,
-    onClose = () => {},
-}) {
-    const close = () => {
-        if (closeable) {
-            onClose();
-        }
-    };
+const Modal = ({ isOpen, closeModal }) => {
+  if (!isOpen) return null; // Se não estiver aberto, não renderiza nada.
 
-    const maxWidthClass = {
-        sm: 'sm:max-w-sm',
-        md: 'sm:max-w-md',
-        lg: 'sm:max-w-lg',
-        xl: 'sm:max-w-xl',
-        '2xl': 'sm:max-w-2xl',
-    }[maxWidth];
-
-    return (
-        <Transition show={show} leave="duration-200">
-            <Dialog
-                as="div"
-                id="modal"
-                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
-                onClose={close}
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg w-1/3">
+        <h2 className="text-2xl font-semibold mb-4">Cadastro Completo</h2>
+        <form className="space-y-4">
+          <div>
+            <label className="block text-lg">Nome Completo</label>
+            <input
+              type="text"
+              className="w-full border px-3 py-2 mt-1"
+              placeholder="Seu nome"
+            />
+          </div>
+          <div>
+            <label className="block text-lg">E-mail</label>
+            <input
+              type="email"
+              className="w-full border px-3 py-2 mt-1"
+              placeholder="Seu e-mail"
+            />
+          </div>
+          <div>
+            <label className="block text-lg">Senha</label>
+            <input
+              type="password"
+              className="w-full border px-3 py-2 mt-1"
+              placeholder="Sua senha"
+            />
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 bg-red-500 text-white rounded"
+              onClick={closeModal}
             >
-                <TransitionChild
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="absolute inset-0 bg-gray-500/75 dark:bg-gray-900/75" />
-                </TransitionChild>
+              Fechar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Enviar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
-                <TransitionChild
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                    <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full dark:bg-gray-800 ${maxWidthClass}`}
-                    >
-                        {children}
-                    </DialogPanel>
-                </TransitionChild>
-            </Dialog>
-        </Transition>
-    );
-}
+export default Modal;
