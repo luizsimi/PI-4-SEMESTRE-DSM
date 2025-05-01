@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
-import Home from "./components/Home";
+import Home from './components/Home';
 import Menu from "./components/Menu";
 import Footer from "./components/Footer";
 import Pratos from "./components/Pratos";

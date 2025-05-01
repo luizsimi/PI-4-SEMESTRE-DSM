@@ -2311,6 +2311,7 @@ Navbar.propTypes = {
     nome: PropTypes.string,
     email: PropTypes.string,
   }),
+  onEditarPerfil: PropTypes.func,
 };
 
 Navbar.defaultProps = {
