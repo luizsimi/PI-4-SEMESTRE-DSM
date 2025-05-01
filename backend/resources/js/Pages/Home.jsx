@@ -31,22 +31,62 @@ const HomeContent = () => {
         // Adiciona estilos customizados para o slider
         const style = document.createElement("style");
         style.textContent = `
-      .slick-slide {
-        padding: 0 10px;
-      }
-      .slick-list {
-        margin: 0 -10px;
-        padding-bottom: 15px !important;
-      }
-      .slick-track {
-        display: flex !important;
-        align-items: stretch !important;
-        justify-content: flex-start !important;
-      }
-      .slick-slide > div {
-        height: 100%;
-      }
-    `;
+        body {
+            overflow-x: hidden;
+        }
+        .slick-slide {
+            padding: 0 10px;
+            height: auto;
+        }
+        .slick-list {
+            margin: 0 -10px;
+            padding-bottom: 0 !important;
+            overflow: hidden;
+        }
+        .slick-track {
+            display: flex !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .slick-slide > div {
+            height: 100%;
+        }
+        .slick-dots {
+            bottom: -10px;
+            position: relative;
+            margin-top: 15px;
+        }
+        .slick-dots li button:before {
+            font-size: 10px;
+            color: #10b981;
+            opacity: 0.5;
+        }
+        .slick-dots li.slick-active button:before {
+            opacity: 1;
+            color: #10b981;
+        }
+        .slick-prev, .slick-next {
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+        }
+        .slick-prev {
+            left: 0;
+        }
+        .slick-next {
+            right: 0;
+        }
+        .slick-prev:before, .slick-next:before {
+            font-size: 30px;
+            color: #10b981;
+            opacity: 0.75;
+        }
+        .slick-prev:hover:before, .slick-next:hover:before {
+            opacity: 1;
+        }
+        `;
         document.head.appendChild(style);
 
         // Simula carregamento de dados
@@ -68,9 +108,21 @@ const HomeContent = () => {
         slidesToShow: 3,
         slidesToScroll: 1,
         autoplay: true,
-        autoplaySpeed: 3000,
+        autoplaySpeed: 4000,
         pauseOnHover: true,
+        swipeToSlide: true,
+        arrows: true,
+        adaptiveHeight: false,
+        centerMode: false,
+        draggable: true,
         responsive: [
+            {
+                breakpoint: 1280,
+                settings: {
+                    slidesToShow: 3,
+                    slidesToScroll: 1,
+                },
+            },
             {
                 breakpoint: 1024,
                 settings: {
@@ -79,10 +131,11 @@ const HomeContent = () => {
                 },
             },
             {
-                breakpoint: 600,
+                breakpoint: 640,
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
+                    arrows: false,
                 },
             },
         ],
@@ -302,7 +355,7 @@ const HomeContent = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-x-hidden">
             {/* Hero Section */}
             <div className="flex flex-col lg:flex-row justify-between items-center lg:px-32 px-5 py-10 lg:py-20">
                 <div className="w-full lg:w-1/2 space-y-6 mb-10 lg:mb-0">
@@ -426,7 +479,7 @@ const HomeContent = () => {
                         {pratosFiltrados.map((prato) => (
                             <div
                                 key={prato.id}
-                                className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg"
+                                className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg h-full flex flex-col"
                             >
                                 <div className="h-[180px] overflow-hidden relative">
                                     <img
@@ -446,11 +499,11 @@ const HomeContent = () => {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="p-4">
+                                <div className="p-4 flex flex-col flex-grow">
                                     <h3 className="text-lg font-bold text-gray-800 mb-1">
                                         {prato.nome}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-3">
+                                    <p className="text-gray-600 text-sm mb-3 flex-grow">
                                         {prato.descricao}
                                     </p>
                                     <div className="flex justify-between items-center mb-3">
@@ -508,7 +561,7 @@ const HomeContent = () => {
                         {beneficios.map((beneficio) => (
                             <div
                                 key={beneficio.id}
-                                className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all"
+                                className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all h-full flex flex-col"
                             >
                                 <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                                     {beneficio.icone}
@@ -516,7 +569,7 @@ const HomeContent = () => {
                                 <h3 className="text-xl font-bold text-gray-800 mb-2">
                                     {beneficio.titulo}
                                 </h3>
-                                <p className="text-gray-600">
+                                <p className="text-gray-600 flex-grow">
                                     {beneficio.descricao}
                                 </p>
                             </div>
@@ -527,7 +580,7 @@ const HomeContent = () => {
 
             {/* Carrossel de Restaurantes Parceiros */}
             <div className="py-16 lg:px-32 px-5">
-                <div className="text-center mb-12">
+                <div className="text-center mb-8">
                     <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
                         RESTAURANTES PARCEIROS
                     </span>
@@ -540,60 +593,56 @@ const HomeContent = () => {
                     </p>
                 </div>
 
-                <div className="slick-container px-2 mb-8">
-                    <div className="slick-fix mx-auto max-w-7xl">
-                        <Slider {...carrosselSettings}>
-                            {restaurantes.map((restaurante) => (
-                                <div key={restaurante.id} className="h-full">
-                                    <div className="bg-white rounded-xl shadow-md overflow-hidden h-full transition-all hover:shadow-lg mx-2">
-                                        <div className="h-[220px] overflow-hidden relative">
-                                            <img
-                                                src={restaurante.imagem}
-                                                alt={restaurante.nome}
-                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
-                                            <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
-                                                <FaStar className="text-yellow-400 mr-1" />
-                                                <span className="text-sm font-bold">
-                                                    {restaurante.rating}
+                <div className="max-w-7xl mx-auto">
+                    <Slider {...carrosselSettings}>
+                        {restaurantes.map((restaurante) => (
+                            <div key={restaurante.id} className="h-full p-2">
+                                <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
+                                    <div className="h-[200px] overflow-hidden relative">
+                                        <img
+                                            src={restaurante.imagem}
+                                            alt={restaurante.nome}
+                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+                                        <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
+                                            <FaStar className="text-yellow-400 mr-1" />
+                                            <span className="text-sm font-bold">
+                                                {restaurante.rating}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="p-5 flex flex-col flex-grow">
+                                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                            {restaurante.nome}
+                                        </h3>
+                                        <p className="text-gray-600 mb-3 flex-grow">
+                                            {restaurante.descricao}
+                                        </p>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div className="flex items-center">
+                                                <FaClock className="text-gray-400 mr-1" />
+                                                <span className="text-sm text-gray-500">
+                                                    {restaurante.tempo}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="p-5 flex flex-col h-[calc(100%-220px)]">
-                                            <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                                {restaurante.nome}
-                                            </h3>
-                                            <p className="text-gray-600 mb-3 flex-grow">
-                                                {restaurante.descricao}
-                                            </p>
-                                            <div className="flex justify-between items-center mb-4">
-                                                <div className="flex items-center">
-                                                    <FaClock className="text-gray-400 mr-1" />
-                                                    <span className="text-sm text-gray-500">
-                                                        {restaurante.tempo}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <Button
-                                                    title={
-                                                        <div className="flex items-center text-sm">
-                                                            <FaWhatsapp className="mr-2" />
-                                                            <span>
-                                                                Contatar
-                                                            </span>
-                                                        </div>
-                                                    }
-                                                    primary={true}
-                                                />
-                                            </div>
+                                        <div>
+                                            <Button
+                                                title={
+                                                    <div className="flex items-center text-sm">
+                                                        <FaWhatsapp className="mr-2" />
+                                                        <span>Contatar</span>
+                                                    </div>
+                                                }
+                                                primary={true}
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </Slider>
-                    </div>
+                            </div>
+                        ))}
+                    </Slider>
                 </div>
             </div>
 
@@ -747,7 +796,7 @@ const HomeContent = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm">
+                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm h-full flex flex-col">
                         <div className="flex items-center mb-4">
                             <img
                                 src="/img/pic1.png"
@@ -767,14 +816,14 @@ const HomeContent = () => {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-gray-600">
+                        <p className="text-gray-600 flex-grow">
                             "Desde que comecei a pedir pelo LeveFit, minha
                             alimentação mudou completamente. Os pratos são
                             deliciosos e nutritivos!"
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm">
+                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm h-full flex flex-col">
                         <div className="flex items-center mb-4">
                             <img
                                 src="/img/pic2.png"
@@ -794,14 +843,14 @@ const HomeContent = () => {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-gray-600">
+                        <p className="text-gray-600 flex-grow">
                             "Fantástico! Como atleta, preciso de refeições
                             balanceadas e aqui encontro exatamente o que preciso
                             para meu desempenho."
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm">
+                    <div className="bg-gray-50 p-6 rounded-xl shadow-sm h-full flex flex-col">
                         <div className="flex items-center mb-4">
                             <img
                                 src="/img/pic3.png"
@@ -821,7 +870,7 @@ const HomeContent = () => {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-gray-600">
+                        <p className="text-gray-600 flex-grow">
                             "Adoro a variedade de opções e a facilidade de
                             contato com os restaurantes. A qualidade dos pratos
                             é incrível!"
