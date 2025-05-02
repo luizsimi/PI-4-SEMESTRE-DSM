@@ -8,6 +8,7 @@ import {
     FaStar,
     FaRegStar,
     FaUtensils,
+    FaLeaf,
 } from "react-icons/fa";
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
@@ -2774,15 +2775,20 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
     return (
         <div
             className={`fixed w-full z-50 ${
-                scrolled ? "bg-white shadow-md" : "bg-transparent"
+                scrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"
             } transition-all duration-300`}
         >
-            <div className="container mx-auto flex flex-row justify-between items-center p-4">
+            <div className="container mx-auto flex flex-row justify-between items-center px-4 md:px-8">
                 <div className="flex items-center">
                     <Link to="home" spy smooth duration={500}>
-                        <h1 className="text-2xl font-semibold text-green-600 cursor-pointer">
-                            LeveFit
-                        </h1>
+                        <div className="flex items-center">
+                            <div className="h-10 w-10 bg-green-500 text-white rounded-full flex items-center justify-center mr-2">
+                                <FaLeaf className="text-white text-xl" />
+                            </div>
+                            <h1 className="text-2xl font-bold text-green-600">
+                                LeveFit
+                            </h1>
+                        </div>
                     </Link>
                 </div>
 
@@ -2792,16 +2798,16 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                         spy
                         smooth
                         duration={500}
-                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer relative py-2 after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-green-500 after:transition-all after:duration-300"
                     >
                         Home
                     </Link>
                     <div className="relative group">
-                        <div className="flex items-center gap-1 text-gray-700 hover:text-green-600 transition-all cursor-pointer">
+                        <div className="flex items-center gap-1 text-gray-700 hover:text-green-600 transition-all cursor-pointer py-2">
                             <span>Pratos</span>
-                            <BiChevronDown />
+                            <BiChevronDown className="group-hover:rotate-180 transition-transform duration-300" />
                         </div>
-                        <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                        <div className="absolute top-full left-0 mt-1 w-48 bg-white shadow-lg rounded-lg overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                             <ul className="py-2">
                                 <li>
                                     <Link
@@ -2809,7 +2815,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         spy
                                         smooth
                                         duration={500}
-                                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
+                                        className="text-gray-700 hover:text-white hover:bg-green-500 transition-all cursor-pointer block py-2 px-4"
                                     >
                                         Todos os Pratos
                                     </Link>
@@ -2820,7 +2826,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         spy
                                         smooth
                                         duration={500}
-                                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
+                                        className="text-gray-700 hover:text-white hover:bg-green-500 transition-all cursor-pointer block py-2 px-4"
                                     >
                                         Mais vendidos
                                     </Link>
@@ -2831,7 +2837,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         spy
                                         smooth
                                         duration={500}
-                                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer block py-1 px-4"
+                                        className="text-gray-700 hover:text-white hover:bg-green-500 transition-all cursor-pointer block py-2 px-4"
                                     >
                                         Avaliados
                                     </Link>
@@ -2844,7 +2850,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                         spy
                         smooth
                         duration={500}
-                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer relative py-2 after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-green-500 after:transition-all after:duration-300"
                     >
                         Destaques
                     </Link>
@@ -2853,7 +2859,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                         spy
                         smooth
                         duration={500}
-                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer"
+                        className="text-gray-700 hover:text-green-600 transition-all cursor-pointer relative py-2 after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-green-500 after:transition-all after:duration-300"
                     >
                         Avaliações
                     </Link>
@@ -3026,17 +3032,28 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                         ) : (
                             <div className="mt-4 flex flex-col gap-3">
                                 {/* Mostrar informações do usuário no mobile */}
-                                <div className="flex items-center p-3 bg-green-50 rounded-lg">
-                                    <FaUserCircle className="text-2xl text-green-600 mr-3" />
+                                <div className="flex items-center p-4 bg-green-50 rounded-lg mb-2">
+                                    <div className="h-12 w-12 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm mr-3">
+                                        <span className="text-lg font-bold">
+                                            {usuarioLogado.nome
+                                                ? usuarioLogado.nome
+                                                      .charAt(0)
+                                                      .toUpperCase()
+                                                : "U"}
+                                        </span>
+                                    </div>
                                     <div>
-                                        <p className="font-medium">
+                                        <p className="font-medium text-gray-800">
                                             {usuarioLogado.nome || "Usuário"}
                                         </p>
                                         <p className="text-xs text-gray-500">
+                                            {usuarioLogado.email}
+                                        </p>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
                                             {usuarioLogado.tipo === "fornecedor"
                                                 ? "Fornecedor"
                                                 : "Cliente"}
-                                        </p>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -3045,10 +3062,12 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         openPedidosModal();
                                         handleChange();
                                     }}
-                                    className="w-full py-2 bg-green-100 text-green-700 hover:bg-green-200 transition-all rounded-lg flex items-center justify-center gap-2"
+                                    className="w-full py-3 text-gray-700 hover:bg-green-50 transition-all rounded-lg flex items-center px-4 gap-3 border border-gray-200"
                                 >
-                                    <FaWhatsapp size={18} />
-                                    Meus Pedidos
+                                    <FaWhatsapp className="text-green-500 text-lg" />
+                                    <span className="font-medium">
+                                        Meus Pedidos
+                                    </span>
                                 </button>
 
                                 <button
@@ -3056,9 +3075,25 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         handleEditarPerfil();
                                         handleChange();
                                     }}
-                                    className="w-full py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all rounded-lg"
+                                    className="w-full py-3 text-gray-700 hover:bg-green-50 transition-all rounded-lg flex items-center px-4 gap-3 border border-gray-200"
                                 >
-                                    Editar Perfil
+                                    <svg
+                                        className="w-5 h-5 text-blue-500"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                        ></path>
+                                    </svg>
+                                    <span className="font-medium">
+                                        Editar Perfil
+                                    </span>
                                 </button>
 
                                 {usuarioLogado.tipo === "fornecedor" && (
@@ -3067,9 +3102,25 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                             irParaDashboard();
                                             handleChange();
                                         }}
-                                        className="w-full py-2 bg-green-600 text-white hover:bg-green-700 transition-all rounded-lg"
+                                        className="w-full py-3 bg-green-500 text-white hover:bg-green-600 transition-all rounded-lg flex items-center px-4 gap-3"
                                     >
-                                        Dashboard
+                                        <svg
+                                            className="w-5 h-5 text-white"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                            ></path>
+                                        </svg>
+                                        <span className="font-medium">
+                                            Dashboard
+                                        </span>
                                     </button>
                                 )}
 
@@ -3078,9 +3129,25 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                         onLogout();
                                         handleChange();
                                     }}
-                                    className="w-full py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-lg"
+                                    className="w-full py-3 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-lg flex items-center px-4 gap-3 mt-2"
                                 >
-                                    Sair
+                                    <svg
+                                        className="w-5 h-5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                        ></path>
+                                    </svg>
+                                    <span className="font-medium">
+                                        Sair da conta
+                                    </span>
                                 </button>
                             </div>
                         )}
