@@ -1,4 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, {
+    Suspense,
+    lazy,
+    useEffect,
+    useState,
+    memo,
+    useCallback,
+    useRef,
+} from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Menu from "../components/Menu";
@@ -18,103 +26,316 @@ import {
     FaCarrot,
     FaFish,
 } from "react-icons/fa";
-import Slider from "react-slick";
+import { createPortal } from "react-dom";
+// Importações de componentes grandes feitas com lazy loading
+const Slider = lazy(() => import("react-slick"));
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import "../../css/slider.css";
+// Importar os utilitários de otimização de imagens
+import {
+    preloadImage,
+    setupLazyLoading,
+    getOptimizedImageUrl,
+} from "../utils/imageOptimizer";
+
+// Memoização dos componentes para evitar re-renderizações desnecessárias
+const MemoizedButton = memo(Button);
+const MemoizedSlider = memo(({ children, ...props }) => (
+    <Suspense
+        fallback={
+            <div className="w-full h-64 bg-gray-100 animate-pulse rounded-xl"></div>
+        }
+    >
+        <Slider {...props}>{children}</Slider>
+    </Suspense>
+));
+
+// Otimizador de imagens
+const OptimizedImage = memo(({ src, alt, className, width, height }) => {
+    const imgRef = useRef(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isInView, setIsInView] = useState(false);
+    const optimizedSrc = getOptimizedImageUrl(src);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setIsInView(true);
+                    preloadImage(optimizedSrc)
+                        .then(() => setIsLoaded(true))
+                        .catch(() => {
+                            // Fallback para a imagem original se a otimizada falhar
+                            preloadImage(src).then(() => setIsLoaded(true));
+                        });
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "200px" }
+        );
+
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [optimizedSrc, src]);
+
+    return (
+        <div
+            ref={imgRef}
+            className={`${className} ${
+                !isLoaded ? "bg-gray-200 animate-pulse" : ""
+            }`}
+            style={{ minHeight: !isLoaded ? "100px" : "auto" }}
+        >
+            {isInView && (
+                <img
+                    src={optimizedSrc}
+                    alt={alt}
+                    className={className}
+                    onLoad={() => setIsLoaded(true)}
+                    loading="lazy"
+                    width={width}
+                    height={height}
+                    style={{
+                        opacity: isLoaded ? 1 : 0,
+                        transition: "opacity 0.3s",
+                        transform: "translateZ(0)",
+                        willChange: "opacity",
+                    }}
+                />
+            )}
+        </div>
+    );
+});
+
+// Componentes para as seções diferentes
+const RestauranteCard = memo(({ restaurante }) => (
+    <div className="h-full p-2">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
+            <div className="h-[200px] overflow-hidden relative">
+                <OptimizedImage
+                    src={restaurante.imagem}
+                    alt={restaurante.nome}
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                    width="400"
+                    height="250"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+                <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
+                    <FaStar className="text-yellow-400 mr-1" />
+                    <span className="text-sm font-bold">
+                        {restaurante.rating}
+                    </span>
+                </div>
+            </div>
+            <div className="p-5 flex flex-col flex-grow">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {restaurante.nome}
+                </h3>
+                <p className="text-gray-600 mb-3 flex-grow">
+                    {restaurante.descricao}
+                </p>
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center">
+                        <FaClock className="text-gray-400 mr-1" />
+                        <span className="text-sm text-gray-500">
+                            {restaurante.tempo}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <MemoizedButton
+                        title={
+                            <div className="flex items-center text-sm">
+                                <FaWhatsapp className="mr-2" />
+                                <span>Contatar</span>
+                            </div>
+                        }
+                        primary={true}
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+));
+
+const PratoCard = memo(({ prato }) => (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
+        <div className="h-[180px] overflow-hidden relative">
+            <OptimizedImage
+                src={prato.imagem}
+                alt={prato.nome}
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                width="300"
+                height="180"
+            />
+            <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
+                <FaStar className="text-yellow-400 mr-1" />
+                <span className="text-sm font-bold">{prato.rating}</span>
+            </div>
+            <div className="absolute bottom-2 left-2 bg-green-500 px-2 py-1 rounded-full">
+                <span className="text-xs text-white font-medium">
+                    {prato.categoria}
+                </span>
+            </div>
+        </div>
+        <div className="p-4 flex flex-col flex-grow">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">
+                {prato.nome}
+            </h3>
+            <p className="text-gray-600 text-sm mb-3 flex-grow">
+                {prato.descricao}
+            </p>
+            <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
+                    <FaLeaf className="text-green-500 text-xs mr-1" />
+                    <span className="text-xs text-gray-700">
+                        {prato.calorias}
+                    </span>
+                </div>
+                <span className="font-bold text-green-600">{prato.preco}</span>
+            </div>
+            <MemoizedButton
+                title={
+                    <div className="flex items-center justify-center text-sm w-full">
+                        <FaWhatsapp className="mr-2" />
+                        <span>Pedir agora</span>
+                    </div>
+                }
+                primary={true}
+            />
+        </div>
+    </div>
+));
+
+// Criar um componente para cache de elementos DOM
+const CachedDOM = memo(({ children, id }) => {
+    const [mounted, setMounted] = useState(false);
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        // Criar ou recuperar o elemento container
+        let container = document.getElementById(id);
+        if (!container) {
+            container = document.createElement("div");
+            container.id = id;
+            document.body.appendChild(container);
+        }
+        containerRef.current = container;
+        setMounted(true);
+
+        return () => {
+            // Limpar na desmontagem apenas se não for uma área compartilhada
+            if (id.startsWith("temp-")) {
+                container.remove();
+            }
+        };
+    }, [id]);
+
+    return mounted && containerRef.current
+        ? createPortal(children, containerRef.current)
+        : null;
+});
+
+// Adicionar funções de debounce para eventos frequentes
+const useDebounce = (callback, delay) => {
+    const timeoutRef = useRef(null);
+
+    return useCallback(
+        (...args) => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+
+            timeoutRef.current = setTimeout(() => {
+                callback(...args);
+            }, delay);
+        },
+        [callback, delay]
+    );
+};
+
+// Adicionar hook para medir performance
+const usePerformanceMeasure = (label) => {
+    useEffect(() => {
+        const start = performance.now();
+
+        return () => {
+            const end = performance.now();
+            console.log(`[Performance] ${label}: ${end - start}ms`);
+        };
+    }, [label]);
+};
 
 const HomeContent = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
+    const [visibleItems, setVisibleItems] = useState([]);
+    const gridRef = useRef(null);
 
-    // Adicionar estilos CSS customizados para corrigir problemas de corte no carrossel
+    // Otimização: Usar lazy loading para imagens e remoção da manipulação direta do DOM
     useEffect(() => {
-        // Adiciona estilos customizados para o slider
-        const style = document.createElement("style");
-        style.textContent = `
-        body {
-            overflow-x: hidden;
-        }
-        .slick-slide {
-            padding: 0 10px;
-            height: auto;
-        }
-        .slick-list {
-            margin: 0 -10px;
-            padding-bottom: 0 !important;
-            overflow: hidden;
-        }
-        .slick-track {
-            display: flex !important;
-            align-items: stretch !important;
-            justify-content: flex-start !important;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .slick-slide > div {
-            height: 100%;
-        }
-        .slick-dots {
-            bottom: -10px;
-            position: relative;
-            margin-top: 15px;
-        }
-        .slick-dots li button:before {
-            font-size: 10px;
-            color: #10b981;
-            opacity: 0.5;
-        }
-        .slick-dots li.slick-active button:before {
-            opacity: 1;
-            color: #10b981;
-        }
-        .slick-prev, .slick-next {
-            z-index: 10;
-            width: 40px;
-            height: 40px;
-        }
-        .slick-prev {
-            left: 0;
-        }
-        .slick-next {
-            right: 0;
-        }
-        .slick-prev:before, .slick-next:before {
-            font-size: 30px;
-            color: #10b981;
-            opacity: 0.75;
-        }
-        .slick-prev:hover:before, .slick-next:hover:before {
-            opacity: 1;
-        }
-        `;
-        document.head.appendChild(style);
-
-        // Simula carregamento de dados
+        // Simula carregamento de dados - usando um tempo menor para melhorar a experiência
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 1000);
+        }, 800);
 
         return () => {
-            document.head.removeChild(style);
             clearTimeout(timer);
         };
     }, []);
 
-    // Configurações do carrossel
+    // Implementando virtualização para mostrar apenas os elementos visíveis na tela
+    useEffect(() => {
+        // Definir apenas os elementos que precisam ser renderizados
+        const handleScroll = () => {
+            if (gridRef.current) {
+                const rect = gridRef.current.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    setVisibleItems(pratosFiltrados.map((p) => p.id));
+                }
+            }
+        };
+
+        // Inicializa com verificação de visibilidade
+        handleScroll();
+
+        window.addEventListener("scroll", handleScroll);
+        window.addEventListener("resize", handleScroll);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("resize", handleScroll);
+        };
+    }, [gridRef, categoriaSelecionada]);
+
+    // Memoização da função de seleção de categoria para evitar recriações em cada renderização
+    const handleCategoriaChange = useCallback((categoria) => {
+        setCategoriaSelecionada(categoria);
+    }, []);
+
+    // Configurações otimizadas do carrossel - velocidade reduzida para melhor performance
     const carrosselSettings = {
         dots: true,
-        infinite: true,
-        speed: 500,
+        infinite: false, // Alterado para false para melhor performance
+        speed: 300, // Reduzido para melhorar a performance
         slidesToShow: 3,
         slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 4000,
+        autoplay: window.innerWidth > 768, // Autoplay apenas em telas maiores
+        autoplaySpeed: 5000, // Aumentado para reduzir a carga
         pauseOnHover: true,
         swipeToSlide: true,
-        arrows: true,
+        arrows: window.innerWidth > 768, // Setas apenas em telas maiores
         adaptiveHeight: false,
         centerMode: false,
         draggable: true,
+        lazyLoad: "ondemand",
+        initialSlide: 0,
+        waitForAnimate: false, // Melhora a responsividade
+        useCSS: true, // Usa aceleração CSS
         responsive: [
             {
                 breakpoint: 1280,
@@ -306,13 +527,27 @@ const HomeContent = () => {
         },
     ];
 
-    // Filtrar pratos pela categoria selecionada
-    const pratosFiltrados =
-        categoriaSelecionada === "Todos"
+    // Filtrar pratos pela categoria selecionada - usando useMemo para evitar recálculos desnecessários
+    const pratosFiltrados = React.useMemo(() => {
+        return categoriaSelecionada === "Todos"
             ? pratosPorCategoria
             : pratosPorCategoria.filter(
                   (prato) => prato.categoria === categoriaSelecionada
               );
+    }, [categoriaSelecionada, pratosPorCategoria]);
+
+    // Renderizar apenas os pratos que estão visíveis na tela
+    const renderizarPrato = useCallback(
+        (prato) => {
+            return visibleItems.includes(prato.id) ||
+                visibleItems.length === 0 ? (
+                <PratoCard key={prato.id} prato={prato} />
+            ) : (
+                <div key={prato.id} className="h-[320px]"></div> // Placeholder com altura aproximada
+            );
+        },
+        [visibleItems]
+    );
 
     // Dados dos benefícios
     const beneficios = [
@@ -346,17 +581,9 @@ const HomeContent = () => {
         },
     ];
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-x-hidden">
-            {/* Hero Section */}
+    // Dividir componentes grandes em partes para renderização condicional
+    const renderHeroSection = useCallback(
+        () => (
             <div className="flex flex-col lg:flex-row justify-between items-center lg:px-32 px-5 py-10 lg:py-20">
                 <div className="w-full lg:w-1/2 space-y-6 mb-10 lg:mb-0">
                     <div className="flex items-center">
@@ -378,8 +605,11 @@ const HomeContent = () => {
                     </p>
 
                     <div className="flex flex-wrap gap-4 pt-4">
-                        <Button title="Explorar Cardápio" primary={true} />
-                        <Button title="Saiba Mais" primary={false} />
+                        <MemoizedButton
+                            title="Explorar Cardápio"
+                            primary={true}
+                        />
+                        <MemoizedButton title="Saiba Mais" primary={false} />
                     </div>
 
                     <div className="flex items-center space-x-4 pt-8">
@@ -388,16 +618,25 @@ const HomeContent = () => {
                                 className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                 src="/img/pic1.png"
                                 alt="Usuário"
+                                loading="lazy"
+                                width="32"
+                                height="32"
                             />
                             <img
                                 className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                 src="/img/pic2.png"
                                 alt="Usuário"
+                                loading="lazy"
+                                width="32"
+                                height="32"
                             />
                             <img
                                 className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                 src="/img/pic3.png"
                                 alt="Usuário"
+                                loading="lazy"
+                                width="32"
+                                height="32"
                             />
                         </div>
                         <p className="text-gray-600 text-sm">
@@ -415,6 +654,9 @@ const HomeContent = () => {
                             src="/img/img1.jpg"
                             alt="Comida Saudável"
                             className="w-full h-auto shadow-xl object-cover"
+                            loading="lazy"
+                            width="600"
+                            height="400"
                         />
                         <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg shadow-lg">
                             <div className="flex items-center space-x-2">
@@ -435,9 +677,87 @@ const HomeContent = () => {
                     <div className="absolute -bottom-4 -right-4 -z-10 bg-green-100 w-full h-full rounded-2xl"></div>
                 </div>
             </div>
+        ),
+        []
+    );
 
-            {/* Nova Seção - Categorias de Pratos */}
-            <div className="py-16 bg-white">
+    // Usar IntersectionObserver para carregar componentes apenas quando visíveis
+    const [categoriaVisible, setCategoriaVisible] = useState(false);
+    const [beneficiosVisible, setBeneficiosVisible] = useState(false);
+    const [carrosselVisible, setCarrosselVisible] = useState(false);
+    const [comoFuncionaVisible, setComoFuncionaVisible] = useState(false);
+    const [ctaVisible, setCtaVisible] = useState(false);
+    const [depoimentosVisible, setDepoimentosVisible] = useState(false);
+
+    useEffect(() => {
+        const observerOptions = {
+            root: null,
+            rootMargin: "0px",
+            threshold: 0.1,
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    switch (id) {
+                        case "categoria-section":
+                            setCategoriaVisible(true);
+                            break;
+                        case "beneficios-section":
+                            setBeneficiosVisible(true);
+                            break;
+                        case "carrossel-section":
+                            setCarrosselVisible(true);
+                            break;
+                        case "como-funciona-section":
+                            setComoFuncionaVisible(true);
+                            break;
+                        case "cta-section":
+                            setCtaVisible(true);
+                            break;
+                        case "depoimentos-section":
+                            setDepoimentosVisible(true);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(
+            observerCallback,
+            observerOptions
+        );
+
+        // Observe all sections
+        const sections = document.querySelectorAll(".observe-section");
+        sections.forEach((section) => observer.observe(section));
+
+        return () => {
+            sections.forEach((section) => observer.unobserve(section));
+        };
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-x-hidden">
+            {/* Hero Section */}
+            {renderHeroSection()}
+
+            {/* Nova Seção - Categorias de Pratos - Com Lazy Loading */}
+            <div
+                id="categoria-section"
+                className="observe-section py-16 bg-white"
+            >
                 <div className="lg:px-32 px-5">
                     <div className="text-center mb-12">
                         <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
@@ -463,7 +783,7 @@ const HomeContent = () => {
                                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                 }`}
                                 onClick={() =>
-                                    setCategoriaSelecionada(categoria.nome)
+                                    handleCategoriaChange(categoria.nome)
                                 }
                             >
                                 <span className="mr-2">{categoria.icone}</span>
@@ -474,61 +794,12 @@ const HomeContent = () => {
                         ))}
                     </div>
 
-                    {/* Grid de Pratos */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {pratosFiltrados.map((prato) => (
-                            <div
-                                key={prato.id}
-                                className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg h-full flex flex-col"
-                            >
-                                <div className="h-[180px] overflow-hidden relative">
-                                    <img
-                                        src={prato.imagem}
-                                        alt={prato.nome}
-                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                    />
-                                    <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
-                                        <FaStar className="text-yellow-400 mr-1" />
-                                        <span className="text-sm font-bold">
-                                            {prato.rating}
-                                        </span>
-                                    </div>
-                                    <div className="absolute bottom-2 left-2 bg-green-500 px-2 py-1 rounded-full">
-                                        <span className="text-xs text-white font-medium">
-                                            {prato.categoria}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="p-4 flex flex-col flex-grow">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-1">
-                                        {prato.nome}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-3 flex-grow">
-                                        {prato.descricao}
-                                    </p>
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex items-center bg-gray-100 px-2 py-1 rounded-full">
-                                            <FaLeaf className="text-green-500 text-xs mr-1" />
-                                            <span className="text-xs text-gray-700">
-                                                {prato.calorias}
-                                            </span>
-                                        </div>
-                                        <span className="font-bold text-green-600">
-                                            {prato.preco}
-                                        </span>
-                                    </div>
-                                    <Button
-                                        title={
-                                            <div className="flex items-center justify-center text-sm w-full">
-                                                <FaWhatsapp className="mr-2" />
-                                                <span>Pedir agora</span>
-                                            </div>
-                                        }
-                                        primary={true}
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                    {/* Grid de Pratos - usando virtual rendering para melhorar a performance */}
+                    <div
+                        ref={gridRef}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                    >
+                        {pratosFiltrados.map((prato) => renderizarPrato(prato))}
                     </div>
 
                     {pratosFiltrados.length === 0 && (
@@ -542,7 +813,10 @@ const HomeContent = () => {
             </div>
 
             {/* Benefícios */}
-            <div className="py-16 bg-white">
+            <div
+                id="beneficios-section"
+                className="observe-section py-16 bg-white"
+            >
                 <div className="lg:px-32 px-5">
                     <div className="text-center mb-12">
                         <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
@@ -579,7 +853,10 @@ const HomeContent = () => {
             </div>
 
             {/* Carrossel de Restaurantes Parceiros */}
-            <div className="py-16 lg:px-32 px-5">
+            <div
+                id="carrossel-section"
+                className="observe-section py-16 lg:px-32 px-5"
+            >
                 <div className="text-center mb-8">
                     <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
                         RESTAURANTES PARCEIROS
@@ -594,60 +871,22 @@ const HomeContent = () => {
                 </div>
 
                 <div className="max-w-7xl mx-auto">
-                    <Slider {...carrosselSettings}>
+                    <MemoizedSlider {...carrosselSettings}>
                         {restaurantes.map((restaurante) => (
-                            <div key={restaurante.id} className="h-full p-2">
-                                <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
-                                    <div className="h-[200px] overflow-hidden relative">
-                                        <img
-                                            src={restaurante.imagem}
-                                            alt={restaurante.nome}
-                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
-                                        <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center">
-                                            <FaStar className="text-yellow-400 mr-1" />
-                                            <span className="text-sm font-bold">
-                                                {restaurante.rating}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="p-5 flex flex-col flex-grow">
-                                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                            {restaurante.nome}
-                                        </h3>
-                                        <p className="text-gray-600 mb-3 flex-grow">
-                                            {restaurante.descricao}
-                                        </p>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <div className="flex items-center">
-                                                <FaClock className="text-gray-400 mr-1" />
-                                                <span className="text-sm text-gray-500">
-                                                    {restaurante.tempo}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <Button
-                                                title={
-                                                    <div className="flex items-center text-sm">
-                                                        <FaWhatsapp className="mr-2" />
-                                                        <span>Contatar</span>
-                                                    </div>
-                                                }
-                                                primary={true}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <RestauranteCard
+                                key={restaurante.id}
+                                restaurante={restaurante}
+                            />
                         ))}
-                    </Slider>
+                    </MemoizedSlider>
                 </div>
             </div>
 
             {/* Como Funciona Section */}
-            <div className="py-16 bg-white">
+            <div
+                id="como-funciona-section"
+                className="observe-section py-16 bg-white"
+            >
                 <div className="lg:px-32 px-5">
                     <div className="text-center mb-16">
                         <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
@@ -722,7 +961,10 @@ const HomeContent = () => {
             </div>
 
             {/* CTA Section */}
-            <div className="py-16 lg:py-24 bg-green-50">
+            <div
+                id="cta-section"
+                className="observe-section py-16 lg:py-24 bg-green-50"
+            >
                 <div className="lg:px-32 px-5">
                     <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                         <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -763,7 +1005,7 @@ const HomeContent = () => {
                                         </span>
                                     </li>
                                 </ul>
-                                <Button
+                                <MemoizedButton
                                     title="Torne-se um Parceiro"
                                     primary={true}
                                 />
@@ -773,6 +1015,7 @@ const HomeContent = () => {
                                     src="/img/img2.jpg"
                                     alt="Chef preparando comida saudável"
                                     className="w-full h-full object-cover"
+                                    loading="lazy"
                                 />
                             </div>
                         </div>
@@ -781,7 +1024,10 @@ const HomeContent = () => {
             </div>
 
             {/* Depoimentos Section - Simplificado */}
-            <div className="py-16 lg:px-32 px-5 bg-white">
+            <div
+                id="depoimentos-section"
+                className="observe-section py-16 lg:px-32 px-5 bg-white"
+            >
                 <div className="text-center mb-12">
                     <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
                         DEPOIMENTOS
@@ -802,6 +1048,7 @@ const HomeContent = () => {
                                 src="/img/pic1.png"
                                 alt="Cliente"
                                 className="w-12 h-12 rounded-full mr-4 object-cover"
+                                loading="lazy"
                             />
                             <div>
                                 <h4 className="font-bold text-gray-800">
@@ -829,6 +1076,7 @@ const HomeContent = () => {
                                 src="/img/pic2.png"
                                 alt="Cliente"
                                 className="w-12 h-12 rounded-full mr-4 object-cover"
+                                loading="lazy"
                             />
                             <div>
                                 <h4 className="font-bold text-gray-800">
@@ -856,6 +1104,7 @@ const HomeContent = () => {
                                 src="/img/pic3.png"
                                 alt="Cliente"
                                 className="w-12 h-12 rounded-full mr-4 object-cover"
+                                loading="lazy"
                             />
                             <div>
                                 <h4 className="font-bold text-gray-800">
@@ -882,11 +1131,14 @@ const HomeContent = () => {
     );
 };
 
+// Memoizar o componente pai para evitar renderizações desnecessárias
+const MemoizedHomeContent = memo(HomeContent);
+
 export default function Home({ auth }) {
     return (
         <>
             <Navbar auth={auth} />
-            <HomeContent />
+            <MemoizedHomeContent />
             <Footer />
         </>
     );
