@@ -1,125 +1,220 @@
-# LeveFit API - Backend Laravel
+# LeveFit - Documentação Técnica
 
-Este é o backend da aplicação LeveFit, desenvolvido com PHP Laravel e MySQL.
+Este documento contém informações técnicas detalhadas sobre o LeveFit, focando na implementação, componentes personalizados, animações e otimizações.
 
-## Requisitos
+## Arquitetura do Projeto
 
-- PHP >= 8.1
-- Composer
-- MySQL (XAMPP, WAMP, MAMP ou similar)
-- Extensões PHP: BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML
+O LeveFit utiliza uma arquitetura moderna que combina Laravel (backend) com React (frontend) através do Inertia.js, permitindo:
 
-## Instalação
+1. **Desenvolvimento SPA sem API separada** - Comunicação fluida entre frontend e backend
+2. **Manutenção simplificada** - Um único repositório para toda a aplicação
+3. **Melhor experiência de usuário** - Navegação rápida sem recarregar a página inteira
 
-1. Clone o repositório:
+## Componentes Personalizados
 
-```bash
-git clone <seu-repositorio>
-cd backend
+### AnimatedTitle
+
+Componente de título animado que aplica efeitos de entrada suaves:
+
+```jsx
+const AnimatedTitle = ({ children }) => (
+  <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3 animate-slidein">
+    {children}
+  </h2>
+);
 ```
 
-2. Instale as dependências:
+### AnimatedBox
 
-```bash
-composer install
+Componente para animação de entrada de blocos de conteúdo com delay customizável:
+
+```jsx
+const AnimatedBox = ({ children, className, delay = 0 }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const boxRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (boxRef.current) {
+      observer.observe(boxRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={boxRef}
+      className={`${className} ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+      } transition-all duration-700 ease-out`}
+      style={{ transitionDelay: `${delay}s` }}
+    >
+      {children}
+    </div>
+  );
+};
 ```
 
-3. Configure o ambiente:
+## Efeitos Visuais e Animações
 
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+### Efeito de Digitação
 
-4. Configure o banco de dados:
+Implementação de efeito de "typewriter" que digita o texto letra por letra:
 
-   - Inicie o XAMPP (Apache e MySQL)
-   - Crie um banco de dados chamado `levefit`
-   - Atualize as configurações de banco no arquivo `.env` se necessário
+```jsx
+const [textoDigitado, setTextoDigitado] = useState("");
+const [indice, setIndice] = useState(0);
+const fraseCompleta = "Eleve sua saúde a cada mordida";
 
-5. Execute as migrações:
-
-```bash
-php artisan migrate
-```
-
-6. Inicie o servidor de desenvolvimento:
-
-```bash
-php artisan serve
-```
-
-O servidor estará disponível em `http://localhost:8000`.
-
-## Estrutura do Banco de Dados
-
-### Users
-
-- Armazena informações de usuários e fornecedores
-- Campos: nome, email, senha, cpf, telefone, data_nascimento, endereço, tipo
-
-### Pratos
-
-- Armazena informações sobre os pratos oferecidos pelos fornecedores
-- Campos: nome, descrição, preço, imagem, categoria, dados nutricionais, disponibilidade
-
-### Avaliações
-
-- Armazena avaliações e comentários dos usuários sobre os pratos
-- Campos: user_id, prato_id, nota, comentário
-
-## API Endpoints
-
-### Autenticação
-
-- `POST /api/register` - Registrar novo usuário
-- `POST /api/login` - Fazer login
-- `GET /api/user` - Obter dados do usuário logado
-- `POST /api/logout` - Fazer logout
-
-### Pratos
-
-- `GET /api/pratos` - Listar pratos (com filtros e paginação)
-- `GET /api/pratos/{id}` - Obter detalhes de um prato
-- `POST /api/pratos` - Cadastrar novo prato (apenas fornecedores)
-- `PUT /api/pratos/{id}` - Atualizar um prato (apenas fornecedor dono)
-- `DELETE /api/pratos/{id}` - Excluir um prato (apenas fornecedor dono)
-
-### Avaliações
-
-- `GET /api/pratos/{pratoId}/avaliacoes` - Listar avaliações de um prato
-- `POST /api/pratos/{pratoId}/avaliacoes` - Criar uma avaliação para um prato
-- `PUT /api/avaliacoes/{id}` - Atualizar uma avaliação (apenas autor)
-- `DELETE /api/avaliacoes/{id}` - Excluir uma avaliação (apenas autor)
-
-## Integração com o Frontend
-
-Para integrar com o frontend React, utilize o axios para fazer requisições à API:
-
-```javascript
-import axios from "axios";
-
-// Configuração base
-const api = axios.create({
-  baseURL: "http://localhost:8000/api",
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
-
-// Adicionar token de autenticação (após login)
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+useEffect(() => {
+  if (indice < fraseCompleta.length) {
+    const timer = setTimeout(() => {
+      setTextoDigitado((prev) => prev + fraseCompleta[indice]);
+      setIndice((prev) => prev + 1);
+    }, 130);
+    return () => clearTimeout(timer);
   }
-  return config;
-});
-
-export default api;
+}, [indice]);
 ```
 
-## CORS e Segurança
+### Otimizações do Carrossel
 
-O backend está configurado para permitir requisições do frontend em `http://localhost:3000`. Se precisar alterar as origens permitidas, edite o arquivo `config/cors.php`.
+Configurações personalizadas do Slick Carousel para melhor desempenho:
+
+```jsx
+// Configurações do carrossel
+const carrosselSettings = {
+  dots: true,
+  infinite: true,
+  speed: 500,
+  slidesToShow: 3,
+  slidesToScroll: 1,
+  autoplay: true,
+  autoplaySpeed: 4000,
+  pauseOnHover: true,
+  responsive: [
+    // Configurações responsivas...
+  ],
+};
+```
+
+## CSS Customizado
+
+CSS customizado para animar elementos e criar efeitos visuais:
+
+```css
+@keyframes slidein {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slidein {
+  animation: slidein 0.8s ease-out forwards;
+}
+
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 5px #38a169;
+  }
+  50% {
+    text-shadow: 0 0 10px #38a169;
+  }
+  100% {
+    text-shadow: 0 0 5px #38a169;
+  }
+}
+
+.glow {
+  animation: glow 3s ease-in-out infinite;
+}
+```
+
+## Otimizações de Carregamento
+
+### Lazy Loading de Imagens
+
+O sistema utiliza carregamento otimizado de imagens através do `loading="lazy"` nativo e otimizações manuais:
+
+```jsx
+<img
+  src={imagem}
+  alt={titulo}
+  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+  loading="lazy"
+/>
+```
+
+### CSS Otimizado para Carrossel
+
+CSS específico para melhorar a performance do carrossel, evitando problemas comuns:
+
+```css
+.slick-slide {
+  padding: 0 10px;
+  height: auto;
+}
+
+.slick-list {
+  margin: 0 -10px;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+.slick-track {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+}
+```
+
+## Integração com Laravel
+
+O sistema utiliza Inertia.js para integrar React com Laravel sem necessidade de uma API tradicional:
+
+1. **Rotas** - Definidas em `routes/web.php`
+2. **Controladores** - Manipulação de dados em `app/Http/Controllers`
+3. **Views** - Componentes React em `resources/js/Pages`
+
+## Considerações de Performance
+
+Várias técnicas são aplicadas para garantir um site rápido e responsivo:
+
+1. **Animações CSS em vez de JavaScript** - Melhor performance de renderização
+2. **Minimização de rerenderizações** - Controle cuidadoso do estado
+3. **Estilos de transição otimizados** - Uso de propriedades que não causam reflow
+4. **Carregamento sob demanda** - Componentes animados aparecem conforme o usuário rola a página
+
+## Desenvolvimento e Contribuição
+
+Para contribuir com o projeto:
+
+1. Clone o repositório
+2. Instale as dependências seguindo as instruções em INSTRUCOES_EXECUCAO.md
+3. Crie uma branch para sua funcionalidade (`git checkout -b feature/nova-funcionalidade`)
+4. Faça commit das alterações (`git commit -am 'Adiciona nova funcionalidade'`)
+5. Envie para a branch (`git push origin feature/nova-funcionalidade`)
+6. Crie um Pull Request
+
+## Recursos Adicionais
+
+- [Documentação do Laravel](https://laravel.com/docs)
+- [Documentação do React](https://react.dev)
+- [Documentação do Inertia.js](https://inertiajs.com)
+- [Documentação do Tailwind CSS](https://tailwindcss.com/docs)
+- [Documentação do React Slick](https://react-slick.neostack.com)

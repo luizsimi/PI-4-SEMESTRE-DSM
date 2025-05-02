@@ -2,106 +2,104 @@
 
 ## Sobre o Projeto
 
-O LeveFit é uma plataforma de delivery de comida saudável que conecta fornecedores e clientes. O sistema permite que fornecedores cadastrem seus pratos saudáveis com informações nutricionais, enquanto os clientes podem navegar pelo catálogo, filtrar por categorias, e realizar pedidos via whatsapp.
+O LeveFit é uma plataforma de delivery de comida saudável que conecta fornecedores e clientes. O sistema permite que fornecedores cadastrem seus pratos saudáveis com informações nutricionais, enquanto os clientes podem navegar pelo catálogo, filtrar por categorias, e realizar pedidos via WhatsApp diretamente com o restaurante.
+
+## Características Visuais
+
+- **Design Moderno e Responsivo** - Interface limpa e intuitiva adaptada para todos os dispositivos
+- **Animações Fluidas** - Efeitos de digitação, transições suaves e componentes animados
+- **Carrossel Otimizado** - Apresentação elegante de restaurantes parceiros e pratos em destaque
+- **Filtros Interativos** - Sistema dinâmico de categorias para facilitar a navegação
 
 ## Tecnologias Utilizadas
 
 ### Frontend
 
-- React.js
-- Tailwind CSS
-- React Router
-- Axios
-- Context API
-- Mercado Pago SDK
+- **React.js** - Biblioteca para construção de interfaces
+- **Tailwind CSS** - Framework CSS utilitário para estilização
+- **React Router Dom** - Gerenciamento de rotas da aplicação
+- **React Icons** - Biblioteca de ícones
+- **React Slick** - Implementação do carrossel
+- **Inertia.js** - Integração frontend-backend sem APIs
 
 ### Backend
 
-- PHP Laravel
-- MySQL
-- Sanctum (autenticação API)
+- **Laravel 10** - Framework PHP
+- **MySQL** - Banco de dados relacional
+- **Laravel Sanctum** - Autenticação da API
+- **Laravel Breeze** - Scaffolding de autenticação
 
 ## Estrutura do Projeto
 
-- `/backend` - API Laravel
-- `/src` - Aplicação React
-- `/public` - Arquivos estáticos
+- `/backend` - Aplicação Laravel com API e recursos
+  - `/resources/js` - Frontend React integrado com Inertia.js
+  - `/resources/css` - Estilos e configurações do Tailwind
+  - `/app/Http/Controllers` - Controladores da aplicação
+  - `/routes` - Rotas da API e web
+- `/src` - Código fonte React para desenvolvimento independente
+- `/public` - Arquivos estáticos e imagens
 
 ## Funcionalidades Principais
 
 ### Para Clientes
 
 - Registro e login de usuários
-- Navegação no catálogo de pratos
-- Filtros por categoria, disponibilidade e preço
-- Visualização de informações nutricionais
-- Avaliação de pratos consumidos
-- Pagamentos via WhatsApp direto com o restaurante
+- Navegação no catálogo de pratos com animações
+- Filtros por categoria de alimentos (Aves, Bovina, Vegano, Peixes)
+- Visualização de informações nutricionais e calorias
+- Contato direto com fornecedores via WhatsApp
 
 ### Para Fornecedores
 
-- Pagamento via Mercado Pago para ter acesso a ter seu catalogo de pratos em nosso site
-- Dashboard de gerenciamento
-- Cadastro e edição de pratos
-- Upload de imagens
-- Controle de disponibilidade
-- Visualização de avaliações
+- Dashboard administrativo
+- Cadastro e gerenciamento de produtos
+- Upload de imagens de pratos
+- Estatísticas de visualizações
 
-## Começando
+## Execução do Projeto
 
-### Requisitos
+Para instruções detalhadas sobre como executar o projeto, consulte o arquivo [INSTRUCOES_EXECUCAO.md](./INSTRUCOES_EXECUCAO.md).
 
-- Node.js 14.x ou superior
+### Requisitos Básicos
+
+- Node.js 18.x ou superior
 - PHP 8.1 ou superior
 - Composer
 - MySQL
 - XAMPP, WAMP ou similar (opcional)
 
-### Instalação e Configuração
+### Comandos Rápidos
 
-1. Clone o repositório:
-
-```bash
-git clone <seu-repositorio>
-cd levefit
-```
-
-2. Configure o Backend:
+**Backend:**
 
 ```bash
 cd backend
 composer install
-cp .env.example .env
-php artisan key:generate
-# Configure o banco de dados no arquivo .env
-php artisan migrate
 php artisan serve
 ```
 
-3. Configure o Frontend:
+**Frontend:**
 
 ```bash
-cd ..  # Voltar para a pasta raiz
+cd backend
 npm install
-# Configure o arquivo .env com a URL da API
-npm start
+npm run dev
 ```
 
-O frontend estará disponível em `http://localhost:3000` e o backend em `http://localhost:8000`.
+## Otimizações de Performance
 
-## Autenticação
+O LeveFit possui diversas otimizações para garantir uma experiência fluida:
 
-O sistema utiliza tokens JWT via Laravel Sanctum para autenticação. Os tokens são armazenados no localStorage e enviados em cada requisição através do cabeçalho de Authorization.
-
-## Screenshots
-
-[Inserir screenshots do sistema aqui]
+- Carregamento de imagens otimizado
+- Animações CSS para melhor performance visual
+- Implementação de efeitos visuais com baixo impacto no desempenho
+- Estilização avançada do carrossel para evitar problemas de layout
 
 ## Desenvolvedores
 
 - ABNER DE SOUZA (DOCUMENTAÇÃO/DESIGN)
 - DARLAN DOS SANTOS (BACK-END)
-- LUIZ HENRIQUE SIMIONATO (FRONT-END/ DESIGN)
+- LUIZ HENRIQUE SIMIONATO (FRONT-END/DESIGN)
 
 ## Licença
 
