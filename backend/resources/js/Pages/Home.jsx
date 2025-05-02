@@ -5,6 +5,10 @@ import Menu from "../components/Menu";
 import Pratos from "../components/Pratos";
 import Review from "../components/Review";
 import Button from "../layouts/Button";
+import AnimatedTitle from "./AnimatedTitle.jsx";
+import AnimatedBox from "./AnimatedBox.jsx";
+
+
 import {
     FaLeaf,
     FaUtensils,
@@ -22,9 +26,24 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+
+
 const HomeContent = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
+    const fraseCompleta = "Eleve sua saúde a cada mordida";
+    const [textoDigitado, setTextoDigitado] = useState("");
+    const [indice, setIndice] = useState(0);
+
+    useEffect(() => {
+        if (indice < fraseCompleta.length) {
+            const timer = setTimeout(() => {
+                setTextoDigitado((prev) => prev + fraseCompleta[indice]);
+                setIndice((prev) => prev + 1);
+            }, 130);
+            return () => clearTimeout(timer);
+        }
+    }, [indice]);
 
     // Adicionar estilos CSS customizados para corrigir problemas de corte no carrossel
     useEffect(() => {
@@ -86,6 +105,37 @@ const HomeContent = () => {
         .slick-prev:hover:before, .slick-next:hover:before {
             opacity: 1;
         }
+            @keyframes slidein {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slidein {
+  animation: slidein 0.8s ease-out forwards;
+}
+@keyframes glow {
+  0% {
+    text-shadow: 0 0 5px #38a169;
+  }
+  50% {
+    text-shadow: 0 0 10px #38a169;
+  }
+  100% {
+    text-shadow: 0 0 5px #38a169;
+  }
+}
+
+.glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+
         `;
         document.head.appendChild(style);
 
@@ -141,7 +191,6 @@ const HomeContent = () => {
         ],
     };
 
-    // Dados dos restaurantes parceiros
     const restaurantes = [
         {
             id: 1,
@@ -191,7 +240,11 @@ const HomeContent = () => {
             rating: 4.8,
             tempo: "15-30 min",
         },
+
+
     ];
+
+
 
     // Categorias de pratos
     const categoriasPratos = [
@@ -311,8 +364,8 @@ const HomeContent = () => {
         categoriaSelecionada === "Todos"
             ? pratosPorCategoria
             : pratosPorCategoria.filter(
-                  (prato) => prato.categoria === categoriaSelecionada
-              );
+                (prato) => prato.categoria === categoriaSelecionada
+            );
 
     // Dados dos benefícios
     const beneficios = [
@@ -359,7 +412,7 @@ const HomeContent = () => {
             {/* Hero Section */}
             <div className="flex flex-col lg:flex-row justify-between items-center lg:px-32 px-5 py-10 lg:py-20">
                 <div className="w-full lg:w-1/2 space-y-6 mb-10 lg:mb-0">
-                    <div className="flex items-center">
+                    <div className="flex items-center animate-slidein delay-500">
                         <div className="h-1 w-10 bg-green-500 mr-2"></div>
                         <p className="text-green-600 font-medium">
                             COMIDA SAUDÁVEL • ENTREGA RÁPIDA
@@ -367,9 +420,18 @@ const HomeContent = () => {
                     </div>
 
                     <h1 className="text-4xl lg:text-6xl font-bold leading-tight text-gray-800">
-                        Eleve sua <span className="text-green-600">saúde</span>{" "}
-                        a cada mordida
+                        {textoDigitado.split("saúde").length > 1 ? (
+                            <>
+                                {textoDigitado.split("saúde")[0]}
+                                <span className="text-green-600 glow">saúde</span>
+                                {textoDigitado.split("saúde")[1]}
+                            </>
+                        ) : (
+                            textoDigitado
+                        )}
                     </h1>
+
+
 
                     <p className="text-gray-600 text-lg">
                         Conectamos você aos melhores fornecedores de comida
@@ -443,9 +505,10 @@ const HomeContent = () => {
                         <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
                             CARDÁPIO VARIADO
                         </span>
-                        <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3">
+                        <AnimatedTitle>
                             Escolha o tipo de prato ideal para você
-                        </h2>
+                        </AnimatedTitle>
+
                         <p className="text-gray-600 max-w-2xl mx-auto">
                             Filtre por categoria e encontre o prato perfeito
                             para sua refeição saudável
@@ -457,11 +520,10 @@ const HomeContent = () => {
                         {categoriasPratos.map((categoria) => (
                             <button
                                 key={categoria.id}
-                                className={`flex items-center px-6 py-3 rounded-full transition-all ${
-                                    categoriaSelecionada === categoria.nome
-                                        ? "bg-green-500 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
+                                className={`flex items-center px-6 py-3 rounded-full transition-all ${categoriaSelecionada === categoria.nome
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
                                 onClick={() =>
                                     setCategoriaSelecionada(categoria.nome)
                                 }
@@ -541,7 +603,7 @@ const HomeContent = () => {
                 </div>
             </div>
 
-            {/* Benefícios */}
+            {/* Benefícios animados */}
             <div className="py-16 bg-white">
                 <div className="lg:px-32 px-5">
                     <div className="text-center mb-12">
@@ -549,30 +611,25 @@ const HomeContent = () => {
                             NOSSOS BENEFÍCIOS
                         </span>
                         <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3">
-                            Por que escolher o LeveFit?
+                            <AnimatedTitle>Por que escolher o LeveFit?</AnimatedTitle>
                         </h2>
                         <p className="text-gray-600 max-w-2xl mx-auto">
-                            Descubra como nossa plataforma pode transformar sua
-                            alimentação e melhorar sua qualidade de vida
+                            Descubra como nossa plataforma pode transformar sua alimentação e melhorar sua qualidade de vida
                         </p>
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {beneficios.map((beneficio) => (
-                            <div
-                                key={beneficio.id}
-                                className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all h-full flex flex-col"
+                        {beneficios.map((b) => (
+                            <AnimatedBox
+                                key={b.id}
+                                delay={0}  // todos com mesmo delay
+                                className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col"
                             >
                                 <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                                    {beneficio.icone}
+                                    {b.icone}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                    {beneficio.titulo}
-                                </h3>
-                                <p className="text-gray-600 flex-grow">
-                                    {beneficio.descricao}
-                                </p>
-                            </div>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">{b.titulo}</h3>
+                                <p className="text-gray-600 flex-grow">{b.descricao}</p>
+                            </AnimatedBox>
                         ))}
                     </div>
                 </div>
@@ -585,7 +642,9 @@ const HomeContent = () => {
                         RESTAURANTES PARCEIROS
                     </span>
                     <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3">
+                    <AnimatedBox>
                         Conheça nossos fornecedores
+                        </AnimatedBox>
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto">
                         Trabalhamos com os melhores restaurantes especializados
@@ -651,72 +710,61 @@ const HomeContent = () => {
                 <div className="lg:px-32 px-5">
                     <div className="text-center mb-16">
                         <span className="bg-green-100 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
+                            
                             COMO FUNCIONA
                         </span>
                         <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3">
+                        <AnimatedBox>
                             Simples, rápido e saudável
+                            </AnimatedBox>
                         </h2>
                         <p className="text-gray-600 max-w-2xl mx-auto">
-                            Descubra como é fácil começar a comer de forma mais
-                            saudável com o LeveFit
+                            Descubra como é fácil começar a comer de forma mais saudável com o LeveFit
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-gray-50 p-8 rounded-xl relative">
-                            <div className="absolute -top-6 -left-6 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                1
-                            </div>
-                            <div className="text-center pt-6">
-                                <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <FaUtensils className="text-green-600 text-3xl" />
+                        {[
+                            {
+                                num: "1",
+                                icon: <FaUtensils className="text-green-600 text-3xl" />,
+                                title: "Escolha seu Prato",
+                                text:
+                                    "Navegue por nosso catálogo de pratos saudáveis de diversos restaurantes parceiros."
+                            },
+                            {
+                                num: "2",
+                                icon: <FaWhatsapp className="text-green-600 text-3xl" />,
+                                title: "Contate o Fornecedor",
+                                text:
+                                    "Entre em contato direto com o restaurante via WhatsApp para fazer seu pedido."
+                            },
+                            {
+                                num: "3",
+                                icon: <FaStar className="text-green-600 text-3xl" />,
+                                title: "Receba e Avalie",
+                                text:
+                                    "Receba seu pedido e depois avalie sua experiência para ajudar outros usuários."
+                            },
+                        ].map((step) => (
+                            <AnimatedBox
+                                key={step.num}
+                                className="bg-gray-50 p-8 rounded-xl relative mt-10 md:mt-0"
+                                // sem delay ou delay fixo, para entrarem juntos
+                                delay={0.2}
+                            >
+                                <div className="absolute -top-6 -left-6 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                    {step.num}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                                    Escolha seu Prato
-                                </h3>
-                                <p className="text-gray-600">
-                                    Navegue por nosso catálogo de pratos
-                                    saudáveis de diversos restaurantes
-                                    parceiros.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 p-8 rounded-xl relative mt-10 md:mt-0">
-                            <div className="absolute -top-6 -left-6 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                2
-                            </div>
-                            <div className="text-center pt-6">
-                                <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <FaWhatsapp className="text-green-600 text-3xl" />
+                                <div className="text-center pt-6">
+                                    <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        {step.icon}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">{step.title}</h3>
+                                    <p className="text-gray-600">{step.text}</p>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                                    Contate o Fornecedor
-                                </h3>
-                                <p className="text-gray-600">
-                                    Entre em contato direto com o restaurante
-                                    via WhatsApp para fazer seu pedido.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 p-8 rounded-xl relative mt-10 md:mt-0">
-                            <div className="absolute -top-6 -left-6 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                3
-                            </div>
-                            <div className="text-center pt-6">
-                                <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <FaStar className="text-green-600 text-3xl" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                                    Receba e Avalie
-                                </h3>
-                                <p className="text-gray-600">
-                                    Receba seu pedido e depois avalie sua
-                                    experiência para ajudar outros usuários.
-                                </p>
-                            </div>
-                        </div>
+                            </AnimatedBox>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -787,7 +835,9 @@ const HomeContent = () => {
                         DEPOIMENTOS
                     </span>
                     <h2 className="text-3xl font-bold text-gray-800 mt-4 mb-3">
+                    <AnimatedBox>
                         O que nossos clientes dizem
+                        </AnimatedBox>
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto">
                         Veja as experiências de quem já utiliza o LeveFit para
