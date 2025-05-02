@@ -1,0 +1,125 @@
+/* Estilos para o carrossel Slick */
+body {
+    overflow-x: hidden;
+}
+.slick-slide {
+    padding: 0 10px;
+    height: auto;
+}
+.slick-list {
+    margin: 0 -10px;
+    padding-bottom: 0 !important;
+    overflow: hidden;
+}
+.slick-track {
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    margin-left: auto;
+    margin-right: auto;
+}
+.slick-slide > div {
+    height: 100%;
+}
+.slick-dots {
+    bottom: -10px;
+    position: relative;
+    margin-top: 15px;
+}
+.slick-dots li button:before {
+    font-size: 10px;
+    color: #10b981;
+    opacity: 0.5;
+}
+.slick-dots li.slick-active button:before {
+    opacity: 1;
+    color: #10b981;
+}
+.slick-prev,
+.slick-next {
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+}
+.slick-prev {
+    left: 0;
+}
+.slick-next {
+    right: 0;
+}
+.slick-prev:before,
+.slick-next:before {
+    font-size: 30px;
+    color: #10b981;
+    opacity: 0.75;
+}
+.slick-prev:hover:before,
+.slick-next:hover:before {
+    opacity: 1;
+}
+
+/* Otimizações para o carrossel */
+.slick-slider {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+.slick-slide {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.slick-slide img {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Melhorar performance de animações */
+.slick-track {
+    will-change: transform;
+}
+
+/* Reduzir reflows durante interações */
+.slick-list {
+    transform: translateZ(0);
+    overflow: hidden;
+}
+
+/* Preload para setas e dots */
+.slick-arrow,
+.slick-dots li button {
+    will-change: transform, opacity;
+}
+
+/* Otimizar imagens em troca de slides */
+.slick-slide:not(.slick-active) {
+    pointer-events: none;
+}
+
+/* Otimizações para dispositivos móveis */
+@media (max-width: 768px) {
+    .slick-slider {
+        touch-action: pan-y;
+    }
+
+    .slick-slide {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
+/* Melhoria de acessibilidade */
+.slick-slide:focus {
+    outline: none;
+}
+
+.slick-slide:focus-visible {
+    outline: 2px solid #4caf50;
+    outline-offset: 2px;
+}
+
+/* Placeholders para conteúdo ainda não carregado */
+.slick-slide:not(.slick-active) img {
+    filter: blur(0);
+}
