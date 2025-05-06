@@ -7,6 +7,7 @@ import Review from "../components/Review";
 import Button from "../layouts/Button";
 import AnimatedTitle from "./AnimatedTitle.jsx";
 import AnimatedBox from "./AnimatedBox.jsx";
+import "/resources/css/slider.css";
 
 import {
     FaLeaf,
@@ -474,8 +475,8 @@ const HomeContent = () => {
         categoriaSelecionada === "Todos"
             ? pratosPorCategoria
             : pratosPorCategoria.filter(
-                  (prato) => prato.categoria === categoriaSelecionada
-              );
+                (prato) => prato.categoria === categoriaSelecionada
+            );
 
     // Dados dos benefícios
     const beneficios = [
@@ -581,13 +582,31 @@ const HomeContent = () => {
                     </div>
                 </div>
 
+
                 <div className="w-full lg:w-1/2 relative">
-                    <div className="relative z-[1] overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 via-white to-green-100 h-[500px] shadow-xl">
-                        {/* Elementos decorativos que giram lentamente */}
-                        <div className="absolute inset-0 overflow-hidden">
-                            <div className="absolute top-[-10%] left-[-5%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-green-100/30 to-green-200/20 animate-rotate-slow"></div>
+                    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                        <div className="absolute w-[20%] h-[60vh] bg-[#22C55E] opacity-5 blur-3xl animate-slide-once"></div>
+                    </div>
+                    <div
+                        className="w-full lg:w-2/2 h-[550px] relative rounded-2xl overflow-hidden"
+                        style={{
+                            boxShadow: '5px 5px 20px 0px rgba(97, 156, 80, 0.84)',
+                        }}
+                    >
+                        <video
+                            src="/img/comidatop.mp4"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+
+                        {/* ELEMENTOS DECORATIVOS GIRATÓRIOS */}
+                        <div className="absolute inset-0 overflow-hidden z-10">
+                            <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[30%] rounded-full bg-gradient-to-br from-green-100/30 to-green-200/20 animate-rotate-slow"></div>
                             <div
-                                className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-yellow-50/30 to-green-50/20 animate-rotate-slow"
+                                className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-yellow-50/30 to-green-50/20 animate-rotate-slow"
                                 style={{
                                     animationDirection: "reverse",
                                     animationDuration: "25s",
@@ -595,474 +614,40 @@ const HomeContent = () => {
                             ></div>
                         </div>
 
-                        {/* Padrão pontilhado de fundo */}
-                        <div
-                            className="absolute inset-0"
-                            style={{
-                                backgroundImage:
-                                    "radial-gradient(circle, rgba(34, 197, 94, 0.1) 1px, transparent 1px)",
-                                backgroundSize: "20px 20px",
-                                opacity: 0.3,
-                            }}
-                        ></div>
 
-                        {/* Composição visual de alimentos saudáveis */}
-                        <div className="absolute inset-0 flex items-center justify-center p-10">
-                            {/* Elementos decorativos de fundo com formas variadas */}
-                            <div className="absolute top-20 left-20 w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-green-200 opacity-70 animate-pulse-gentle"></div>
-                            <div
-                                className="absolute bottom-24 right-24 w-32 h-32 rounded-full bg-gradient-to-tr from-yellow-50 to-yellow-100 opacity-60 animate-pulse-gentle"
-                                style={{ animationDelay: "1.5s" }}
-                            ></div>
-                            <div
-                                className="absolute top-[30%] right-[25%] w-12 h-12 rounded-full bg-gradient-to-br from-green-200 to-green-300 opacity-40 animate-float-slow"
-                                style={{ animationDelay: "0.5s" }}
-                            ></div>
 
-                            {/* Efeito de brilho circulante */}
-                            <div className="absolute inset-0 animate-shimmer opacity-50"></div>
-
-                            {/* Prato estilizado com efeito 3D */}
-                            <div
-                                className="relative w-80 h-80 animate-float"
-                                style={{ perspective: "1000px" }}
-                            >
-                                {/* Sombra do prato */}
-                                <div className="absolute top-[90%] inset-x-[10%] h-5 bg-black/10 rounded-full blur-md transform-gpu"></div>
-
-                                {/* Prato com bordas realistas */}
-                                <div
-                                    className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white rounded-full shadow-lg transform-gpu"
-                                    style={{ transform: "rotateX(15deg)" }}
-                                ></div>
-                                <div
-                                    className="absolute inset-2 bg-gradient-to-br from-white to-gray-50 rounded-full border border-gray-100 shadow-inner-light transform-gpu"
-                                    style={{ transform: "rotateX(15deg)" }}
-                                ></div>
-                                <div
-                                    className="absolute inset-6 bg-gradient-to-br from-gray-50 to-white rounded-full border-t border-l border-white/50 transform-gpu"
-                                    style={{ transform: "rotateX(15deg)" }}
-                                ></div>
-
-                                {/* Salada estilizada com aspecto realista */}
-                                <div
-                                    className="absolute top-10 left-10 right-10 bottom-10 overflow-hidden rounded-full transform-gpu"
-                                    style={{ transform: "rotateX(15deg)" }}
-                                >
-                                    {/* Base de folhas verdes com textura */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-green-100 to-green-200"></div>
-                                    <div
-                                        className="absolute inset-0 opacity-30"
-                                        style={{
-                                            backgroundImage:
-                                                "linear-gradient(120deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0) 100%)",
-                                            backgroundSize: "200% 200%",
-                                        }}
-                                    ></div>
-
-                                    {/* Textura de folhas */}
-                                    <div
-                                        className="absolute inset-0 opacity-40"
-                                        style={{
-                                            backgroundImage:
-                                                "url(\"data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S25.523 20 20 20zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm30-15c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S55.523 20 50 20zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm-30 15c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S25.523 50 20 50zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm30-15c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S55.523 50 50 50zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z' fill='%2310B981' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
-                                            backgroundSize: "80px 80px",
-                                        }}
-                                    ></div>
-
-                                    {/* Alface/Rúcula com bordas irregulares para mais realismo */}
-                                    <div
-                                        className="absolute top-3 left-5 w-14 h-14 bg-gradient-to-br from-green-400 to-green-500 animate-float-slow shadow-sm"
-                                        style={{
-                                            borderRadius:
-                                                "50% 60% 45% 55% / 55% 45% 60% 50%",
-                                            transform: "rotate(45deg)",
-                                        }}
-                                    >
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 30% 30%, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.2) 100%)",
-                                                borderRadius: "inherit",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <div
-                                        className="absolute top-8 right-8 w-16 h-10 bg-gradient-to-br from-green-500 to-green-600 animate-pulse-gentle shadow-sm"
-                                        style={{
-                                            borderRadius:
-                                                "60% 40% 55% 45% / 40% 60% 40% 60%",
-                                            transform: "rotate(-12deg)",
-                                        }}
-                                    >
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 70% 20%, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.2) 100%)",
-                                                borderRadius: "inherit",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <div
-                                        className="absolute bottom-7 left-10 w-16 h-10 bg-gradient-to-br from-green-300 to-green-400 animate-float-slow shadow-sm"
-                                        style={{
-                                            animationDelay: "0.5s",
-                                            borderRadius:
-                                                "45% 55% 40% 60% / 65% 35% 65% 35%",
-                                            transform: "rotate(12deg)",
-                                        }}
-                                    >
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 60% 60%, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.2) 100%)",
-                                                borderRadius: "inherit",
-                                            }}
-                                        ></div>
-                                    </div>
-
-                                    {/* Tomates com detalhes mais realistas */}
-                                    <div
-                                        className="absolute top-7 left-14 w-10 h-10 animate-pulse-gentle shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "1s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-red-400 to-red-500"></div>
-                                        <div className="absolute inset-[20%] rounded-full bg-gradient-to-tl from-white/30 to-transparent"></div>
-                                        <div className="absolute top-0 left-[45%] right-[45%] h-2 bg-green-500 rounded-b-sm"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-30"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at center, rgba(0,0,0,0) 30%, rgba(0,0,0,0.2) 100%)",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <div
-                                        className="absolute bottom-8 right-5 w-12 h-12 animate-float-slow shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "0.7s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600"></div>
-                                        <div className="absolute inset-[20%] rounded-full bg-gradient-to-tl from-white/30 to-transparent"></div>
-                                        <div className="absolute top-0 left-[45%] right-[45%] h-2 bg-green-500 rounded-b-sm"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-30"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at center, rgba(0,0,0,0) 30%, rgba(0,0,0,0.2) 100%)",
-                                            }}
-                                        ></div>
-                                    </div>
-
-                                    {/* Cenoura com textura mais realista */}
-                                    <div
-                                        className="absolute top-12 right-12 w-4 h-12 animate-float-slow shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "1.5s",
-                                            borderRadius:
-                                                "30% 30% 45% 45% / 15% 15% 65% 65%",
-                                            transform: "rotate(-45deg)",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-b from-orange-300 via-orange-400 to-orange-500"></div>
-                                        <div className="absolute inset-x-0 top-0 h-1/5 rounded-t-lg bg-green-500/80"></div>
-                                        <div
-                                            className="absolute inset-x-[30%] inset-y-[10%] opacity-30"
-                                            style={{
-                                                backgroundImage:
-                                                    "linear-gradient(0deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)",
-                                            }}
-                                        ></div>
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 6px)",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <div
-                                        className="absolute bottom-12 left-20 w-4 h-10 animate-pulse-gentle shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "0.3s",
-                                            borderRadius:
-                                                "30% 30% 45% 45% / 15% 15% 65% 65%",
-                                            transform: "rotate(45deg)",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-b from-orange-300 via-orange-400 to-orange-500"></div>
-                                        <div className="absolute inset-x-0 top-0 h-1/5 rounded-t-lg bg-green-500/80"></div>
-                                        <div
-                                            className="absolute inset-x-[30%] inset-y-[10%] opacity-30"
-                                            style={{
-                                                backgroundImage:
-                                                    "linear-gradient(0deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)",
-                                            }}
-                                        ></div>
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 6px)",
-                                            }}
-                                        ></div>
-                                    </div>
-
-                                    {/* Grão de bico/quinoa/proteína com mais detalhes */}
-                                    <div
-                                        className="absolute top-16 left-12 w-8 h-8 animate-pulse-gentle shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "1.2s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-200 to-yellow-300"></div>
-                                        <div className="absolute inset-[25%] rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%)",
-                                            }}
-                                        ></div>
-                                        <div className="absolute left-[40%] top-[40%] w-[20%] h-[20%] rounded-full bg-yellow-600/30"></div>
-                                    </div>
-                                    <div
-                                        className="absolute right-12 bottom-12 w-9 h-9 animate-float-slow shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "0.9s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 to-yellow-200"></div>
-                                        <div className="absolute inset-[25%] rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%)",
-                                            }}
-                                        ></div>
-                                        <div className="absolute left-[45%] top-[45%] w-[15%] h-[15%] rounded-full bg-yellow-600/30"></div>
-                                    </div>
-                                    <div
-                                        className="absolute right-20 top-12 w-6 h-6 animate-float-slow shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "1.8s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-300 to-yellow-400"></div>
-                                        <div className="absolute inset-[25%] rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-40"
-                                            style={{
-                                                backgroundImage:
-                                                    "radial-gradient(circle at 60% 40%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%)",
-                                            }}
-                                        ></div>
-                                        <div className="absolute left-[40%] top-[40%] w-[20%] h-[20%] rounded-full bg-yellow-600/30"></div>
-                                    </div>
-
-                                    {/* Azeitonas/Abacate com brilhos de óleo e detalhes */}
-                                    <div
-                                        className="absolute top-20 right-20 w-7 h-7 animate-pulse-gentle shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "2.1s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-green-700 to-green-800"></div>
-                                        <div className="absolute inset-[30%] top-[20%] w-[40%] h-[25%] rounded-full bg-gradient-to-br from-white/50 to-transparent"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-70"
-                                            style={{
-                                                backgroundImage:
-                                                    "linear-gradient(45deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%)",
-                                            }}
-                                        ></div>
-                                        <div className="absolute inset-x-[20%] inset-y-[20%] w-[15%] h-[15%] bg-green-900/50 rounded-full"></div>
-                                    </div>
-                                    <div
-                                        className="absolute bottom-16 left-6 w-8 h-8 animate-float-slow shadow-sm overflow-hidden"
-                                        style={{
-                                            animationDelay: "1.4s",
-                                            borderRadius: "50%",
-                                        }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-700"></div>
-                                        <div className="absolute inset-[30%] top-[20%] w-[40%] h-[25%] rounded-full bg-gradient-to-br from-white/50 to-transparent"></div>
-                                        <div
-                                            className="absolute inset-0 opacity-70"
-                                            style={{
-                                                backgroundImage:
-                                                    "linear-gradient(45deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%)",
-                                            }}
-                                        ></div>
-                                        <div className="absolute inset-x-[20%] inset-y-[20%] w-[15%] h-[15%] bg-green-900/50 rounded-full"></div>
-                                    </div>
-
-                                    {/* Gotículas de água/óleo espalhadas */}
-                                    <div
-                                        className="absolute top-[30%] right-[30%] w-2 h-2 rounded-full bg-white/80 animate-pulse-gentle"
-                                        style={{ animationDelay: "0.7s" }}
-                                    ></div>
-                                    <div
-                                        className="absolute top-[40%] left-[35%] w-1.5 h-1.5 rounded-full bg-white/70 animate-pulse-gentle"
-                                        style={{ animationDelay: "1.3s" }}
-                                    ></div>
-                                    <div
-                                        className="absolute bottom-[35%] right-[25%] w-1 h-1 rounded-full bg-white/60 animate-pulse-gentle"
-                                        style={{ animationDelay: "0.5s" }}
-                                    ></div>
-                                    <div
-                                        className="absolute bottom-[20%] left-[40%] w-1 h-1 rounded-full bg-white/50 animate-pulse-gentle"
-                                        style={{ animationDelay: "1.7s" }}
-                                    ></div>
-                                </div>
-
-                                {/* Reflexo no prato */}
-                                <div
-                                    className="absolute inset-6 rounded-full overflow-hidden opacity-10 transform-gpu"
-                                    style={{ transform: "rotateX(20deg)" }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-transparent"></div>
-                                </div>
-
-                                {/* Brilho na borda do prato */}
-                                <div
-                                    className="absolute inset-1 rounded-full overflow-hidden opacity-20 transform-gpu"
-                                    style={{
-                                        transform: "rotateX(20deg)",
-                                        background:
-                                            "linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)",
-                                    }}
-                                ></div>
+                    </div>
+                    {/* TAG INFORMATIVA */}
+                    <div className="absolute -bottom-5 -left-5 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl z-20">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-gradient-to-br from-green-100 to-green-200 p-3 rounded-lg shadow-inner">
+                                <FaLeaf className="text-green-600 text-xl" />
                             </div>
-
-                            {/* Textos flutuantes com estilo premium - AJUSTADOS PARA NÃO CORTAR */}
-                            <div
-                                className="absolute top-[20%] left-16 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg transform -rotate-3 flex items-center animate-float-slow pop-in"
-                                style={{ animationDelay: "0.3s" }}
-                            >
-                                <div className="text-xs font-medium text-green-600 flex items-center">
-                                    <div className="w-4 h-4 flex items-center justify-center mr-1.5 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-inner">
-                                        <svg
-                                            className="w-2.5 h-2.5 text-white"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            ></path>
-                                        </svg>
-                                    </div>
-                                    Rico em fibras
-                                </div>
-                            </div>
-
-                            <div
-                                className="absolute bottom-[30%] right-24 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg transform rotate-2 flex items-center animate-float-slow pop-in"
-                                style={{ animationDelay: "0.6s" }}
-                            >
-                                <div className="text-xs font-medium text-green-600 flex items-center">
-                                    <div className="w-4 h-4 flex items-center justify-center mr-1.5 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-inner">
-                                        <svg
-                                            className="w-2.5 h-2.5 text-white"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            ></path>
-                                        </svg>
-                                    </div>
-                                    Baixa caloria
-                                </div>
-                            </div>
-
-                            <div
-                                className="absolute top-[40%] right-16 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg transform -rotate-6 flex items-center animate-float-slow pop-in"
-                                style={{ animationDelay: "0.9s" }}
-                            >
-                                <div className="text-xs font-medium text-green-600 flex items-center">
-                                    <div className="w-4 h-4 flex items-center justify-center mr-1.5 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-inner">
-                                        <svg
-                                            className="w-2.5 h-2.5 text-white"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            ></path>
-                                        </svg>
-                                    </div>
-                                    Rico em proteínas
-                                </div>
-                            </div>
-
-                            {/* Badge premium */}
-                            <div
-                                className="absolute top-10 right-10 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center pop-in"
-                                style={{ animationDelay: "1.2s" }}
-                            >
-                                <svg
-                                    className="w-3 h-3 mr-1"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                </svg>
-                                Premium
-                            </div>
-                        </div>
-
-                        {/* Tag de informação na parte inferior - REPOSICIONADA */}
-                        <div className="absolute -bottom-5 -left-5 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl z-10">
-                            <div className="flex items-center space-x-3">
-                                <div className="bg-gradient-to-br from-green-100 to-green-200 p-3 rounded-lg shadow-inner">
-                                    <FaLeaf className="text-green-600 text-xl" />
-                                </div>
-                                <div>
-                                    <p className="text-gray-800 font-bold">
-                                        Saudável & Fresco
-                                    </p>
-                                    <div className="flex items-center text-gray-500 text-sm">
-                                        <svg
-                                            className="w-3 h-3 text-green-500 mr-1"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            ></path>
-                                        </svg>
-                                        Nutrição de qualidade premium
-                                    </div>
+                            <div>
+                                <p className="text-gray-800 font-bold">Saudável & Fresco</p>
+                                <div className="flex items-center text-gray-500 text-sm">
+                                    <svg
+                                        className="w-3 h-3 text-green-500 mr-1"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                        ></path>
+                                    </svg>
+                                    Nutrição de qualidade premium
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Efeito de sombra mais elaborado - AJUSTADO */}
+                    {/* SOMBRA EXTERNA ATRÁS DA IMAGEM */}
                     <div className="absolute -bottom-3 -right-3 -z-10 bg-gradient-to-br from-green-100 to-green-200 w-full h-full rounded-2xl"></div>
                 </div>
+
+
             </div>
 
             {/* Nova Seção - Categorias de Pratos */}
@@ -1087,11 +672,10 @@ const HomeContent = () => {
                         {categoriasPratos.map((categoria) => (
                             <button
                                 key={categoria.id}
-                                className={`flex items-center px-6 py-3 rounded-full transition-all ${
-                                    categoriaSelecionada === categoria.nome
-                                        ? "bg-green-500 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
+                                className={`flex items-center px-6 py-3 rounded-full transition-all ${categoriaSelecionada === categoria.nome
+                                    ? "bg-green-500 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
                                 onClick={() =>
                                     setCategoriaSelecionada(categoria.nome)
                                 }
