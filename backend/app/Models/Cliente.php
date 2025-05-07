@@ -10,14 +10,35 @@ class Cliente extends Authenticatable
     use Notifiable;
 
     protected $fillable = [
+        //Parte1
         'nome_completo',
         'cpf',
         'telefone',
         'email',
         'data_nascimento',
-        'endereco',
+
+        //Parte2
+        'cep',
+        'rua',
+        'numero',
+        'complemento',
+        'bairro',
+        'cidade',
+        'estado',
+      
+        //Parte3
         'senha',
+        'confirmar',
+        'termos_uso',
+        'politica_privacidade',
+
         'isProdutor',
+
+        //Parte4-Produtor
+        'numero_cartao',
+        'nome_titular',
+        'validade_cartao',
+        'cvv'
     ];
 
     protected $hidden = [
