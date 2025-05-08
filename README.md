@@ -36,8 +36,9 @@ O LeveFit é uma plataforma de delivery de comida saudável que conecta forneced
   - `/resources/css` - Estilos e configurações do Tailwind
   - `/app/Http/Controllers` - Controladores da aplicação
   - `/routes` - Rotas da API e web
-- `/src` - Código fonte React para desenvolvimento independente
-- `/public` - Arquivos estáticos e imagens
+  - `/public` - Arquivos estáticos e imagens
+- `/documentacao` - Arquivos de documentação e instruções
+- `/temp-laravel` - Template de instalação Laravel
 
 ## Funcionalidades Principais
 
@@ -58,7 +59,7 @@ O LeveFit é uma plataforma de delivery de comida saudável que conecta forneced
 
 ## Execução do Projeto
 
-Para instruções detalhadas sobre como executar o projeto, consulte o arquivo [INSTRUCOES_EXECUCAO.md](./INSTRUCOES_EXECUCAO.md).
+Para instruções detalhadas sobre como executar o projeto, consulte o arquivo [INSTRUCOES_EXECUCAO.md](./documentacao/INSTRUCOES_EXECUCAO.md).
 
 ### Requisitos Básicos
 
