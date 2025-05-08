@@ -28,10 +28,8 @@ class Cliente extends Authenticatable
       
         //Parte3
         'senha',
-        'confirmar',
         'termos_uso',
         'politica_privacidade',
-
         'isProdutor',
 
         //Parte4-Produtor
@@ -43,6 +41,12 @@ class Cliente extends Authenticatable
 
     protected $hidden = [
         'senha',
+    ];
+
+    protected $casts = [
+        'termos_uso' => 'boolean',
+        'politica_privacidade' => 'boolean',
+        'isProdutor' => 'boolean',
     ];
 
     // não muda o nome dessa função, essa bosta é built-in no laravel.

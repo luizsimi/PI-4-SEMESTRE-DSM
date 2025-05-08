@@ -20,6 +20,7 @@ import {
     validarCartaoCredito,
     validarCEP,
 } from "../utils/validations";
+import { Inertia } from "@inertiajs/inertia";
 
 const LoginModal = ({ isOpen, closeModal, onLogin, openCadastroModal }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
