@@ -21,26 +21,45 @@ import EditarPerfil from "./EditarPerfil";
 import AvaliacoesPratos from "./AvaliacoesPratos";
 import PropTypes from "prop-types";
 
-const DashboardFornecedor = ({ onLogout }) => {
-    const [tabAtiva, setTabAtiva] = useState("meus-pratos");
+const DashboardFornecedor = ({
+    onLogout,
+    usuario: usuarioProps,
+    onChangeTab,
+    tabAtiva: tabAtivaExterna,
+}) => {
+    // Usar tabAtiva externa se fornecida, caso contrário usar o estado local
+    const [tabAtiva, setTabAtiva] = useState(tabAtivaExterna || "meus-pratos");
     const [isLoading, setIsLoading] = useState(true);
     const [periodoStats, setPeriodoStats] = useState("semanal");
     const [menuAberto, setMenuAberto] = useState(false);
 
-    // Mock de usuário (em produção, viria de um contexto/estado global)
+    // Atualizar tabAtiva quando a prop externa mudar
+    useEffect(() => {
+        if (tabAtivaExterna) {
+            setTabAtiva(tabAtivaExterna);
+        }
+    }, [tabAtivaExterna]);
+
+    // Combinar dados do usuário recebidos com os dados mock padrão
     const usuario = {
-        nome: "Restaurante Saudável",
-        email: "contato@restaurantesaudavel.com",
-        telefone: "(11) 99999-9999",
-        dataCadastro: "01/01/2023",
-        endereco: "Av. Paulista, 1000",
-        cidade: "São Paulo",
-        estado: "SP",
-        cep: "01310-100",
-        fotoPerfil: "/img/menu1.jpg", // Usando uma imagem que já existe no projeto
-        plano: "Premium",
-        statusAssinatura: "Ativo",
-        proximaCobranca: "15/07/2023",
+        nome:
+            usuarioProps?.nome ||
+            usuarioProps?.nome_completo ||
+            "Restaurante Saudável",
+        email: usuarioProps?.email || "contato@restaurantesaudavel.com",
+        telefone: usuarioProps?.telefone || "(11) 99999-9999",
+        dataCadastro:
+            usuarioProps?.dataCadastro ||
+            usuarioProps?.created_at ||
+            "01/01/2023",
+        endereco: usuarioProps?.endereco || "Av. Paulista, 1000",
+        cidade: usuarioProps?.cidade || "São Paulo",
+        estado: usuarioProps?.estado || "SP",
+        cep: usuarioProps?.cep || "01310-100",
+        fotoPerfil: usuarioProps?.fotoPerfil || "/img/menu1.jpg", // Usando uma imagem que já existe no projeto
+        plano: usuarioProps?.plano || "Premium",
+        statusAssinatura: usuarioProps?.statusAssinatura || "Ativo",
+        proximaCobranca: usuarioProps?.proximaCobranca || "15/07/2023",
     };
 
     // Mock de estatísticas do restaurante
@@ -137,6 +156,15 @@ const DashboardFornecedor = ({ onLogout }) => {
 
         return () => clearTimeout(timer);
     }, []);
+
+    // Função para mudar a tab ativa
+    const handleTabChange = (tab) => {
+        setTabAtiva(tab);
+        // Se onChangeTab for fornecido, notificar o componente pai
+        if (typeof onChangeTab === "function") {
+            onChangeTab(tab);
+        }
+    };
 
     // Componente para o Dashboard Home
     const DashboardHome = () => (
@@ -281,7 +309,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                             </h3>
                             <button
                                 className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors flex items-center"
-                                onClick={() => setTabAtiva("pedidos")}
+                                onClick={() => handleTabChange("pedidos")}
                             >
                                 Ver todos{" "}
                                 <FiChevronDown className="ml-1" size={14} />
@@ -356,7 +384,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                             </h3>
                             <button
                                 className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors flex items-center"
-                                onClick={() => setTabAtiva("avaliacoes")}
+                                onClick={() => handleTabChange("avaliacoes")}
                             >
                                 Ver todas{" "}
                                 <FiChevronDown className="ml-1" size={14} />
@@ -523,7 +551,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                             <button
                                                 className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                                                 onClick={() => {
-                                                    setTabAtiva(
+                                                    handleTabChange(
                                                         "editar-perfil"
                                                     );
                                                     setMenuAberto(false);
@@ -578,7 +606,9 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 ? "bg-green-100 text-green-700"
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
-                                        onClick={() => setTabAtiva("dashboard")}
+                                        onClick={() =>
+                                            handleTabChange("dashboard")
+                                        }
                                     >
                                         <FiBarChart2 />
                                         <span>Dashboard</span>
@@ -592,7 +622,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
                                         onClick={() =>
-                                            setTabAtiva("meus-pratos")
+                                            handleTabChange("meus-pratos")
                                         }
                                     >
                                         <FiList />
@@ -607,7 +637,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
                                         onClick={() =>
-                                            setTabAtiva("adicionar-prato")
+                                            handleTabChange("adicionar-prato")
                                         }
                                     >
                                         <FiPlusCircle />
@@ -621,7 +651,9 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 ? "bg-green-100 text-green-700"
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
-                                        onClick={() => setTabAtiva("pedidos")}
+                                        onClick={() =>
+                                            handleTabChange("pedidos")
+                                        }
                                     >
                                         <FiShoppingBag />
                                         <span>Pedidos</span>
@@ -635,7 +667,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
                                         onClick={() =>
-                                            setTabAtiva("avaliacoes")
+                                            handleTabChange("avaliacoes")
                                         }
                                     >
                                         <FiStar />
@@ -649,7 +681,9 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 ? "bg-green-100 text-green-700"
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
-                                        onClick={() => setTabAtiva("mensagens")}
+                                        onClick={() =>
+                                            handleTabChange("mensagens")
+                                        }
                                     >
                                         <FiMessageSquare />
                                         <span>Mensagens</span>
@@ -666,7 +700,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
                                         onClick={() =>
-                                            setTabAtiva("calendario")
+                                            handleTabChange("calendario")
                                         }
                                     >
                                         <FiCalendar />
@@ -681,7 +715,7 @@ const DashboardFornecedor = ({ onLogout }) => {
                                                 : "hover:bg-gray-100 text-gray-700"
                                         }`}
                                         onClick={() =>
-                                            setTabAtiva("editar-perfil")
+                                            handleTabChange("editar-perfil")
                                         }
                                     >
                                         <FiUser />
@@ -750,6 +784,14 @@ const DashboardFornecedor = ({ onLogout }) => {
 
 DashboardFornecedor.propTypes = {
     onLogout: PropTypes.func.isRequired,
+    usuario: PropTypes.object,
+    onChangeTab: PropTypes.func,
+    tabAtiva: PropTypes.string,
+};
+
+DashboardFornecedor.defaultProps = {
+    usuario: {},
+    tabAtiva: "meus-pratos",
 };
 
 export default DashboardFornecedor;

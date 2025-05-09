@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class Cliente extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasApiTokens;
 
     protected $fillable = [
         //Parte1
@@ -53,5 +54,13 @@ class Cliente extends Authenticatable
     public function setSenhaAttribute($value)
     {
         $this->attributes['senha'] = bcrypt($value);
+    }
+
+    /**
+     * Configure o nome do campo senha para auth
+     */
+    public function getAuthPassword()
+    {
+        return $this->senha;
     }
 }
