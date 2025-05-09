@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Middleware\VerificarFornecedor;
 
 //Route::get('/', function () {
   //  return Inertia::render('Welcome', [
@@ -18,13 +19,21 @@ Route::get('/', function () {
     return Inertia::render('Home'); // Nome do arquivo: Home.jsx
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
+// Rota para fornecedores - apenas eles terão acesso ao dashboard
 Route::get('/fornecedor/dashboard', function () {
-    return Inertia::render('FornecedorDashboard');
-})->name('fornecedor.dashboard');
+    return Inertia::render('Fornecedor/Dashboard');
+})->middleware(['auth', \App\Http\Middleware\VerificarFornecedor::class])->name('fornecedor.dashboard');
+
+// Quando um cliente comum tenta acessar o dashboard, redireciona para a home
+Route::get('/dashboard', function () {
+    // Verificar se o usuário é um fornecedor
+    if (auth()->check() && auth()->user()->isProdutor) {
+        return redirect()->route('fornecedor.dashboard');
+    }
+    
+    // Se for cliente comum, redireciona para a página inicial
+    return redirect('/');
+})->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PratoController;
 use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ClienteAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +20,8 @@ use App\Http\Controllers\AvaliacaoController;
 // Rotas públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/clientes', [ClienteController::class, 'store']);
+Route::post('/clientes/login', [ClienteAuthController::class, 'login']);
 
 // Rotas públicas para pratos
 Route::get('/pratos', [PratoController::class, 'index']);
@@ -28,6 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rotas de autenticação
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Rotas para cliente logado
+    Route::get('/cliente', [ClienteAuthController::class, 'me']);
+    Route::post('/cliente/logout', [ClienteAuthController::class, 'logout']);
     
     // Rotas para pratos (fornecedor)
     Route::post('/pratos', [PratoController::class, 'store']);

@@ -20,7 +20,7 @@ import {
     validarCartaoCredito,
     validarCEP,
 } from "../utils/validations";
-import { Inertia } from "@inertiajs/inertia";
+import { router } from "@inertiajs/react";
 
 const LoginModal = ({ isOpen, closeModal, onLogin, openCadastroModal }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,8 +75,30 @@ const LoginModal = ({ isOpen, closeModal, onLogin, openCadastroModal }) => {
         setIsSubmitting(true);
 
         try {
-            // Simulação de login
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            // Enviar dados para a API de login
+            const response = await fetch("/api/clientes/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    senha: formData.senha,
+                }),
+            });
+
+            const resultado = await response.json();
+
+            if (!response.ok) {
+                throw new Error(resultado.message || "Erro ao fazer login");
+            }
+
+            // Armazenar o token no localStorage
+            localStorage.setItem("auth_token", resultado.token);
 
             iziToast.success({
                 title: "Sucesso!",
@@ -92,14 +114,29 @@ const LoginModal = ({ isOpen, closeModal, onLogin, openCadastroModal }) => {
                 icon: "ico-success",
             });
 
-            // Chamar a função de login do componente pai
-            onLogin("usuario");
+            // Chamar a função de login do componente pai, se disponível
+            if (typeof onLogin === "function") {
+                try {
+                    onLogin(resultado.cliente);
+                } catch (loginError) {
+                    console.error("Erro ao processar login:", loginError);
+                }
+            } else {
+                console.warn("Função onLogin não está disponível");
+            }
+
+            // Fechar o modal
             closeModal();
+
+            // Redirecionar para a página apropriada se houver um URL de redirecionamento
+            if (resultado.redirect) {
+                window.location.href = resultado.redirect;
+            }
         } catch (error) {
             console.error("Erro no processamento:", error);
             iziToast.error({
                 title: "Erro",
-                message: "Email ou senha incorretos.",
+                message: error.message || "Email ou senha incorretos.",
                 position: "topRight",
             });
         } finally {
@@ -982,21 +1019,91 @@ const CadastroModal = ({ isOpen, closeModal, onLogin, openLoginModal }) => {
                 return;
             }
 
-            // Se for fornecedor, validar o cartão com Mercado Pago
+            // Preparar os dados para envio
+            const dadosCadastro = {
+                nome_completo: formData.nome,
+                cpf: formData.cpf.replace(/\D/g, ""),
+                telefone: formData.telefone.replace(/\D/g, ""),
+                email: formData.email,
+                data_nascimento: formData.dataNascimento,
+                cep: formData.cep.replace(/\D/g, ""),
+                rua: formData.rua,
+                numero: formData.numero,
+                complemento: formData.complemento,
+                bairro: formData.bairro,
+                cidade: formData.cidade,
+                estado: formData.estado,
+                senha: formData.senha,
+                senha_confirmation: formData.confirmarSenha,
+                termos_uso: termosAceitos,
+                politica_privacidade: politicaAceita,
+                tipoUsuario:
+                    tipoUsuario === "fornecedor" ? "fornecedor" : "cliente",
+            };
+
+            // Adicionar campos de cartão se for fornecedor
             if (tipoUsuario === "fornecedor") {
-                const tokenGerado = await gerarTokenCartao();
-                if (!tokenGerado) {
-                    setIsSubmitting(false);
-                    return;
+                dadosCadastro.numero_cartao = formData.cartao.numero.replace(
+                    /\D/g,
+                    ""
+                );
+                dadosCadastro.nome_titular = formData.cartao.titular;
+                dadosCadastro.validade_cartao = formData.cartao.validade;
+                dadosCadastro.cvv = formData.cartao.cvv;
+            }
+
+            console.log("Enviando dados para API:", dadosCadastro);
+
+            // Enviar dados para a API
+            const response = await fetch("/api/clientes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                },
+                body: JSON.stringify(dadosCadastro),
+            });
+
+            const resultado = await response.json();
+
+            if (!response.ok) {
+                // Se for um erro de validação (422), exibir os erros específicos
+                if (response.status === 422 && resultado.errors) {
+                    const errosValidacao = resultado.errors;
+
+                    // Mostrar detalhes dos erros ao usuário
+                    console.error("Erros de validação:", errosValidacao);
+
+                    // Atualizar o estado de erros com os erros do servidor
+                    const novosErros = {};
+                    Object.keys(errosValidacao).forEach((campo) => {
+                        novosErros[campo] = errosValidacao[campo][0];
+                    });
+
+                    setErros(novosErros);
+
+                    // Exibir mensagem com o resumo dos erros
+                    const mensagemErro = Object.values(errosValidacao)
+                        .flat()
+                        .join("\n");
+
+                    iziToast.error({
+                        title: "Erro de validação",
+                        message:
+                            mensagemErro || "Verifique os campos do formulário",
+                        position: "topRight",
+                        timeout: 6000,
+                    });
+
+                    throw new Error("Erro de validação");
                 }
 
-                // Simulação de processamento de pagamento
-                await new Promise((resolve) => setTimeout(resolve, 3000));
-
-                // Aqui você enviaria o token para seu backend processar o pagamento
-                console.log("Token do cartão gerado:", cardTokenId);
-            } else {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
+                throw new Error(
+                    resultado.message || "Erro ao cadastrar usuário"
+                );
             }
 
             iziToast.success({
@@ -1013,16 +1120,42 @@ const CadastroModal = ({ isOpen, closeModal, onLogin, openLoginModal }) => {
                 icon: "ico-success",
             });
 
-            // Chamar a função de login do componente pai
-            onLogin(tipoUsuario);
+            // Armazenar o token no localStorage
+            localStorage.setItem("auth_token", resultado.token);
+
+            // Chamar a função de login do componente pai, se disponível
+            if (typeof onLogin === "function") {
+                try {
+                    onLogin(resultado.cliente);
+                } catch (loginError) {
+                    console.error(
+                        "Erro ao fazer login automático:",
+                        loginError
+                    );
+                    // Continua o fluxo mesmo se o login falhar
+                }
+            } else {
+                console.warn("Função onLogin não está disponível");
+            }
+
+            // Fechar o modal de qualquer maneira
             closeModal();
+
+            // NOVO: Redirecionar para o dashboard de fornecedor se for um fornecedor
+            if (tipoUsuario === "fornecedor" && resultado.redirect) {
+                // Usar router em vez de window.location para evitar recarregamento completo
+                router.visit(resultado.redirect);
+            }
         } catch (error) {
             console.error("Erro no processamento:", error);
-            iziToast.error({
-                title: "Erro",
-                message: "Ocorreu um erro ao cadastrar.",
-                position: "topRight",
-            });
+            // Só exibe mensagem de erro genérica se não for um erro de validação (que já foi tratado)
+            if (error.message !== "Erro de validação") {
+                iziToast.error({
+                    title: "Erro",
+                    message: error.message || "Ocorreu um erro ao cadastrar.",
+                    position: "topRight",
+                });
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -2648,6 +2781,102 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const userMenuRef = useRef(null);
 
+    // Estado para guardar o usuário logado
+    const [localUsuarioLogado, setLocalUsuarioLogado] = useState(
+        usuarioLogado || { logado: false }
+    );
+
+    // Verificar se tem token no localStorage ao iniciar
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+
+        // Se tiver token e não estiver logado, buscar as informações do usuário
+        if (token && !localUsuarioLogado.logado) {
+            fetchUserInfo(token);
+        }
+    }, []);
+
+    // Função para obter as informações do usuário com o token
+    const fetchUserInfo = async (token) => {
+        try {
+            const response = await fetch("/api/cliente", {
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                handleLoginSuccess(userData);
+            } else {
+                // Token inválido ou expirado, remove
+                localStorage.removeItem("auth_token");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar informações do usuário:", error);
+        }
+    };
+
+    // Função para tratar o login bem-sucedido
+    const handleLoginSuccess = (userData) => {
+        setLocalUsuarioLogado({
+            ...userData,
+            logado: true,
+        });
+
+        // Se o componente pai forneceu uma função onLogin, chama
+        if (typeof onLogin === "function") {
+            try {
+                onLogin(userData);
+            } catch (error) {
+                console.error("Erro ao chamar onLogin:", error);
+            }
+        }
+    };
+
+    // Função para fazer logout
+    const handleLogout = async () => {
+        try {
+            const token = localStorage.getItem("auth_token");
+
+            if (token) {
+                await fetch("/api/cliente/logout", {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                // Limpa o token do localStorage
+                localStorage.removeItem("auth_token");
+            }
+
+            // Atualiza o estado local
+            setLocalUsuarioLogado({ logado: false });
+
+            // Se o componente pai forneceu uma função onLogout, chama
+            if (typeof onLogout === "function") {
+                onLogout();
+            }
+
+            setUserMenuOpen(false);
+
+            iziToast.success({
+                title: "Logout",
+                message: "Você saiu da sua conta com sucesso",
+                position: "topRight",
+                timeout: 3000,
+            });
+
+            // Redireciona para a home
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+        }
+    };
+
     useEffect(() => {
         const handleScroll = () => {
             const isScrolled = window.scrollY > 10;
@@ -2681,8 +2910,14 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
     }, []);
 
     const irParaDashboard = () => {
-        if (usuarioLogado?.tipo === "fornecedor") {
-            onNavigate("dashboard");
+        const effectiveUser = localUsuarioLogado || usuarioLogado;
+        if (effectiveUser?.tipo === "fornecedor") {
+            if (typeof onNavigate === "function") {
+                onNavigate("dashboard");
+            } else {
+                // Usar o router do Inertia ao invés da classe Inertia
+                router.visit("/fornecedor/dashboard");
+            }
         }
     };
 
@@ -2704,16 +2939,10 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
         setUserMenuOpen(false);
     };
 
-    const handleLogout = () => {
-        onLogout();
-        setUserMenuOpen(false);
-        iziToast.success({
-            title: "Logout",
-            message: "Você saiu da sua conta com sucesso",
-            position: "topRight",
-            timeout: 3000,
-        });
-    };
+    // Usar o usuário logado do estado local ou da prop
+    const effectiveUsuarioLogado = localUsuarioLogado.logado
+        ? localUsuarioLogado
+        : usuarioLogado || { logado: false };
 
     const UserMenu = () => (
         <div
@@ -2721,15 +2950,29 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
             className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
         >
             <div className="px-4 py-2 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-900">
-                    {usuarioLogado.nome}
+                <p className="text-sm font-medium text-gray-900 flex items-center">
+                    {effectiveUsuarioLogado.nome}
+                    {effectiveUsuarioLogado.tipo === "fornecedor" && (
+                        <span
+                            className="ml-2 text-amber-600"
+                            title="Conta de Fornecedor"
+                        >
+                            <FaUtensils size={12} />
+                        </span>
+                    )}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                    {usuarioLogado.email}
+                    {effectiveUsuarioLogado.email}
                 </p>
+                {effectiveUsuarioLogado.tipo === "fornecedor" && (
+                    <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <FaUtensils size={10} className="mr-1" />
+                        Fornecedor
+                    </span>
+                )}
             </div>
 
-            {usuarioLogado.tipo === "fornecedor" && (
+            {effectiveUsuarioLogado.tipo === "fornecedor" && (
                 <button
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
                     onClick={() => {
@@ -2763,10 +3006,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
 
             <button
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
-                onClick={() => {
-                    setUserMenuOpen(false);
-                    handleLogout();
-                }}
+                onClick={handleLogout}
             >
                 Sair
             </button>
@@ -2865,7 +3105,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                         Avaliações
                     </Link>
 
-                    {!usuarioLogado?.logado ? (
+                    {!effectiveUsuarioLogado.logado ? (
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={openCadastroModal}
@@ -2908,10 +3148,29 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                     onClick={toggleUserMenu}
                                     className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-all"
                                 >
-                                    <FaUserCircle className="text-2xl text-green-600" />
+                                    <div className="relative">
+                                        <FaUserCircle className="text-2xl text-green-600" />
+                                        {effectiveUsuarioLogado.tipo ===
+                                            "fornecedor" && (
+                                            <div
+                                                className="absolute -top-1 -right-1 bg-amber-500 rounded-full w-3 h-3 border border-white"
+                                                title="Conta de Fornecedor"
+                                            ></div>
+                                        )}
+                                    </div>
                                     <span className="font-medium">
-                                        {usuarioLogado.nome || "Usuário"}
+                                        {effectiveUsuarioLogado.nome ||
+                                            "Usuário"}
                                     </span>
+                                    {effectiveUsuarioLogado.tipo ===
+                                        "fornecedor" && (
+                                        <div
+                                            className="ml-1 flex items-center text-amber-600"
+                                            title="Conta de Fornecedor"
+                                        >
+                                            <FaUtensils className="text-sm" />
+                                        </div>
+                                    )}
                                     <BiChevronDown
                                         className={`transition-transform ${
                                             userMenuOpen ? "rotate-180" : ""
@@ -2989,7 +3248,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                             Avaliações
                         </Link>
 
-                        {!usuarioLogado?.logado ? (
+                        {!effectiveUsuarioLogado.logado ? (
                             <div className="mt-4 flex flex-col gap-3">
                                 <button
                                     onClick={() => {
@@ -3034,24 +3293,46 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                             <div className="mt-4 flex flex-col gap-3">
                                 {/* Mostrar informações do usuário no mobile */}
                                 <div className="flex items-center p-4 bg-green-50 rounded-lg mb-2">
-                                    <div className="h-12 w-12 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm mr-3">
-                                        <span className="text-lg font-bold">
-                                            {usuarioLogado.nome
-                                                ? usuarioLogado.nome
-                                                      .charAt(0)
-                                                      .toUpperCase()
-                                                : "U"}
-                                        </span>
+                                    <div className="relative">
+                                        <div className="h-12 w-12 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm mr-3">
+                                            <span className="text-lg font-bold">
+                                                {effectiveUsuarioLogado.nome
+                                                    ? effectiveUsuarioLogado.nome
+                                                          .charAt(0)
+                                                          .toUpperCase()
+                                                    : "U"}
+                                            </span>
+                                        </div>
+                                        {effectiveUsuarioLogado.tipo ===
+                                            "fornecedor" && (
+                                            <div
+                                                className="absolute -top-1 -right-2 bg-amber-500 rounded-full w-5 h-5 border-2 border-white flex items-center justify-center"
+                                                title="Conta de Fornecedor"
+                                            >
+                                                <FaUtensils className="text-white text-xs" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-800">
-                                            {usuarioLogado.nome || "Usuário"}
+                                        <p className="font-medium text-gray-800 flex items-center">
+                                            {effectiveUsuarioLogado.nome ||
+                                                "Usuário"}
+                                            {effectiveUsuarioLogado.tipo ===
+                                                "fornecedor" && (
+                                                <span
+                                                    className="ml-2 text-amber-600"
+                                                    title="Conta de Fornecedor"
+                                                >
+                                                    <FaUtensils />
+                                                </span>
+                                            )}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            {usuarioLogado.email}
+                                            {effectiveUsuarioLogado.email}
                                         </p>
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
-                                            {usuarioLogado.tipo === "fornecedor"
+                                            {effectiveUsuarioLogado.tipo ===
+                                            "fornecedor"
                                                 ? "Fornecedor"
                                                 : "Cliente"}
                                         </span>
@@ -3097,7 +3378,8 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
                                     </span>
                                 </button>
 
-                                {usuarioLogado.tipo === "fornecedor" && (
+                                {effectiveUsuarioLogado.tipo ===
+                                    "fornecedor" && (
                                     <button
                                         onClick={() => {
                                             irParaDashboard();
@@ -3127,7 +3409,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
 
                                 <button
                                     onClick={() => {
-                                        onLogout();
+                                        handleLogout();
                                         handleChange();
                                     }}
                                     className="w-full py-3 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-lg flex items-center px-4 gap-3 mt-2"
@@ -3159,13 +3441,13 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
             <LoginModal
                 isOpen={isLoginModalOpen}
                 closeModal={closeLoginModal}
-                onLogin={onLogin}
+                onLogin={handleLoginSuccess}
                 openCadastroModal={openCadastroModal}
             />
             <CadastroModal
                 isOpen={isCadastroModalOpen}
                 closeModal={closeCadastroModal}
-                onLogin={onLogin}
+                onLogin={handleLoginSuccess}
                 openLoginModal={openLoginModal}
             />
             <PedidosWhatsappModal
@@ -3175,7 +3457,7 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
             <EditarPerfilModal
                 isOpen={isEditarPerfilModalOpen}
                 closeModal={closeEditarPerfilModal}
-                usuarioLogado={usuarioLogado}
+                usuarioLogado={effectiveUsuarioLogado}
             />
         </div>
     );
