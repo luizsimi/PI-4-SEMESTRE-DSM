@@ -2910,14 +2910,21 @@ const Navbar = ({ onLogin, usuarioLogado, onLogout, onNavigate }) => {
     }, []);
 
     const irParaDashboard = () => {
-        const effectiveUser = localUsuarioLogado || usuarioLogado;
-        if (effectiveUser?.tipo === "fornecedor") {
-            if (typeof onNavigate === "function") {
-                onNavigate("dashboard");
-            } else {
-                // Usar o router do Inertia ao invés da classe Inertia
-                router.visit("/fornecedor/dashboard");
-            }
+        // Navegar diretamente para a rota dashboard de fornecedor
+        try {
+            router.visit("/fornecedor/dashboard", {
+                preserveState: false,
+                onSuccess: () => {
+                    console.log("Navegação para dashboard bem-sucedida");
+                },
+                onError: (errors) => {
+                    console.error("Erro na navegação:", errors);
+                },
+            });
+        } catch (error) {
+            console.error("Erro ao navegar para o dashboard:", error);
+            // Fallback para navegação tradicional caso o router falhe
+            window.location.href = "/fornecedor/dashboard";
         }
     };
 

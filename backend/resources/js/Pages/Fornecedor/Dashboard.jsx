@@ -8,6 +8,9 @@ import "izitoast/dist/css/iziToast.min.css";
 export default function Dashboard() {
     const { auth } = usePage().props;
 
+    // Log para debug - para ver a estrutura dos dados do usuário
+    console.log("Auth data:", auth);
+
     const handleLogout = () => {
         // Usar o router do Inertia para fazer logout
         router.post(route("logout"));
@@ -49,6 +52,7 @@ export default function Dashboard() {
             <DashboardFornecedor
                 usuario={formatUserData()}
                 onLogout={handleLogout}
+                tabAtiva="dashboard" // Definir explicitamente a tab ativa para "dashboard"
             />
         </>
     );

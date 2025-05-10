@@ -19,15 +19,20 @@ Route::get('/', function () {
     return Inertia::render('Home'); // Nome do arquivo: Home.jsx
 });
 
+// Página de não autorizado
+Route::get('/not-authorized', function () {
+    return Inertia::render('NotAuthorized');
+})->name('not-authorized');
+
 // Rota para fornecedores - apenas eles terão acesso ao dashboard
 Route::get('/fornecedor/dashboard', function () {
-    return Inertia::render('Fornecedor/Dashboard');
+    return Inertia::render('Fornecedor/NovoDashboard');
 })->middleware(['auth', \App\Http\Middleware\VerificarFornecedor::class])->name('fornecedor.dashboard');
 
 // Quando um cliente comum tenta acessar o dashboard, redireciona para a home
 Route::get('/dashboard', function () {
     // Verificar se o usuário é um fornecedor
-    if (auth()->check() && auth()->user()->isProdutor) {
+    if (auth()->check() && (auth()->user()->isProdutor == 1 || auth()->user()->tipo == 'fornecedor')) {
         return redirect()->route('fornecedor.dashboard');
     }
     
