@@ -1,107 +1,156 @@
-# LeveFit - Sistema de Delivery de Comida Saudável
+# 🥗 LeveFit
 
-## Sobre o Projeto
+<div align="center">
+  <img src="levefit/public/favicon.svg" alt="LeveFit Logo" width="120" />
+  <h3>Comida saudável, vida leve</h3>
+  
+  [![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+  [![Vite](https://img.shields.io/badge/Vite-4.4.5-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
+</div>
 
-O LeveFit é uma plataforma de delivery de comida saudável que conecta fornecedores e clientes. O sistema permite que fornecedores cadastrem seus pratos saudáveis com informações nutricionais, enquanto os clientes podem navegar pelo catálogo, filtrar por categorias, e realizar pedidos via WhatsApp diretamente com o restaurante.
+## 📋 Sobre o Projeto
 
-## Características Visuais
+A **LeveFit** é uma plataforma que conecta clientes a fornecedores de comida saudável, oferecendo uma experiência simples e eficiente para fazer pedidos de refeições nutritivas e saborosas diretamente pelo WhatsApp.
 
-- **Design Moderno e Responsivo** - Interface limpa e intuitiva adaptada para todos os dispositivos
-- **Animações Fluidas** - Efeitos de digitação, transições suaves e componentes animados
-- **Carrossel Otimizado** - Apresentação elegante de restaurantes parceiros e pratos em destaque
-- **Filtros Interativos** - Sistema dinâmico de categorias para facilitar a navegação
+### 🎯 Objetivo
 
-## Tecnologias Utilizadas
+Facilitar o acesso à alimentação saudável, conectando pessoas que buscam uma vida mais equilibrada a fornecedores especializados em refeições nutritivas e deliciosas.
+
+## ✨ Funcionalidades Principais
+
+- 🔍 **Navegação por Categorias**: Explore pratos por tipo (vegano, low-carb, proteico, etc.)
+- 👨‍🍳 **Perfil de Fornecedores**: Conheça os fornecedores parceiros e seus cardápios
+- 📱 **Pedidos via WhatsApp**: Solicite seu pedido diretamente pelo WhatsApp com mensagem pré-formatada
+- ⭐ **Avaliações**: Veja e deixe avaliações dos pratos experimentados
+- 🌙 **Modo Escuro**: Interface adaptável ao tema do sistema
+
+## 🚀 Como Funciona
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://img.icons8.com/ios-filled/50/4CAF50/restaurant-menu.png" width="30" />
+        <br />
+        <b>1. Escolha seu prato</b>
+        <br />
+        <small>Navegue pelo cardápio e escolha suas refeições</small>
+      </td>
+      <td align="center">
+        <img src="https://img.icons8.com/ios-filled/50/4CAF50/whatsapp.png" width="30" />
+        <br />
+        <b>2. Peça pelo WhatsApp</b>
+        <br />
+        <small>Comunique-se diretamente com o fornecedor</small>
+      </td>
+      <td align="center">
+        <img src="https://img.icons8.com/ios-filled/50/4CAF50/delivery.png" width="30" />
+        <br />
+        <b>3. Receba em casa</b>
+        <br />
+        <small>Sua refeição saudável entregue onde você estiver</small>
+      </td>
+    </tr>
+  </table>
+</div>
+
+## 🔧 Tecnologias Utilizadas
 
 ### Frontend
 
-- **React.js** - Biblioteca para construção de interfaces
-- **Tailwind CSS** - Framework CSS utilitário para estilização
-- **React Router Dom** - Gerenciamento de rotas da aplicação
-- **React Icons** - Biblioteca de ícones
-- **React Slick** - Implementação do carrossel
-- **Inertia.js** - Integração frontend-backend sem APIs
+- **React** + **TypeScript**: Para construção da interface
+- **Tailwind CSS**: Para estilização responsiva
+- **Vite**: Como bundler e ferramenta de desenvolvimento
+- **Axios**: Para requisições HTTP
+- **React Icons**: Biblioteca de ícones
+- **React Router**: Para navegação entre páginas
 
 ### Backend
 
-- **Laravel 10** - Framework PHP
-- **MySQL** - Banco de dados relacional
-- **Laravel Sanctum** - Autenticação da API
-- **Laravel Breeze** - Scaffolding de autenticação
+- **Node.js** + **Express**: Para criação da API
+- **Prisma**: ORM para comunicação com banco de dados
+- **JWT**: Para autenticação de usuários
+- **Multer**: Para upload de imagens
 
-## Estrutura do Projeto
+## 📊 Arquitetura
 
-- `/backend` - Aplicação Laravel com API e recursos
-  - `/resources/js` - Frontend React integrado com Inertia.js
-  - `/resources/css` - Estilos e configurações do Tailwind
-  - `/app/Http/Controllers` - Controladores da aplicação
-  - `/routes` - Rotas da API e web
-  - `/public` - Arquivos estáticos e imagens
-- `/documentacao` - Arquivos de documentação e instruções
-- `/temp-laravel` - Template de instalação Laravel
+O projeto segue uma arquitetura de duas camadas:
 
-## Funcionalidades Principais
-
-### Para Clientes
-
-- Registro e login de usuários
-- Navegação no catálogo de pratos com animações
-- Filtros por categoria de alimentos (Aves, Bovina, Vegano, Peixes)
-- Visualização de informações nutricionais e calorias
-- Contato direto com fornecedores via WhatsApp
-
-### Para Fornecedores
-
-- Dashboard administrativo
-- Cadastro e gerenciamento de produtos
-- Upload de imagens de pratos
-- Estatísticas de visualizações
-
-## Execução do Projeto
-
-Para instruções detalhadas sobre como executar o projeto, consulte o arquivo [INSTRUCOES_EXECUCAO.md](./documentacao/INSTRUCOES_EXECUCAO.md).
-
-### Requisitos Básicos
-
-- Node.js 18.x ou superior
-- PHP 8.1 ou superior
-- Composer
-- MySQL
-- XAMPP, WAMP ou similar (opcional)
-
-### Comandos Rápidos
-
-**Backend:**
-
-```bash
-cd backend
-composer install
-php artisan serve
+```
+LeveFit/
+├── levefit/         # Frontend em React
+│   ├── public/      # Arquivos públicos
+│   ├── src/         # Código fonte
+│   │   ├── assets/  # Recursos estáticos
+│   │   ├── components/ # Componentes reutilizáveis
+│   │   ├── contexts/   # Contextos React
+│   │   ├── pages/      # Páginas da aplicação
+│   │   └── routes/     # Rotas da aplicação
+│   └── ...
+│
+└── backend/         # API em Node.js
+    ├── prisma/      # Configuração do Prisma
+    └── src/         # Código fonte
+        ├── controllers/ # Controladores
+        ├── middlewares/ # Middlewares
+        ├── routes/      # Rotas da API
+        └── types/       # Tipos TypeScript
 ```
 
-**Frontend:**
+## 🔐 Autenticação
+
+O sistema utiliza dois tipos de usuários:
+
+- **Clientes**: Podem navegar, comprar e avaliar pratos
+- **Fornecedores**: Podem gerenciar cardápios e receber pedidos
+
+## 🌱 Sustentabilidade
+
+A LeveFit valoriza a sustentabilidade e encoraja fornecedores a utilizarem:
+
+- 🌿 Embalagens biodegradáveis ou recicláveis
+- 🛒 Ingredientes locais e sazonais
+- ♻️ Práticas de redução de desperdício alimentar
+
+## 🚀 Instalação e Execução
+
+### Pré-requisitos
+
+- Node.js 16+
+- npm ou yarn
+
+### Passos para instalação
 
 ```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/LeveFit.git
+cd LeveFit
+
+# Instale as dependências do frontend
+cd levefit
+npm install
+npm run dev
+
+# Em outro terminal, configure o backend
 cd backend
 npm install
+npx prisma migrate dev
 npm run dev
 ```
 
-## Otimizações de Performance
+## 📝 Licença
 
-O LeveFit possui diversas otimizações para garantir uma experiência fluida:
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
 
-- Carregamento de imagens otimizado
-- Animações CSS para melhor performance visual
-- Implementação de efeitos visuais com baixo impacto no desempenho
-- Estilização avançada do carrossel para evitar problemas de layout
+---
 
-## Desenvolvedores
-
-- ABNER DE SOUZA (DOCUMENTAÇÃO/DESIGN)
-- DARLAN DOS SANTOS (BACK-END)
-- LUIZ HENRIQUE SIMIONATO (FRONT-END/DESIGN)
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
+<div align="center">
+  <p>Feito com ❤️ para um estilo de vida mais saudável</p>
+  <p>
+    <a href="https://github.com/seu-usuario/LeveFit">
+      <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github" alt="Github Repository" />
+    </a>
+  </p>
+</div>
