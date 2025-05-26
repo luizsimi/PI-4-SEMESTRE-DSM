@@ -15,6 +15,7 @@ import {
   FaListAlt,
   FaPhoneAlt,
   FaBookMedical,
+  FaShoppingBasket,
 } from "react-icons/fa";
 import { HiChevronDown } from "react-icons/hi";
 import UserProfileModal from "./UserProfileModal";
@@ -236,16 +237,26 @@ const Navbar = () => {
                       </div>
 
                       {userType === "cliente" ? (
-                        <button
-                          onClick={() => {
-                            setDropdownOpen(false);
-                            setShowProfileModal(true);
-                          }}
-                          className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors duration-200"
-                        >
-                          <FaUser className="mr-2 text-green-600 dark:text-green-400" />{" "}
-                          Editar Perfil
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              setDropdownOpen(false);
+                              setShowProfileModal(true);
+                            }}
+                            className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors duration-200"
+                          >
+                            <FaUser className="mr-2 text-green-600 dark:text-green-400" />{" "}
+                            Editar Perfil
+                          </button>
+                          <Link
+                            to="/meus-pedidos"
+                            onClick={() => setDropdownOpen(false)}
+                            className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center transition-colors duration-200"
+                          >
+                            <FaShoppingBasket className="mr-2 text-green-600 dark:text-green-400" />{" "}
+                            Meus Pedidos
+                          </Link>
+                        </>
                       ) : (
                         <Link
                           to="/dashboard/fornecedor"

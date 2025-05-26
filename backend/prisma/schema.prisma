@@ -15,8 +15,13 @@ model Cliente {
   nome       String
   email      String      @unique
   senha      String
-  endereco   String?
-  telefone   String?
+  telefone   String      // Tornou-se obrigatório
+  cep        String?     // Novo campo, tornado opcional para migração
+  rua        String?     // Novo campo, tornado opcional para migração
+  numero     String?     // Novo campo, tornado opcional para migração
+  bairro     String?     // Novo campo, tornado opcional para migração
+  cidade     String?     // Novo campo, tornado opcional para migração
+  estado     String?     // Novo campo, tornado opcional para migração
   pedidos    Pedido[]
   avaliacoes Avaliacao[]
   createdAt  DateTime    @default(now())
@@ -34,6 +39,7 @@ model Fornecedor {
   status         Boolean  @default(true) // true = ativo, false = inativo
   assinaturaAtiva Boolean @default(false) // status da mensalidade
   pratos         Prato[]
+  pedidos        Pedido[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -58,18 +64,33 @@ model Prato {
   fornecedor       Fornecedor  @relation(fields: [fornecedorId], references: [id])
   fornecedorId     Int
   avaliacoes       Avaliacao[]
+  pedidos          Pedido[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 }
 
 model Pedido {
-  id        Int      @id @default(autoincrement())
-  cliente   Cliente  @relation(fields: [clienteId], references: [id])
-  clienteId Int
-  pratoId   Int
-  status    String   @default("pendente") // pendente, confirmado, entregue, cancelado
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                      Int         @id @default(autoincrement())
+  cliente                 Cliente?    @relation(fields: [id_cliente], references: [id])
+  id_cliente              Int?        // Renomeado de clienteId
+  prato                   Prato       @relation(fields: [pratoId], references: [id])
+  pratoId                 Int
+  fornecedor              Fornecedor  @relation(fields: [id_fornecedor], references: [id])
+  id_fornecedor           Int         // Renomeado de fornecedorId
+  
+  nomeCliente             String      
+  contatoCliente          String?     
+  tipoEntrega             String      
+  enderecoEntrega         String?     
+  observacoes             String?     
+  quantidade              Int         @default(1) 
+  preco_unitario_snapshot Float       // Renomeado de precoUnitarioSnapshot
+  valor_total             Float       // Renomeado de valorTotal
+
+  status                  String      @default("NOVO") 
+
+  time_do_pedido          DateTime    @default(now()) // Renomeado de createdAt
+  updatedAt               DateTime    @updatedAt
 }
 
 model Avaliacao {

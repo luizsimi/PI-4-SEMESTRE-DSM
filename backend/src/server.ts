@@ -13,6 +13,8 @@ import fornecedorRouter from "./routes/fornecedor.routes";
 import pratoRouter from "./routes/prato.routes";
 import avaliacaoRouter from "./routes/avaliacao.routes";
 import blogRouter from "./routes/blog.routes";
+import adminRouter from "./routes/admin.routes";
+import pedidoRouter from "./routes/pedido.routes";
 import { authMiddleware, isFornecedor } from "./middlewares/auth";
 
 // Carrega as variáveis de ambiente
@@ -69,7 +71,8 @@ const upload = multer({
 app.post("/upload", authMiddleware, upload.single("imagem"), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "Nenhum arquivo enviado" });
+      res.status(400).json({ error: "Nenhum arquivo enviado" });
+      return; // Early exit
     }
 
     // Gerar URL completa para a imagem
@@ -77,10 +80,12 @@ app.post("/upload", authMiddleware, upload.single("imagem"), (req, res) => {
       req.file.filename
     }`;
 
-    return res.json({ imageUrl });
+    res.json({ imageUrl });
+    return; // Early exit (ou pode ser omitido se for a última instrução)
   } catch (error) {
     console.error("Erro ao fazer upload da imagem:", error);
-    return res.status(500).json({ error: "Falha ao processar o upload" });
+    res.status(500).json({ error: "Falha ao processar o upload" });
+    return; // Early exit
   }
 });
 
@@ -102,6 +107,8 @@ app.use("/fornecedores", fornecedorRouter);
 app.use("/pratos", pratoRouter);
 app.use("/avaliacoes", avaliacaoRouter);
 app.use("/blog", blogRouter);
+app.use("/admin", adminRouter);
+app.use("/pedidos", pedidoRouter);
 
 // Porta do servidor
 const PORT = process.env.PORT || 3333;

@@ -58,3 +58,33 @@ export function isCliente(req: Request, res: Response, next: NextFunction) {
 
   return next();
 }
+
+// Middleware para autenticação opcional (tenta autenticar, mas não falha se não houver token)
+export function authOptionalMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { authorization } = req.headers;
+
+  if (authorization) {
+    const parts = authorization.split(" ");
+    if (parts.length === 2 && parts[0] === "Bearer") {
+      const token = parts[1];
+      try {
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET || "levefit-default-secret"
+        ) as TokenPayload;
+
+        req.userId = decoded.id;
+        req.userType = decoded.tipo;
+      } catch (error) {
+        // Token inválido, mas não bloqueamos a requisição
+        // req.userId e req.userType permanecerão undefined
+        console.warn("Tentativa de autenticação opcional falhou: Token inválido ou expirado.");
+      }
+    }
+  }
+  return next(); // Sempre chama next(), mesmo se a autenticação falhar ou não houver token
+}

@@ -13,6 +13,14 @@ interface UserData {
   id: number;
   nome: string;
   email: string;
+  telefone?: string;
+  cep?: string;
+  rua?: string;
+  numero?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  whatsapp?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
@@ -24,7 +32,7 @@ interface AuthContextType {
   login: (token: string, type: UserType, data: UserData) => void;
   logout: () => void;
   updateUserData: (data: Partial<UserData>) => void;
-  refreshUserData: () => Promise<void>;
+  refreshUserData: (explicitUserType?: UserType) => Promise<UserData | void>;
   isRefreshing: boolean;
 }
 
@@ -42,7 +50,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Verificar se há token no localStorage ao inicializar
     const token = localStorage.getItem("token");
     const storedUserType = localStorage.getItem("userType") as UserType;
     const storedUserData = localStorage.getItem("userData");
@@ -52,80 +59,93 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {
         token: token ? "Existe" : "Não existe",
         storedUserType,
-        storedUserData: storedUserData ? "Existe" : "Não existe",
+        storedUserData: storedUserData ? JSON.stringify(JSON.parse(storedUserData), null, 2) : "Não existe",
       }
     );
 
-    if (token && storedUserType && storedUserData) {
-      try {
-        const parsedUserData = JSON.parse(storedUserData);
-        console.log("DEBUG - AuthContext - Dados do usuário recuperados:", {
-          userType: storedUserType,
-          id: parsedUserData.id,
-          nome: parsedUserData.nome,
-        });
-
-        setIsAuthenticated(true);
-        setUserType(storedUserType);
-        setUserData(parsedUserData);
-
-        // Configurar o axios para enviar o token em todas as requisições
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        console.log("DEBUG - AuthContext - Token configurado no axios");
-      } catch (error) {
-        console.error(
-          "DEBUG - AuthContext - Erro ao parsear dados do usuário:",
-          error
-        );
-        console.log(
-          "DEBUG - AuthContext - Conteúdo bruto de userData:",
-          storedUserData
-        );
+    if (token && storedUserType) {
+      setIsAuthenticated(true);
+      setUserType(storedUserType);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      console.log("DEBUG - AuthContext - Token configurado no axios. Tentando refreshUserData.");
+      
+      if (storedUserData) {
+        try {
+          const parsedUserData = JSON.parse(storedUserData);
+          setUserData(parsedUserData);
+          console.log("DEBUG - AuthContext - Dados do localStorage aplicados temporariamente:", parsedUserData);
+        } catch (e) {
+          console.error("DEBUG - AuthContext - Erro ao parsear userData do localStorage:", e);
+          localStorage.removeItem("userData");
+        }
       }
+      
+      refreshUserData(storedUserType).then(refreshedData => {
+        if (refreshedData) {
+            console.log("DEBUG - AuthContext - Dados atualizados após refresh na inicialização:", refreshedData);
+        } else {
+            console.log("DEBUG - AuthContext - Não foi possível obter dados atualizados na inicialização, usando localStorage se disponível ou null.");
+        }
+      }).catch(error => {
+          console.error("DEBUG - AuthContext - Erro no refreshUserData durante inicialização:", error);
+      });
+
     } else {
-      console.log("DEBUG - AuthContext - Usuário não está autenticado");
+      console.log("DEBUG - AuthContext - Usuário não está autenticado na inicialização (sem token ou tipo).");
+      setIsAuthenticated(false);
+      setUserType(null);
+      setUserData(null);
+      delete axios.defaults.headers.common["Authorization"];
     }
   }, []);
 
-  const login = (token: string, type: UserType, data: UserData) => {
-    console.log("DEBUG - AuthContext - Realizando login:", {
+  const login = async (token: string, type: UserType, data: UserData) => {
+    console.log("DEBUG - AuthContext - Realizando login com dados recebidos:", {
       tokenExiste: !!token,
       type,
-      userData: data ? { id: data.id, nome: data.nome } : null,
+      userDataReceived: data, 
     });
 
     localStorage.setItem("token", token);
     localStorage.setItem("userType", type as string);
-    localStorage.setItem("userData", JSON.stringify(data));
 
-    // Configurar o axios para enviar o token em todas as requisições
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
     setIsAuthenticated(true);
     setUserType(type);
-    setUserData(data);
 
-    console.log("DEBUG - AuthContext - Login concluído com sucesso");
+    try {
+      console.log("DEBUG - AuthContext - Chamando refreshUserData após login.");
+      const refreshedData = await refreshUserData(type);
+      if (refreshedData) {
+        console.log("DEBUG - AuthContext - Login concluído e dados atualizados:", refreshedData);
+      } else {
+        console.warn("DEBUG - AuthContext - Login concluído, mas refreshUserData não retornou dados. Usando dados parciais do login:", data);
+        setUserData(data); 
+        localStorage.setItem("userData", JSON.stringify(data));
+      }
+    } catch (error) {
+        console.error("DEBUG - AuthContext - Erro durante refreshUserData após login:", error);
+        setUserData(data);
+        localStorage.setItem("userData", JSON.stringify(data));
+    }
   };
 
   const logout = () => {
     console.log("DEBUG - AuthContext - Realizando logout");
 
     localStorage.removeItem("token");
-    localStorage.removeItem("userType");
-    localStorage.removeItem("userData");
-
-    // Remover o token das requisições axios
-    delete axios.defaults.headers.common["Authorization"];
-
-    setIsAuthenticated(false);
     setUserType(null);
     setUserData(null);
+    setIsAuthenticated(false);
+    delete axios.defaults.headers.common["Authorization"];
+    
+    localStorage.removeItem("userType");
+    localStorage.removeItem("userData");
 
     console.log("DEBUG - AuthContext - Logout concluído");
   };
 
-  // Atualizar parcialmente os dados do usuário
   const updateUserData = (data: Partial<UserData>) => {
     if (!userData) return;
 
@@ -138,24 +158,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log("DEBUG - AuthContext - Dados atualizados com sucesso");
   };
 
-  // Buscar dados atualizados do perfil a partir da API
-  const refreshUserData = async () => {
-    if (!isAuthenticated || !userType || refreshingRef.current) return;
+  const refreshUserData = async (explicitUserType?: UserType): Promise<UserData | void> => {
+    const currentContextUserType = userType;
+    const typeToUse = explicitUserType || currentContextUserType;
+
+    if (!typeToUse || refreshingRef.current) {
+        console.log("DEBUG - AuthContext - refreshUserData pulado:", { typeToUse, isRefreshing: refreshingRef.current });
+        if (!typeToUse) return Promise.resolve();
+        return Promise.resolve(userData || undefined);
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("DEBUG - AuthContext - Token não encontrado para refreshUserData. Fazendo logout.");
+      logout();
+      return Promise.resolve();
+    }
 
     try {
-      // Prevenir chamadas múltiplas simultâneas
       refreshingRef.current = true;
       setIsRefreshing(true);
 
-      console.log("DEBUG - AuthContext - Atualizando dados do usuário da API");
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("DEBUG - AuthContext - Token não encontrado");
-        return;
-      }
+      console.log(`DEBUG - AuthContext - Atualizando dados do usuário da API para tipo: ${typeToUse}`);
 
       const endpoint =
-        userType === "fornecedor"
+        typeToUse === "fornecedor"
           ? "http://localhost:3333/fornecedores/perfil"
           : "http://localhost:3333/clientes/perfil";
 
@@ -163,32 +190,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const updatedUserData = response.data;
+      const updatedUserDataFromApi = response.data as UserData;
       console.log(
-        "DEBUG - AuthContext - Dados atualizados recebidos:",
-        updatedUserData ? "dados válidos" : "dados inválidos"
+        "DEBUG - AuthContext - Dados atualizados recebidos da API:",
+        updatedUserDataFromApi
       );
 
-      if (updatedUserData) {
-        localStorage.setItem("userData", JSON.stringify(updatedUserData));
-        setUserData(updatedUserData);
-        return updatedUserData;
+      if (updatedUserDataFromApi) {
+        localStorage.setItem("userData", JSON.stringify(updatedUserDataFromApi));
+        setUserData(updatedUserDataFromApi);
+        return updatedUserDataFromApi;
+      } else {
+        console.warn("DEBUG - AuthContext - API não retornou dados de usuário em refreshUserData.");
+        return Promise.resolve();
       }
     } catch (error) {
       console.error("DEBUG - AuthContext - Erro ao atualizar dados:", error);
-      // Se houver erro de autenticação, realizar logout para evitar loops infinitos
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        console.log(
-          "DEBUG - AuthContext - Erro de autenticação, realizando logout"
+        console.warn(
+          "DEBUG - AuthContext - Erro de autenticação (401) no refreshUserData, realizando logout."
         );
         logout();
       }
+      return Promise.reject(error);
     } finally {
       setIsRefreshing(false);
-      // Adicionar um delay mais longo antes de permitir nova atualização
       setTimeout(() => {
         refreshingRef.current = false;
-      }, 5000); // 5 segundos para evitar requisições frequentes
+      }, 5000);
     }
   };
 
@@ -210,7 +239,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Hook personalizado para usar o contexto de autenticação
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

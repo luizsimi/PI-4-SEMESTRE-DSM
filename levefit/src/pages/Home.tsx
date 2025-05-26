@@ -7,6 +7,7 @@ import FornecedorCarousel from "../components/FornecedorCarousel";
 import CategoriaFilter from "../components/CategoriaFilter";
 import PratoCard from "../components/PratoCard";
 import PromocoesModal from "../components/PromocoesModal";
+import TipoPedidoModal from "../components/TipoPedidoModal";
 import {
   FaUtensils,
   FaWhatsapp,
@@ -25,6 +26,7 @@ import {
   FaPlay,
 } from "react-icons/fa";
 import { HiArrowRight } from "react-icons/hi";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Prato {
   id: number;
@@ -62,6 +64,9 @@ const Home = () => {
   const promocoesContainerRef = useRef<HTMLDivElement>(null);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
   const autoPlayInterval = useRef<number | null>(null);
+  const { userData } = useAuth();
+  const [showTipoPedidoModal, setShowTipoPedidoModal] = useState(false);
+  const [selectedPratoParaPedido, setSelectedPratoParaPedido] = useState<Prato | null>(null);
 
   // Refs e estado para efeito de parallax
   const heroImageRef = useRef<HTMLDivElement>(null);
@@ -206,6 +211,60 @@ const Home = () => {
     resetAutoPlayTimer();
 
     setCurrentPromoPage(pageIndex);
+  };
+
+  const handleAbrirTipoPedidoModal = (prato: Prato) => {
+    setSelectedPratoParaPedido(prato);
+    setShowTipoPedidoModal(true);
+  };
+
+  const handleSelecionarTipoPedidoHome = async (tipoPedido: 'ENTREGA' | 'RETIRADA') => {
+    if (!selectedPratoParaPedido) return;
+
+    // 1. Montar dados para criar o pedido no sistema
+    const dadosNovoPedido = {
+      pratoId: selectedPratoParaPedido.id,
+      fornecedorId: selectedPratoParaPedido.fornecedor.id,
+      nomeCliente: userData?.user?.nome || "Cliente via App",
+      contatoCliente: userData?.user?.telefone || userData?.user?.whatsapp || "",
+      tipoEntrega: tipoPedido,
+      enderecoEntrega: tipoPedido === 'ENTREGA' ? (userData?.user?.endereco || "A ser informado") : undefined,
+      quantidade: 1,
+    };
+
+    try {
+      // 2. Tentar criar o pedido no sistema
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:3333/pedidos", dadosNovoPedido, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      console.log("Pedido (da Home) registrado no sistema:", dadosNovoPedido);
+    } catch (error) {
+      console.error("Falha ao registrar pedido (da Home) no sistema:", error);
+      // Considerar como lidar com este erro - por enquanto, continua para o WhatsApp
+    }
+
+    // 3. Montar e abrir link do WhatsApp (lógica existente)
+    const numero = selectedPratoParaPedido.fornecedor.whatsapp.replace(/D/g, "");
+    let mensagemBase = `Olá, ${selectedPratoParaPedido.fornecedor.nome}! Gostaria de pedir o prato "${selectedPratoParaPedido.nome}" (1 unidade).`;
+    let mensagemCompleta = "";
+    const precoFormatado = selectedPratoParaPedido.preco.toFixed(2).replace(".", ",");
+
+    if (tipoPedido === 'ENTREGA') {
+      const enderecoClienteApi = dadosNovoPedido.enderecoEntrega;
+      if (enderecoClienteApi && enderecoClienteApi !== "A ser informado") {
+        mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nEndereço: ${enderecoClienteApi}\nPor favor, confirme o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
+      } else {
+        mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nPor favor, informe seu ENDEREÇO COMPLETO para entrega.\nConfirme também o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
+      }
+    } else { // RETIRADA
+      mensagemCompleta = `${mensagemBase}\nTipo: Retirada no local\nPor favor, confirme o valor total (R$ ${precoFormatado}) e quando posso retirar.`;
+    }
+
+    const link = `https://wa.me/${numero}?text=${encodeURIComponent(mensagemCompleta)}`;
+    window.open(link, "_blank");
+    setShowTipoPedidoModal(false);
+    setSelectedPratoParaPedido(null);
   };
 
   return (
@@ -506,7 +565,9 @@ const Home = () => {
                         {/* Dividir pratos em "páginas" para o carrossel */}
                         {[
                           ...Array(
-                            Math.ceil(pratosPromocao.length / promocoesPerPage)
+                            Math.ceil(
+                              pratosPromocao.length / promocoesPerPage
+                            )
                           ),
                         ].map((_, pageIndex) => (
                           <div
@@ -902,9 +963,13 @@ const Home = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {pratos.map((prato) => (
-                <PratoCard key={prato.id} {...prato} />
+                <PratoCard
+                  key={prato.id}
+                  {...prato}
+                  onAbrirTipoPedidoModal={() => handleAbrirTipoPedidoModal(prato)}
+                />
               ))}
             </div>
           )}
@@ -950,6 +1015,16 @@ const Home = () => {
       </main>
 
       <Footer />
+
+      {/* Modal de Tipo de Pedido */}
+      {selectedPratoParaPedido && (
+        <TipoPedidoModal
+          isOpen={showTipoPedidoModal}
+          onClose={() => { setShowTipoPedidoModal(false); setSelectedPratoParaPedido(null); }}
+          nomePrato={selectedPratoParaPedido.nome}
+          onSelectTipo={handleSelecionarTipoPedidoHome}
+        />
+      )}
     </div>
   );
 };

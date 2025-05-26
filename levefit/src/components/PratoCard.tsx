@@ -10,7 +10,7 @@ import { BiDumbbell } from "react-icons/bi";
 import { IoNutrition } from "react-icons/io5";
 import { GiSlicedBread } from "react-icons/gi";
 
-interface PratoProps {
+interface PratoCardPassedProps {
   id: number;
   nome: string;
   descricao: string;
@@ -31,6 +31,13 @@ interface PratoProps {
   gorduras?: number;
   fibras?: number;
   porcao?: string;
+  emPromocao?: boolean;
+  dataFimPromocao?: string;
+  precoOriginal?: number;
+}
+
+interface PratoCardComponentProps extends PratoCardPassedProps {
+  onAbrirTipoPedidoModal?: (prato: PratoCardPassedProps) => void;
 }
 
 // Array de URLs de imagens padrão para diferentes categorias de pratos
@@ -64,34 +71,15 @@ const getDefaultImage = (categoria: string) => {
   );
 };
 
-const PratoCard = ({
-  id,
-  nome,
-  descricao,
-  preco,
-  imagem,
-  categoria,
-  mediaAvaliacao,
-  totalAvaliacoes,
-  fornecedor,
-  calorias,
-  proteinas,
-  carboidratos,
-  gorduras,
-  porcao,
-}: PratoProps) => {
-  // Limitar a descrição a um número máximo de caracteres
+const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
+  const { 
+    id, nome, descricao, preco, imagem, categoria, mediaAvaliacao, totalAvaliacoes, 
+    fornecedor, calorias, proteinas, carboidratos, gorduras, porcao, 
+    onAbrirTipoPedidoModal 
+  } = props;
+
   const descricaoResumida =
     descricao.length > 80 ? `${descricao.substring(0, 80)}...` : descricao;
-
-  // Criar link do WhatsApp
-  const criarLinkWhatsApp = () => {
-    const numero = fornecedor.whatsapp.replace(/\D/g, "");
-    const mensagem = encodeURIComponent(
-      `Olá, gostaria de encomendar o prato "${nome}"`
-    );
-    return `https://wa.me/${numero}?text=${mensagem}`;
-  };
 
   // Função para lidar com erro ao carregar imagem
   const handleImageError = (
@@ -292,14 +280,12 @@ const PratoCard = ({
             >
               Detalhes <FaArrowRight className="ml-1 text-xs" />
             </Link>
-            <a
-              href={criarLinkWhatsApp()}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => onAbrirTipoPedidoModal && onAbrirTipoPedidoModal(props)}
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
             >
               Pedir <FaWhatsapp className="ml-1" />
-            </a>
+            </button>
           </div>
         </div>
       </div>

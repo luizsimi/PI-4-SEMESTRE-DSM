@@ -21,6 +21,8 @@ import { IoNutrition } from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
+import TipoPedidoModal from "../components/TipoPedidoModal";
+import PedidoSucessoModal from "../components/PedidoSucessoModal";
 
 interface Avaliacao {
   id: number;
@@ -63,7 +65,9 @@ const DetalhePrato = () => {
   const navigate = useNavigate();
   const [prato, setPrato] = useState<Prato | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [quantidade, setQuantidade] = useState(1);
+  const { isAuthenticated, userData, userType } = useAuth();
   const [novaAvaliacao, setNovaAvaliacao] = useState({
     nota: 0,
     comentario: "",
@@ -72,9 +76,15 @@ const DetalhePrato = () => {
   const [avaliacaoSucesso, setAvaliacaoSucesso] = useState("");
   const [avaliacaoErro, setAvaliacaoErro] = useState("");
   const [notaHover, setNotaHover] = useState(0);
-  const { isAuthenticated, userType } = useAuth();
   const [activeTab, setActiveTab] = useState("descricao");
   const [favorito, setFavorito] = useState(false);
+  const [showTipoPedidoModal, setShowTipoPedidoModal] = useState(false);
+  const [showPedidoSucessoModal, setShowPedidoSucessoModal] = useState(false);
+  const [pedidoSucessoInfo, setPedidoSucessoInfo] = useState<{
+    nomePrato?: string;
+    status?: string;
+    id?: string | number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchPrato = async () => {
@@ -93,18 +103,144 @@ const DetalhePrato = () => {
     fetchPrato();
   }, [id]);
 
-  // Criar link do WhatsApp
-  const criarLinkWhatsApp = () => {
-    if (!prato) return "#";
+  const handleSelecionarTipoPedido = async (tipoEntregaSelecionado: 'ENTREGA' | 'RETIRADA') => {
+    if (!prato || !prato.fornecedor) {
+        alert("Erro: Informações do prato ou fornecedor não carregadas.");
+        return;
+    }
 
-    const numero = prato.fornecedor.whatsapp.replace(/\D/g, "");
-    const mensagem = encodeURIComponent(
-      `Olá, gostaria de encomendar o prato "${prato.nome}"`
-    );
-    return `https://wa.me/${numero}?text=${mensagem}`;
+    let nomeCliente, contatoCliente, enderecoEntregaFinal, observacoes;
+
+    if (isAuthenticated && userData) {
+      console.log("Cliente autenticado com endereço:", {
+        rua: userData.rua,
+        numero: userData.numero,
+        bairro: userData.bairro,
+        cidade: userData.cidade,
+        estado: userData.estado,
+        cep: userData.cep,
+        telefone: userData.telefone
+      });
+      nomeCliente = userData.nome;
+      contatoCliente = userData.telefone || ''; 
+
+      if (tipoEntregaSelecionado === 'ENTREGA') {
+        let enderecoFormatado = '';
+        const temEnderecoCompleto = 
+          userData.rua && userData.rua.trim() !== '' &&
+          userData.numero && userData.numero.trim() !== '' &&
+          userData.bairro && userData.bairro.trim() !== '' &&
+          userData.cidade && userData.cidade.trim() !== '' &&
+          userData.estado && userData.estado.trim() !== '' &&
+          userData.cep && userData.cep.trim() !== '';
+
+        if (temEnderecoCompleto) {
+          enderecoFormatado += `${userData.rua}, ${userData.numero}`;
+          if (userData.bairro) enderecoFormatado += ` - ${userData.bairro}`;
+          if (userData.cidade) enderecoFormatado += `, ${userData.cidade}`;
+          if (userData.estado) enderecoFormatado += ` - ${userData.estado}`;
+          if (userData.cep) enderecoFormatado += ` (CEP: ${userData.cep})`;
+          
+          enderecoEntregaFinal = enderecoFormatado;
+          console.log("DEBUG - DetalhePrato: Usando endereço cadastrado formatado:", enderecoEntregaFinal);
+        } else {
+           console.log("Endereço incompleto no userData. Solicitando via prompt. Campos:", {
+            rua: userData.rua, numero: userData.numero, bairro: userData.bairro, 
+            cidade: userData.cidade, estado: userData.estado, cep: userData.cep
+          });
+        }
+        
+        if (enderecoFormatado.trim() === '' && tipoEntregaSelecionado === 'ENTREGA') {
+          enderecoEntregaFinal = window.prompt("Você não possui um endereço cadastrado ou ele está incompleto. Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):");
+          if (!enderecoEntregaFinal) {
+            alert("Endereço de entrega é obrigatório para este tipo de pedido.");
+            return;
+          }
+        } else if (tipoEntregaSelecionado === 'ENTREGA' && !enderecoEntregaFinal) {
+          alert("Endereço de entrega é necessário. Por favor, verifique seu cadastro.");
+          return;
+        }
+      }
+      
+      if (!contatoCliente) {
+          contatoCliente = window.prompt("Não encontramos seu telefone no cadastro. Por favor, informe seu número de contato (WhatsApp):");
+          if (!contatoCliente) {
+              alert("Número de contato é obrigatório.");
+              return;
+          }
+      }
+
+      // Não pedir observações para cliente logado, definir como string vazia ou null
+      observacoes = undefined; // Ou null, ou string vazia, dependendo de como o backend trata
+      // Se ainda quiser o prompt de observações, comente a linha acima e descomente a abaixo:
+      // observacoes = window.prompt("Alguma observação para o seu pedido? (opcional)");
+
+    } else { // Cliente não autenticado
+      nomeCliente = window.prompt("Por favor, informe seu nome:");
+      if (!nomeCliente) {
+        alert("Nome do cliente é obrigatório.");
+        return;
+      }
+      contatoCliente = window.prompt("Qual seu número de contato (WhatsApp)?");
+      if (!contatoCliente) {
+        alert("Número de contato é obrigatório.");
+        return;
+      }
+      if (tipoEntregaSelecionado === 'ENTREGA') {
+        enderecoEntregaFinal = window.prompt("Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):");
+        if (!enderecoEntregaFinal) {
+          alert("Endereço de entrega é obrigatório para este tipo de pedido.");
+          return;
+        }
+      }
+      // Não pedir observações para cliente não logado, definir como string vazia ou null
+      observacoes = undefined; // Ou null, ou string vazia, dependendo de como o backend trata
+    }
+
+    const pedidoData = {
+      pratoId: prato.id,
+      fornecedorId: prato.fornecedor.id,
+      nomeCliente,
+      contatoCliente,
+      tipoEntrega: tipoEntregaSelecionado,
+      enderecoEntrega: tipoEntregaSelecionado === 'ENTREGA' ? enderecoEntregaFinal : undefined,
+      observacoes: observacoes || undefined,
+      quantidade: quantidade,
+    };
+
+    console.log("Enviando dados do pedido:", pedidoData);
+    setShowTipoPedidoModal(false);
+
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const response = await axios.post('http://localhost:3333/pedidos', pedidoData, { headers });
+      
+      if (response.status === 201) {
+        setPedidoSucessoInfo({
+          nomePrato: prato.nome,
+          status: response.data.status,
+          id: response.data.id,
+        });
+        setShowPedidoSucessoModal(true);
+      } else {
+        alert(`Erro ao criar pedido: ${response.data.error || 'Resposta inesperada do servidor.'}`);
+      }
+    } catch (error: any) {
+      console.error("Erro ao criar pedido:", error);
+      if (error.response && error.response.data && error.response.data.error) {
+        if (error.response.data.details) {
+            alert(`Erro interno ao criar pedido: ${error.response.data.error} (${error.response.data.details})`);
+        } else {
+            alert(`Erro interno ao criar pedido: ${error.response.data.error}`);
+        }
+      } else {
+        alert("Erro ao conectar com o servidor para criar o pedido. Verifique sua conexão ou tente mais tarde.");
+      }
+    }
   };
 
-  // Renderizar as estrelas de avaliação
   const renderEstrelas = (nota: number) => {
     const estrelas = [];
     const notaArredondada = Math.round(nota);
@@ -120,7 +256,6 @@ const DetalhePrato = () => {
     return <div className="flex">{estrelas}</div>;
   };
 
-  // Formatar data
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
     return data.toLocaleDateString("pt-BR", {
@@ -177,11 +312,9 @@ const DetalhePrato = () => {
       setAvaliacaoSucesso("Sua avaliação foi enviada com sucesso!");
       setNovaAvaliacao({ nota: 0, comentario: "" });
 
-      // Atualizar os dados do prato para mostrar a nova avaliação
       const response = await axios.get(`http://localhost:3333/pratos/${id}`);
       setPrato(response.data);
 
-      // Limpar mensagem de sucesso após alguns segundos
       setTimeout(() => {
         setAvaliacaoSucesso("");
       }, 5000);
@@ -201,12 +334,9 @@ const DetalhePrato = () => {
 
   const toggleFavorito = () => {
     setFavorito(!favorito);
-    // Aqui adicionaríamos a lógica para salvar nos favoritos
   };
 
-  // Adicionar este componente para renderizar a tabela nutricional detalhada
   const TabelaNutricional = ({ prato }: { prato: Prato }) => {
-    // Se não houver informações nutricionais, retornar mensagem informativa
     if (
       !prato.calorias &&
       !prato.proteinas &&
@@ -240,7 +370,6 @@ const DetalhePrato = () => {
           )}
         </div>
 
-        {/* Cards com macro informações */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {prato.calorias && (
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 flex items-center">
@@ -307,7 +436,6 @@ const DetalhePrato = () => {
           )}
         </div>
 
-        {/* Tabela nutricional detalhada */}
         <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
           <table className="w-full text-sm">
             <tbody>
@@ -373,6 +501,12 @@ const DetalhePrato = () => {
         </div>
       </div>
     );
+  };
+
+  const handleClosePedidoSucessoModal = () => {
+    setShowPedidoSucessoModal(false);
+    setPedidoSucessoInfo(null);
+    navigate('/meus-pedidos');
   };
 
   if (loading) {
@@ -560,9 +694,9 @@ const DetalhePrato = () => {
                         Descrição
                       </button>
                       <button
-                        onClick={() => setActiveTab("nutrientes")}
+                        onClick={() => setActiveTab("nutricional")}
                         className={`pb-4 px-1 font-medium text-sm focus:outline-none transition-colors duration-200 ${
-                          activeTab === "nutrientes"
+                          activeTab === "nutricional"
                             ? "text-green-600 dark:text-green-400 border-b-2 border-green-500 dark:border-green-400"
                             : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                         }`}
@@ -583,51 +717,55 @@ const DetalhePrato = () => {
                   </div>
 
                   <div className="mt-4">
-                    {/* Conteúdo da aba Descrição */}
                     {activeTab === "descricao" && (
-                      <div className="prose prose-green dark:prose-invert max-w-none">
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {prato?.descricao}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Conteúdo da aba Informações Nutricionais */}
-                    {activeTab === "nutrientes" && prato && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <TabelaNutricional prato={prato} />
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{prato.descricao}</p>
+                        {(prato.calorias || prato.porcao) && (
+                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">Detalhes Adicionais:</h4>
+                                <ul className="list-none space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                    {prato.porcao && <li className="flex items-center"><GiSlicedBread className="mr-2 text-green-500" /> Porção: {prato.porcao}</li>}
+                                    {prato.calorias && <li className="flex items-center"><FaFire className="mr-2 text-orange-500" /> Calorias: {prato.calorias} kcal</li>}
+                                </ul>
+                            </div>
+                        )}
                       </motion.div>
                     )}
 
-                    {/* Conteúdo da aba Avaliações */}
+                    {activeTab === "nutricional" && (
+                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                       { (prato.proteinas || prato.carboidratos || prato.gorduras || prato.fibras) ? (
+                           <TabelaNutricional prato={prato} />
+                       ) : (
+                           <p className="text-gray-600 dark:text-gray-400 italic">Informações nutricionais não disponíveis para este prato.</p>
+                       )}
+                       </motion.div>
+                    )}
+
                     {activeTab === "avaliacoes" && (
-                      <div className="border-t border-gray-200 p-6">
-                        <h2 className="text-xl font-bold mb-4">Avaliações</h2>
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Avaliações ({prato.totalAvaliacoes})</h3>
+                        {prato.avaliacoes && prato.avaliacoes.length > 0 ? (
+                          <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                            {prato.avaliacoes.map((avaliacao) => (
+                              <div key={avaliacao.id} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{avaliacao.cliente.nome}</span>
+                                  {renderEstrelas(avaliacao.nota)}
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">{formatarData(avaliacao.createdAt)}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{avaliacao.comentario}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-600 dark:text-gray-400 italic">Ainda não há avaliações para este prato.</p>
+                        )}
 
-                        {/* Formulário de avaliação para usuários logados como clientes */}
                         {isAuthenticated && userType === "cliente" && (
-                          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                            <h3 className="text-lg font-semibold mb-2">
-                              Avalie este prato
-                            </h3>
-
-                            {avaliacaoSucesso && (
-                              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                                {avaliacaoSucesso}
-                              </div>
-                            )}
-
-                            {avaliacaoErro && (
-                              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                                {avaliacaoErro}
-                              </div>
-                            )}
-
-                            <form onSubmit={handleSubmitAvaliacao}>
+                          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">Deixe sua avaliação:</h4>
+                            <form onSubmit={handleSubmitAvaliacao} className="space-y-3">
                               <div className="mb-4">
                                 <label className="block text-gray-700 font-medium mb-2">
                                   Nota
@@ -693,58 +831,39 @@ const DetalhePrato = () => {
                             </form>
                           </div>
                         )}
-
-                        {prato.avaliacoes.length === 0 ? (
-                          <p className="text-gray-600">
-                            Este prato ainda não possui avaliações.
-                          </p>
-                        ) : (
-                          <div className="space-y-4">
-                            {prato.avaliacoes.map((avaliacao) => (
-                              <div
-                                key={avaliacao.id}
-                                className="border-b border-gray-200 pb-4 last:border-b-0"
-                              >
-                                <div className="flex justify-between">
-                                  <div className="font-semibold">
-                                    {avaliacao.cliente.nome}
-                                  </div>
-                                  <div className="text-gray-500 text-sm">
-                                    {formatarData(avaliacao.createdAt)}
-                                  </div>
-                                </div>
-                                <div className="flex items-center my-1">
-                                  {renderEstrelas(avaliacao.nota)}
-                                  <span className="ml-2 text-gray-600 text-sm">
-                                    {avaliacao.nota}/5
-                                  </span>
-                                </div>
-                                <p className="text-gray-700">
-                                  {avaliacao.comentario}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
-                  <a
-                    href={criarLinkWhatsApp()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 hover:brightness-110"
+                <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
+                  <button
+                    onClick={() => setShowTipoPedidoModal(true)}
+                    disabled={!prato || !prato.disponivel}
+                    className={`w-full sm:w-auto flex items-center justify-center text-lg font-semibold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-300 ${
+                      (prato && prato.disponivel)
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white transform hover:scale-105'
+                        : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    }`}
                   >
-                    <FaWhatsapp className="mr-2 text-lg animate-pulse" />
-                    <span>Pedir agora</span>
-                  </a>
+                    <FaShoppingBasket className="mr-2.5" />
+                    {(prato && prato.disponivel) ? "Fazer Pedido" : "Indisponível"}
+                  </button>
 
-                  <button className="flex items-center justify-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-6 py-3 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm">
-                    <FaShoppingBasket className="mr-2" />
-                    <span>Adicionar ao carrinho</span>
+                  <button
+                    onClick={toggleFavorito}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    aria-label={
+                      favorito
+                        ? "Remover dos favoritos"
+                        : "Adicionar aos favoritos"
+                    }
+                  >
+                    {favorito ? (
+                      <FaHeart className="text-red-500 text-xl" />
+                    ) : (
+                      <FaRegHeart className="text-gray-400 hover:text-red-500 text-xl transition-colors" />
+                    )}
                   </button>
                 </div>
 
@@ -780,6 +899,25 @@ const DetalhePrato = () => {
           </motion.div>
         </div>
       </main>
+
+      {prato && (
+        <TipoPedidoModal
+          isOpen={showTipoPedidoModal}
+          onClose={() => setShowTipoPedidoModal(false)}
+          nomePrato={prato.nome}
+          onSelectTipo={handleSelecionarTipoPedido}
+        />
+      )}
+
+      {pedidoSucessoInfo && (
+        <PedidoSucessoModal
+          isOpen={showPedidoSucessoModal}
+          onClose={handleClosePedidoSucessoModal}
+          nomePrato={pedidoSucessoInfo.nomePrato}
+          statusPedido={pedidoSucessoInfo.status}
+          idPedido={pedidoSucessoInfo.id}
+        />
+      )}
     </div>
   );
 };
