@@ -32,8 +32,8 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfileModal from "../components/UserProfileModal";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+// import Navbar from "../components/Navbar"; // Comentado - Navbar global será usada pelo App.tsx
+// import Footer from "../components/Footer"; // Comentado - Footer global será usado pelo App.tsx
 import RenderPedidosKanban from "../components/fornecedor/RenderPedidosKanban";
 // import SidebarFornecedor from '../components/fornecedor/SidebarFornecedor'; // Comentado - Arquivo não encontrado
 import type { Pedido } from '../types';
@@ -1087,8 +1087,6 @@ const FornecedorDashboard = () => {
           </div>
         </main>
       </div>
-
-      <Footer />
 
       {showProfileModal && (
         <UserProfileModal onClose={() => setShowProfileModal(false)} />

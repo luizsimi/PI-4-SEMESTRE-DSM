@@ -18,7 +18,7 @@ import {
 import { GiSlicedBread } from "react-icons/gi";
 import { BiDumbbell } from "react-icons/bi";
 import { IoNutrition } from "react-icons/io5";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import TipoPedidoModal from "../components/TipoPedidoModal";
@@ -512,7 +512,7 @@ const DetalhePrato = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="mb-6 w-40 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
@@ -542,7 +542,7 @@ const DetalhePrato = () => {
   if (error || !prato) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl shadow-sm mb-6 flex items-center">
@@ -563,7 +563,7 @@ const DetalhePrato = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">

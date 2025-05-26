@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+// import Navbar from "../components/Navbar";
+// import Footer from "../components/Footer";
 import {
   FaSearch,
   FaRss,
@@ -190,7 +190,7 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container mx-auto px-4 py-8">
         {/* Header do Blog */}
@@ -404,7 +404,7 @@ const Blog = () => {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

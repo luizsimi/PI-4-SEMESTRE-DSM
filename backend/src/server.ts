@@ -9,7 +9,7 @@ import multer from "multer";
 // Importação das rotas
 import authRouter from "./routes/auth.routes";
 import clienteRouter from "./routes/cliente.routes";
-import fornecedorRouter from "./routes/fornecedor.routes";
+import { fornecedorRouter } from "./routes/fornecedor.routes";
 import pratoRouter from "./routes/prato.routes";
 import avaliacaoRouter from "./routes/avaliacao.routes";
 import blogRouter from "./routes/blog.routes";
@@ -72,20 +72,15 @@ app.post("/upload", authMiddleware, upload.single("imagem"), (req, res) => {
   try {
     if (!req.file) {
       res.status(400).json({ error: "Nenhum arquivo enviado" });
-      return; // Early exit
+      return;
     }
 
-    // Gerar URL completa para a imagem
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
-
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     res.json({ imageUrl });
-    return; // Early exit (ou pode ser omitido se for a última instrução)
+
   } catch (error) {
     console.error("Erro ao fazer upload da imagem:", error);
     res.status(500).json({ error: "Falha ao processar o upload" });
-    return; // Early exit
   }
 });
 

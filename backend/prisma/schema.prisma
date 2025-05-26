@@ -64,33 +64,48 @@ model Prato {
   fornecedor       Fornecedor  @relation(fields: [fornecedorId], references: [id])
   fornecedorId     Int
   avaliacoes       Avaliacao[]
-  pedidos          Pedido[]
+  itensPedido      ItemPedido[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 }
 
+model ItemPedido {
+  id                                Int     @id @default(autoincrement())
+  pedido                            Pedido  @relation(fields: [pedidoId], references: [id])
+  pedidoId                          Int
+  prato                             Prato   @relation(fields: [pratoId], references: [id])
+  pratoId                           Int
+  quantidade                        Int
+  preco_unitario_no_momento_do_pedido Float   // Snapshot do preço do prato no momento do pedido
+  subtotal_item                     Float   // Calculado: quantidade * preco_unitario_no_momento_do_pedido
+
+  @@index([pedidoId])
+  @@index([pratoId])
+}
+
 model Pedido {
-  id                      Int         @id @default(autoincrement())
-  cliente                 Cliente?    @relation(fields: [id_cliente], references: [id])
-  id_cliente              Int?        // Renomeado de clienteId
-  prato                   Prato       @relation(fields: [pratoId], references: [id])
-  pratoId                 Int
-  fornecedor              Fornecedor  @relation(fields: [id_fornecedor], references: [id])
-  id_fornecedor           Int         // Renomeado de fornecedorId
+  id                      Int      @id @default(autoincrement())
+  cliente                 Cliente? @relation(fields: [id_cliente], references: [id])
+  id_cliente              Int?
+  fornecedor              Fornecedor @relation(fields: [id_fornecedor], references: [id])
+  id_fornecedor           Int
   
+  itens                   ItemPedido[]
+
   nomeCliente             String      
   contatoCliente          String?     
   tipoEntrega             String      
   enderecoEntrega         String?     
   observacoes             String?     
-  quantidade              Int         @default(1) 
-  preco_unitario_snapshot Float       // Renomeado de precoUnitarioSnapshot
-  valor_total             Float       // Renomeado de valorTotal
+  valor_total_pedido      Float?      // MODIFICADO: Tornou-se opcional (Float?)
 
-  status                  String      @default("NOVO") 
+  status                  String   @default("NOVO") 
 
-  time_do_pedido          DateTime    @default(now()) // Renomeado de createdAt
-  updatedAt               DateTime    @updatedAt
+  time_do_pedido          DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([id_cliente])
+  @@index([id_fornecedor])
 }
 
 model Avaliacao {

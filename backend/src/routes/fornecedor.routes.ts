@@ -1,29 +1,62 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { FornecedorController } from "../controllers/FornecedorController";
 import { authMiddleware, isFornecedor } from "../middlewares/auth";
 
 const fornecedorRouter = Router();
 const fornecedorController = new FornecedorController();
 
-// Rotas públicas
-fornecedorRouter.post("/", (req, res) => fornecedorController.create(req, res));
-fornecedorRouter.get("/ativos", (req, res) =>
-  fornecedorController.listarFornecedoresAtivos(req, res)
-);
-fornecedorRouter.post("/:id/ativar-assinatura", (req, res) =>
-  fornecedorController.ativarAssinatura(req, res)
-);
+// ROTAS PÚBLICAS ESPECÍFICAS
+fornecedorRouter.post("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await fornecedorController.create(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// Rotas protegidas
-fornecedorRouter.use(authMiddleware);
-fornecedorRouter.use(isFornecedor);
+fornecedorRouter.get("/ativos", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await fornecedorController.listarFornecedoresAtivos(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// Rotas que exigem autenticação
-fornecedorRouter.get("/perfil", (req, res) =>
-  fornecedorController.getProfile(req, res)
-);
-fornecedorRouter.put("/perfil", (req, res) =>
-  fornecedorController.updateProfile(req, res)
-);
+// ROTAS PROTEGIDAS ESPECÍFICAS (requerem autenticação e tipo de usuário)
+fornecedorRouter.get("/perfil", authMiddleware, isFornecedor, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await fornecedorController.getProfile(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-export default fornecedorRouter;
+fornecedorRouter.put("/perfil", authMiddleware, isFornecedor, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await fornecedorController.updateProfile(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// ROTAS PÚBLICAS PARAMETRIZADAS (devem vir depois das específicas para evitar conflitos)
+fornecedorRouter.get("/:id", async (req: Request, res: Response, next: NextFunction) => { 
+  try {
+    await fornecedorController.getFornecedorByIdPublic(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Considerar proteger esta rota também
+fornecedorRouter.post("/:id/ativar-assinatura", async (req: Request, res: Response, next: NextFunction) => { 
+  try {
+    await fornecedorController.ativarAssinatura(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+export { fornecedorRouter };

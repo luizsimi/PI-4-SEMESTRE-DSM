@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar"; // Comentado
 import { FaStar, FaRegStar, FaArrowLeft } from "react-icons/fa";
 
 interface Fornecedor {
@@ -112,7 +112,7 @@ const DetalheFornecedor = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-8">
             <div className="h-40 bg-gray-200 rounded-lg"></div>
@@ -132,7 +132,7 @@ const DetalheFornecedor = () => {
   if (error || !fornecedor) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <p>{error || "Fornecedor não encontrado"}</p>
@@ -150,7 +150,7 @@ const DetalheFornecedor = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="container mx-auto px-4 py-8">
         {/* Botão voltar */}
         <Link

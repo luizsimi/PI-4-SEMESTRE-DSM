@@ -10,8 +10,8 @@ import {
   FaWhatsapp,
   FaUtensils,
 } from "react-icons/fa";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+// import Navbar from "../components/Navbar";
+// import Footer from "../components/Footer";
 
 interface Fornecedor {
   id: number;
@@ -175,7 +175,7 @@ const Fornecedores = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">
             Carregando fornecedores...
@@ -203,7 +203,7 @@ const Fornecedores = () => {
             </div>
           </div>
         </div>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     );
   }
@@ -211,7 +211,7 @@ const Fornecedores = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="container mx-auto px-4 py-8">
           <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-4">
             {error}
@@ -223,14 +223,14 @@ const Fornecedores = () => {
             Tentar novamente
           </button>
         </div>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
@@ -444,7 +444,7 @@ const Fornecedores = () => {
           </div>
         )}
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

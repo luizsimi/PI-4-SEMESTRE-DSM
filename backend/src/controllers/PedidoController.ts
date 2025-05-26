@@ -8,14 +8,14 @@ import { prisma } from "../server";
 // }
 
 // Estendendo a interface Request do Express para incluir userId e userType
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: number;
-      userType?: 'cliente' | 'fornecedor' | 'admin';
-    }
-  }
-}
+// declare global {
+//   namespace Express {
+//     interface Request {
+//       userId?: number;
+//       userType?: 'cliente' | 'fornecedor' | 'admin';
+//     }
+//   }
+// }
 
 // Status e transições permitidas para o fornecedor
 const validStatusTransitionsFornecedor: Record<string, string[]> = {
@@ -36,7 +36,7 @@ export class PedidoController {
     console.log("[Controller] Buscando pedidos para fornecedor ID:", fornecedorId);
 
     if (!fornecedorId) {
-      console.error("[Controller] ID do fornecedor não encontrado na requisição em getPedidosDoFornecedor.");
+      console.error("[Controller] ID do fornecedor não encontrado na requisição.");
       return res.status(401).json({ error: "Fornecedor não autenticado." });
     }
 
@@ -44,8 +44,12 @@ export class PedidoController {
       const pedidos = await prisma.pedido.findMany({
         where: { id_fornecedor: Number(fornecedorId) },
         include: {
-          prato: { 
-            select: { nome: true, preco: true, imagem: true } 
+          itens: {
+            include: {
+              prato: {
+                select: { nome: true, preco: true, imagem: true }
+              }
+            }
           },
           cliente: { 
             select: { nome: true }
@@ -55,10 +59,10 @@ export class PedidoController {
           time_do_pedido: 'desc',
         },
       });
-      console.log("[Controller] Pedidos encontrados com sucesso:", pedidos.length);
+      console.log("[Controller] Pedidos encontrados:", pedidos.length);
       return res.json(pedidos);
     } catch (error) {
-      console.error("[Controller] Erro CRÍTICO ao buscar pedidos do fornecedor:", error);
+      console.error("[Controller] Erro ao buscar pedidos do fornecedor:", error);
       let errorMessage = "Erro desconhecido ao processar sua solicitação.";
       let errorDetails: any = {};
 
@@ -83,11 +87,11 @@ export class PedidoController {
   }
 
   async updateStatusPedidoFornecedor(req: Request, res: Response) {
-    const fornecedorId = req.userId;
+    const fornecedorIdAutenticado = req.userId;
     const { pedidoId } = req.params;
     const { novoStatus } = req.body;
 
-    if (!fornecedorId) {
+    if (!fornecedorIdAutenticado) {
       return res.status(401).json({ error: "Fornecedor não autenticado." });
     }
     if (!pedidoId || !novoStatus) {
@@ -97,19 +101,13 @@ export class PedidoController {
     try {
       const pedidoOriginal = await prisma.pedido.findUnique({
         where: { id: parseInt(pedidoId, 10) },
-        select: { 
-          id: true,
-          id_fornecedor: true,
-          status: true,
-          contatoCliente: true,
-          quantidade: true,
-          valor_total: true,
-          nomeCliente: true,
-          prato: { 
-            select: { 
-              nome: true 
+        include: {
+          itens: {
+            include: {
+              prato: { select: { nome: true } }
             }
-          }
+          },
+          cliente: { select: { nome: true, telefone: true } }
         }
       });
 
@@ -117,11 +115,10 @@ export class PedidoController {
         return res.status(404).json({ error: "Pedido não encontrado." });
       }
 
-      if (pedidoOriginal.id_fornecedor !== Number(fornecedorId)) {
+      if (pedidoOriginal.id_fornecedor !== Number(fornecedorIdAutenticado)) {
         return res.status(403).json({ error: "Você não tem permissão para atualizar este pedido." });
       }
       
-      // Usar a nova lista de transições
       const transicoesPermitidas = validStatusTransitionsFornecedor[pedidoOriginal.status];
       if (!transicoesPermitidas || !transicoesPermitidas.includes(novoStatus)) {
         return res.status(400).json({
@@ -133,30 +130,37 @@ export class PedidoController {
         where: { id: parseInt(pedidoId, 10) },
         data: { status: novoStatus },
         include: {
-          prato: { select: { nome: true, preco: true, imagem: true } },
-          cliente: { select: { nome: true }}
+          itens: {
+            include: {
+              prato: { select: { nome: true, preco: true, imagem: true } }
+            }
+          },
+          cliente: { select: { nome: true } }
         }
       });
 
-      // Simulação de envio de mensagem via WhatsApp
+      // Lógica de Notificação WhatsApp (ajustada para múltiplos itens)
       let mensagemWhatsApp = "";
-      const nomePrato = pedidoOriginal.prato?.nome || "Prato não especificado";
-      const quantidadePedido = pedidoOriginal.quantidade;
-      const valorTotalPedido = pedidoOriginal.valor_total?.toFixed(2) || "N/A";
-      const nomeClienteOriginal = pedidoOriginal.nomeCliente || "Cliente";
+      const nomeClienteOriginal = pedidoOriginal.cliente?.nome || pedidoOriginal.nomeCliente || "Cliente";
+      const contatoClienteOriginal = pedidoOriginal.cliente?.telefone || pedidoOriginal.contatoCliente;
+      const valorTotalPedido = pedidoOriginal.valor_total_pedido?.toFixed(2) || "N/A";
+      
+      // Para a mensagem, podemos listar alguns pratos ou ser genérico
+      const nomesPratos = pedidoOriginal.itens.map(item => `${item.quantidade}x ${item.prato.nome}`).join(', ');
 
       if (novoStatus === "EM_PREPARO") {
-        mensagemWhatsApp = `Olá ${nomeClienteOriginal}! Seu pedido #${pedidoOriginal.id} (${quantidadePedido}x ${nomePrato} - Total: R$${valorTotalPedido}) foi confirmado e está EM PREPARO. Informaremos quando sair para entrega!`;
+        mensagemWhatsApp = `Olá ${nomeClienteOriginal}! Seu pedido #${pedidoOriginal.id} (${nomesPratos} - Total: R$${valorTotalPedido}) foi confirmado e está EM PREPARO. Informaremos quando sair para entrega!`;
       } else if (novoStatus === "AGUARDANDO_CLIENTE") {
-        mensagemWhatsApp = `Olá ${nomeClienteOriginal}! Seu pedido #${pedidoOriginal.id} (${quantidadePedido}x ${nomePrato} - Total: R$${valorTotalPedido}) está PRONTO PARA RETIRADA. Aguardamos você!`;
+        // Este status pode precisar de mais contexto, ex: se é para retirada ou se é uma atualização de entrega.
+        // Assumindo que é para retirada, se não, a mensagem deve ser diferente.
+        mensagemWhatsApp = `Olá ${nomeClienteOriginal}! Seu pedido #${pedidoOriginal.id} (${nomesPratos} - Total: R$${valorTotalPedido}) está PRONTO PARA RETIRADA. Aguardamos você!`;
       }
-      // Adicionar outras mensagens para outros status se necessário, ex: SAIU_PARA_ENTREGA, FINALIZADO (para retirada)
-      // Por enquanto, as principais são "EM_PREPARO" e "AGUARDANDO_CLIENTE"
+      // Adicionar outras mensagens conforme necessário
 
-      if (mensagemWhatsApp && pedidoOriginal.contatoCliente) {
+      if (mensagemWhatsApp && contatoClienteOriginal) {
         console.log("--------------------------------------------------");
         console.log("SIMULAÇÃO DE ENVIO DE MENSAGEM VIA WHATSAPP:");
-        console.log(`Para: ${pedidoOriginal.contatoCliente}`);
+        console.log(`Para: ${contatoClienteOriginal}`);
         console.log(`Mensagem: ${mensagemWhatsApp}`);
         console.log("// TODO: Implementar integração real com API de WhatsApp aqui.");
         console.log("--------------------------------------------------");
@@ -165,7 +169,7 @@ export class PedidoController {
       return res.json(pedidoAtualizado);
     } catch (error: any) {
       console.error("[Controller] Erro ao atualizar status do pedido:", error);
-      if (error.code === 'P2025') { // Erro do Prisma para "Record to update not found"
+      if (error.code === 'P2025') {
         return res.status(404).json({ error: "Registro do pedido para atualizar não encontrado." });
       }
       return res.status(500).json({ error: "Erro interno ao atualizar status do pedido." });
@@ -177,90 +181,131 @@ export class PedidoController {
   async criarPedido(req: Request, res: Response) {
     const clienteIdAutenticado = req.userId;
     
-    const { 
-        pratoId, fornecedorId, nomeCliente: nomeClienteReq, contatoCliente: contatoClienteReq, 
-        tipoEntrega, enderecoEntrega, observacoes, quantidade: quantidadeReq 
+    const {
+        fornecedorId,
+        nomeCliente: nomeClienteReq,
+        contatoCliente: contatoClienteReq,
+        tipoEntrega,
+        enderecoEntrega,
+        observacoes,
+        pratos,
     } = req.body;
 
-    const quantidade = quantidadeReq === undefined ? 1 : Number(quantidadeReq);
-    let nomeCliente = nomeClienteReq;
-    let contatoCliente = contatoClienteReq;
-
-    if (!pratoId || !fornecedorId || !tipoEntrega) {
-        return res.status(400).json({ error: "Prato, Fornecedor e Tipo de Entrega são obrigatórios." });
+    if (!fornecedorId || !tipoEntrega) {
+        return res.status(400).json({ error: "ID do Fornecedor e Tipo de Entrega são obrigatórios." });
     }
-    
-    if (!clienteIdAutenticado && !nomeCliente) { // Se não autenticado, nome do cliente da requisição é obrigatório
-        return res.status(400).json({ error: "Nome do cliente é obrigatório para pedidos não autenticados." });
+    if (!pratos || !Array.isArray(pratos) || pratos.length === 0) {
+        return res.status(400).json({ error: "A lista de pratos não pode estar vazia." });
     }
-    if (!clienteIdAutenticado && !contatoCliente) { // Se não autenticado, contato do cliente da requisição é obrigatório
-        return res.status(400).json({ error: "Contato (WhatsApp) do cliente é obrigatório para pedidos não autenticados." });
+    if (!pratos.every(p => p.pratoId && typeof p.quantidade === 'number' && p.quantidade > 0)) {
+        return res.status(400).json({ error: "Cada prato na lista deve ter pratoId e quantidade válida (maior que 0)." });
     }
 
-    if (tipoEntrega === "ENTREGA" && !enderecoEntrega) {
-        return res.status(400).json({ error: "Endereço de entrega é obrigatório para o tipo ENTREGA." });
-    }
+    let nomeClienteFinal = nomeClienteReq;
+    let contatoClienteFinal = contatoClienteReq;
 
     try {
-        const prato = await prisma.prato.findUnique({ where: { id: Number(pratoId) } });
-        if (!prato) {
-            return res.status(404).json({ error: "Prato não encontrado." });
-        }
-        if (prato.fornecedorId !== Number(fornecedorId)) {
-            return res.status(400).json({ error: "Este prato não pertence ao fornecedor especificado." });
-        }
-        if (!prato.disponivel) {
-            return res.status(400).json({ error: `O prato '${prato.nome}' não está disponível no momento.` });
-        }
-
-        const precoUnitarioSnapshot = prato.preco;
-        const valorTotalCalculado = precoUnitarioSnapshot * Number(quantidade);
-        
         if (clienteIdAutenticado) {
-            const clienteDB = await prisma.cliente.findUnique({where: {id: Number(clienteIdAutenticado)}});
+            const clienteDB = await prisma.cliente.findUnique({ where: { id: Number(clienteIdAutenticado) } });
             if (clienteDB) {
-                nomeCliente = nomeCliente || clienteDB.nome; // Prioriza nome da req, senão do DB
-                if (contatoCliente === undefined && clienteDB.telefone) { // Se contato não veio na req e tem no DB
-                    contatoCliente = clienteDB.telefone;
-                }
+                nomeClienteFinal = nomeClienteFinal || clienteDB.nome;
+                contatoClienteFinal = contatoClienteFinal || clienteDB.telefone;
+            } else {
+                console.warn(`[criarPedido] Cliente ID ${clienteIdAutenticado} do token não encontrado no banco.`);
             }
         }
-        
-        nomeCliente = nomeCliente || "Cliente LeveFit"; // Garante um nome
-        contatoCliente = contatoCliente || ""; // Garante que seja string
 
-        const novoPedido = await prisma.pedido.create({
-            data: {
-                id_cliente: clienteIdAutenticado ? Number(clienteIdAutenticado) : undefined,
-                pratoId: Number(pratoId),
-                id_fornecedor: Number(fornecedorId),
-                nomeCliente: nomeCliente,
-                contatoCliente: contatoCliente,
-                tipoEntrega,
-                enderecoEntrega,
-                observacoes,
-                quantidade: Number(quantidade),
-                preco_unitario_snapshot: precoUnitarioSnapshot,
-                valor_total: valorTotalCalculado,
-                status: "NOVO",
-            },
-            include: { 
-                prato: { select: { nome: true, preco: true, imagem: true } },
-                cliente: { select: { nome: true, email: true } }, 
-                fornecedor: { select: { nome: true } }
+        if (!nomeClienteFinal) {
+            return res.status(400).json({ error: "Nome do cliente é obrigatório." });
+        }
+        // Contato do cliente pode ser opcional se já estiver no cadastro do cliente autenticado
+        // if (!contatoClienteFinal && !clienteIdAutenticado) { // Exigir apenas se não autenticado E não fornecido
+        //     return res.status(400).json({ error: "Contato (WhatsApp) do cliente é obrigatório." });
+        // }
+
+        if (tipoEntrega === "ENTREGA" && !enderecoEntrega) {
+            return res.status(400).json({ error: "Endereço de entrega é obrigatório para o tipo ENTREGA." });
+        }
+
+        const resultadoPedido = await prisma.$transaction(async (tx) => {
+            let valorTotalCalculadoPedido = 0;
+
+            const novoPedidoPrincipal = await tx.pedido.create({
+                data: {
+                    cliente: clienteIdAutenticado ? { connect: { id: Number(clienteIdAutenticado) } } : undefined,
+                    fornecedor: { connect: { id: Number(fornecedorId) } },
+                    nomeCliente: nomeClienteFinal,
+                    contatoCliente: contatoClienteFinal,
+                    tipoEntrega,
+                    enderecoEntrega: tipoEntrega === "ENTREGA" ? enderecoEntrega : null,
+                    observacoes,
+                    status: "NOVO",
+                    valor_total_pedido: 0, 
+                },
+            });
+
+            const itensPedidoCriados = [];
+            for (const item of pratos) {
+                const pratoDB = await tx.prato.findUnique({ where: { id: Number(item.pratoId) } });
+
+                if (!pratoDB) {
+                    throw new Error(`Prato com ID ${item.pratoId} não encontrado.`);
+                }
+                if (pratoDB.fornecedorId !== Number(fornecedorId)) {
+                    throw new Error(`Prato '${pratoDB.nome}' (ID ${item.pratoId}) não pertence ao fornecedor ID ${fornecedorId}.`);
+                }
+                if (!pratoDB.disponivel) {
+                    throw new Error(`O prato '${pratoDB.nome}' (ID ${item.pratoId}) não está disponível no momento.`);
+                }
+
+                const precoUnitarioSnapshot = pratoDB.preco;
+                const subtotalItem = precoUnitarioSnapshot * Number(item.quantidade);
+                valorTotalCalculadoPedido += subtotalItem;
+
+                const novoItemPedido = await tx.itemPedido.create({
+                    data: {
+                        pedido: { connect: { id: novoPedidoPrincipal.id } },
+                        prato: { connect: { id: Number(item.pratoId) } },
+                        quantidade: Number(item.quantidade),
+                        preco_unitario_no_momento_do_pedido: precoUnitarioSnapshot,
+                        subtotal_item: subtotalItem,
+                    },
+                });
+                itensPedidoCriados.push(novoItemPedido); // Embora não usado diretamente, pode ser útil para logs
             }
+
+            const pedidoFinalAtualizado = await tx.pedido.update({
+                where: { id: novoPedidoPrincipal.id },
+                data: { valor_total_pedido: valorTotalCalculadoPedido },
+                include: {
+                    itens: {
+                        include: {
+                            prato: { select: { nome: true, imagem: true, preco: true } }
+                        }
+                    },
+                    cliente: { select: { nome: true, email: true } }, 
+                    fornecedor: { select: { nome: true } }
+                }
+            });
+            return pedidoFinalAtualizado;
         });
-        return res.status(201).json(novoPedido);
+
+        console.log("[Controller] Pedido consolidado criado com sucesso:", resultadoPedido.id);
+        return res.status(201).json(resultadoPedido);
+
     } catch (error: any) {
-        console.error("[Controller] Erro ao criar pedido:", error);
-        // Adicionar mais detalhes do erro do Prisma se disponível
-        if (error.code) {
-             console.error("[Controller] Prisma Error Code:", error.code);
+        console.error("[Controller] Erro CRÍTICO ao criar pedido consolidado:", error);
+        if (typeof error.message === 'string' && (error.message.includes("não encontrado") || error.message.includes("não pertence") || error.message.includes("não está disponível"))) {
+            return res.status(400).json({ error: error.message });
         }
-        if (error.meta) {
-            console.error("[Controller] Prisma Error Meta:", error.meta);
+        let errorMessage = "Erro desconhecido ao processar sua solicitação.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
         }
-        return res.status(500).json({ error: "Erro interno ao criar pedido.", details: error.message });
+        return res.status(500).json({ 
+            error: "Erro interno ao criar pedido.", 
+            details: errorMessage 
+        });
     }
   }
 
@@ -269,7 +314,7 @@ export class PedidoController {
     console.log("[Controller] Buscando pedidos para cliente ID:", clienteId);
 
     if (!clienteId) {
-      console.error("[Controller] ID do cliente não encontrado na requisição em getMeusPedidos.");
+      console.error("[Controller] ID do cliente não encontrado na requisição.");
       return res.status(401).json({ error: "Cliente não autenticado." });
     }
 
@@ -277,19 +322,27 @@ export class PedidoController {
       const pedidos = await prisma.pedido.findMany({
         where: { id_cliente: Number(clienteId) },
         include: {
-          prato: { select: { nome: true, imagem: true, preco: true } }, 
-          fornecedor: { select: { nome: true, logo: true } }
+          itens: {
+            include: {
+              prato: {
+                select: { nome: true, preco: true, imagem: true }
+              }
+            }
+          },
+          fornecedor: {
+            select: { nome: true, logo: true }
+          }
         },
         orderBy: {
           time_do_pedido: 'desc',
         },
       });
-      console.log("[Controller] Meus Pedidos encontrados com sucesso:", pedidos.length);
+      console.log("[Controller] Meus Pedidos encontrados:", pedidos.length);
       return res.json(pedidos);
     } catch (error) {
-      console.error("[Controller] Erro CRÍTICO ao buscar \"meus pedidos\":", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido.";
-      return res.status(500).json({ error: "Erro interno ao buscar seus pedidos.", details: errorMessage });
+      console.error("[Controller] Erro ao buscar os pedidos do cliente:", error);
+      // ... (tratamento de erro pode ser aprimorado)
+      return res.status(500).json({ error: "Erro interno ao buscar seus pedidos." });
     }
   }
 } 

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 // Importar IconType como um tipo
 import type { IconType } from 'react-icons';
 import { FaBoxOpen, FaShippingFast, FaTasks, FaCheckDouble, FaBan, FaRedo, FaInfoCircle, FaUserCircle, FaPhoneAlt, FaMapMarkerAlt, FaRegStickyNote, FaShoppingBag, FaSpinner, FaExclamationTriangle, FaPencilAlt } from 'react-icons/fa';
-// Importar a interface Pedido do local correto (assumindo que foi movida para src/types)
-import type { Pedido } from '../../types'; // Corrigido para type-only import de src/types/index.ts
+// Importar a interface Pedido e ItemDoPedido do local correto
+import type { Pedido, ItemDoPedido } from '../../types'; // Modificado para incluir ItemDoPedido
 import DetalhesPedidoModal from './DetalhesPedidoModal'; // Importar o novo modal
 
 interface PedidosKanbanProps {
@@ -50,7 +50,23 @@ const acoesBase: {
 
 const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, loading, error, onMudarStatus }) => {
   const [editingPedidoId, setEditingPedidoId] = useState<number | null>(null);
-  const [pedidoSelecionadoModal, setPedidoSelecionadoModal] = useState<Pedido | null>(null); // Novo estado
+  const [pedidoSelecionadoModal, setPedidoSelecionadoModal] = useState<Pedido | null>(null);
+
+  // Função auxiliar para gerar uma descrição dos itens do pedido
+  const gerarDescricaoItens = (itens: ItemDoPedido[]) => {
+    if (!itens || itens.length === 0) return "Nenhum item";
+    const nomesItens = itens.map(item => `${item.quantidade}x ${item.prato.nome}`);
+    if (nomesItens.length > 2) {
+      return `${nomesItens.slice(0, 1).join(', ')} e mais ${nomesItens.length - 1}...`;
+    }
+    return nomesItens.join(', ');
+  };
+
+  // Função para obter o nome completo dos itens para o tooltip/title
+  const gerarTitleItens = (itens: ItemDoPedido[]) => {
+    if (!itens || itens.length === 0) return "Pedido sem itens";
+    return itens.map(item => `${item.quantidade}x ${item.prato.nome}`).join('; ');
+  };
 
   const toggleEditDropdown = (pedidoId: number, event: React.MouseEvent) => {
     event.stopPropagation(); // Impedir que o clique no ícone abra o modal de detalhes
@@ -128,7 +144,12 @@ const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, l
                     <div> {/* Container para conteúdo principal do card */}
                       {/* Header do Card */}
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors truncate" title={pedido.prato.nome}>{pedido.prato.nome} (x{pedido.quantidade})</h4>
+                        <h4 
+                          className="font-semibold text-gray-800 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors truncate" 
+                          title={gerarTitleItens(pedido.itens)}
+                        >
+                          {gerarDescricaoItens(pedido.itens)}
+                        </h4>
                         <div className="flex items-center">
                           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">#{pedido.id}</span>
                           <div className="relative z-20"> {/* Container para dropdown, z-index maior */}
@@ -185,7 +206,7 @@ const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, l
 
                       {/* Valor e Data - Movido para dentro do div principal para melhor controle do flex */}
                       <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center">
-                        <span className="font-semibold text-green-600 dark:text-green-400">R$ {pedido.valor_total.toFixed(2).replace('.', ',')}</span>
+                        <span className="font-semibold text-green-600 dark:text-green-400">R$ {(pedido.valor_total ?? 0).toFixed(2).replace('.', ',')}</span>
                         <span>{new Date(pedido.time_do_pedido).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</span>
                       </div>
                     </div>

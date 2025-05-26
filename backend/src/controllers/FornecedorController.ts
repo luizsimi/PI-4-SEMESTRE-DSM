@@ -215,4 +215,62 @@ export class FornecedorController {
       return res.status(500).json({ error: "Erro interno do servidor" });
     }
   }
+
+  // Novo método para buscar fornecedor por ID (público)
+  async getFornecedorByIdPublic(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      console.log("[Controller] getFornecedorByIdPublic - ID recebido:", id, "Tipo:", typeof id); // DEBUG
+      const fornecedor = await prisma.fornecedor.findUnique({
+        where: {
+          id: Number(id), // Apenas o ID aqui para encontrar unicamente
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true, // Considerar se email deve ser público
+          whatsapp: true,
+          descricao: true,
+          logo: true,
+          status: true,         // Selecionar status
+          assinaturaAtiva: true, // Selecionar assinaturaAtiva
+          // Poderia adicionar campos como "horarioFuncionamento" se existissem
+          pratos: { // Incluir pratos diretamente aqui pode ser uma opção
+            where: { disponivel: true }, // Somente pratos disponíveis
+            select: {
+              id: true,
+              nome: true,
+              descricao: true,
+              preco: true,
+              imagem: true,
+              categoria: true,
+              // Adicionar mediaAvaliacao se for calculado e armazenado no prato
+            }
+          }
+        },
+      });
+
+      if (!fornecedor) {
+        return res.status(404).json({ error: "Fornecedor não encontrado." });
+      }
+
+      // Verificar status e assinatura APÓS encontrar o fornecedor
+      if (!fornecedor.status || !fornecedor.assinaturaAtiva) {
+        // Retornar 404 aqui também pode fazer sentido, pois para o público é como se não existisse
+        return res.status(404).json({ error: "Fornecedor não encontrado ou não está ativo." });
+      }
+
+      // Se você não quiser expor status e assinaturaAtiva na resposta final:
+      // const { status, assinaturaAtiva, ...dadosPublicosFornecedor } = fornecedor;
+      // return res.json(dadosPublicosFornecedor);
+
+      return res.json(fornecedor);
+    } catch (error: any) {
+      console.error("Erro ao buscar fornecedor por ID (público) para o ID:", req.params.id, error);
+      if (error.name === 'PrismaClientValidationError') {
+        return res.status(400).json({ error: "Dados inválidos para buscar fornecedor.", details: error.message });
+      }
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
 }

@@ -5,10 +5,13 @@ import {
   FaWhatsapp,
   FaArrowRight,
   FaFire,
+  FaCartPlus
 } from "react-icons/fa";
 import { BiDumbbell } from "react-icons/bi";
 import { IoNutrition } from "react-icons/io5";
 import { GiSlicedBread } from "react-icons/gi";
+import { useCarrinho, type PratoParaCarrinho, type FornecedorInfo } from '../contexts/CarrinhoContext';
+import { toast } from 'react-toastify';
 
 interface PratoCardPassedProps {
   id: number;
@@ -75,8 +78,9 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
   const { 
     id, nome, descricao, preco, imagem, categoria, mediaAvaliacao, totalAvaliacoes, 
     fornecedor, calorias, proteinas, carboidratos, gorduras, porcao, 
-    onAbrirTipoPedidoModal 
   } = props;
+
+  const { adicionarAoCarrinho } = useCarrinho();
 
   const descricaoResumida =
     descricao.length > 80 ? `${descricao.substring(0, 80)}...` : descricao;
@@ -281,10 +285,25 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
               Detalhes <FaArrowRight className="ml-1 text-xs" />
             </Link>
             <button
-              onClick={() => onAbrirTipoPedidoModal && onAbrirTipoPedidoModal(props)}
+              onClick={() => {
+                const pratoParaAdicionar: PratoParaCarrinho = {
+                  id: props.id,
+                  nome: props.nome,
+                  preco: props.preco,
+                  imagem: props.imagem,
+                  fornecedor: {
+                    id: props.fornecedor.id,
+                    nome: props.fornecedor.nome,
+                  }
+                };
+                const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
+                if (foiAdicionado) {
+                  toast.success(`${props.nome} adicionado ao carrinho!`);
+                }
+              }}
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
             >
-              Pedir <FaWhatsapp className="ml-1" />
+              Add ao Carrinho <FaCartPlus className="ml-1" />
             </button>
           </div>
         </div>

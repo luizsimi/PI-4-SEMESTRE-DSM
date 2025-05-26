@@ -22,23 +22,38 @@ const DetalhesPedidoModal: React.FC<DetalhesPedidoModalProps> = ({ isOpen, onClo
     });
   };
 
-  // Garantir que o prato e a imagem existem antes de tentar acessá-los
-  const nomePrato = pedido.prato?.nome || 'Nome não disponível';
-  const imagemPrato = pedido.prato?.imagem;
+  const primeiroItem = pedido.itens && pedido.itens.length > 0 ? pedido.itens[0] : null;
+  
+  const valorTotalCalculadoPelosItens = pedido.itens.reduce((acc, item) => acc + (item.subtotal_item || 0), 0);
+  const valorTotalParaExibicao = (pedido.valor_total && pedido.valor_total > 0) ? pedido.valor_total : valorTotalCalculadoPelosItens;
 
   let enderecoDetalhado = null;
   if (pedido.tipoEntrega === 'ENTREGA' && pedido.enderecoEntrega) {
-    const regexEndereco = /^Rua (.*?), (\d+[A-Za-z\s\-]*[A-Za-z]?) - (.*?), (.*?) - ([A-Z]{2}) \(CEP: ([\d\-]+)\)$/i;
+    // Regex ajustada para tornar o CEP opcional e capturá-lo corretamente se presente no formato (CEP: XXXXX-XXX)
+    const regexEndereco = /^Rua (.*?), (\d+[A-Za-z\s\-]*[A-Za-z]?) - (.*?), (.*?) - ([A-Z]{2})(?: \(CEP: ([\d\-]+)\))?$/i;
     const match = pedido.enderecoEntrega.match(regexEndereco);
     if (match) {
       enderecoDetalhado = {
-        rua: match[1].trim(),
-        numero: match[2].trim(),
-        bairro: match[3].trim(),
-        cidade: match[4].trim(),
-        estado: match[5].toUpperCase(),
-        cep: match[6].trim(),
+        rua: match[1]?.trim() || '',
+        numero: match[2]?.trim() || '',
+        bairro: match[3]?.trim() || '',
+        cidade: match[4]?.trim() || '',
+        estado: match[5]?.toUpperCase() || '',
+        cep: match[6]?.trim() || '' // Será string vazia se não houver match para o CEP
       };
+    } else {
+      // Fallback para tentar extrair pelo menos Rua e Número se a regex completa falhar e houver vírgula
+      const partesSimples = pedido.enderecoEntrega.split(',');
+      if (partesSimples.length >= 2) {
+        enderecoDetalhado = {
+            rua: partesSimples[0].replace(/^Rua /i, '').trim(),
+            numero: partesSimples[1].trim(),
+            bairro: partesSimples.slice(2).join(', ').trim(), // O resto como bairro/complemento
+            cidade: '',
+            estado: '',
+            cep: ''
+        }
+      }
     }
   }
 
@@ -64,30 +79,60 @@ const DetalhesPedidoModal: React.FC<DetalhesPedidoModalProps> = ({ isOpen, onClo
 
         {/* Conteúdo do Modal */}
         <div className="p-4 sm:p-6 max-h-[calc(100vh-10rem)] overflow-y-auto space-y-4">
-          {/* Detalhes do Prato */}
-          <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            {imagemPrato ? (
-              <img 
-                src={imagemPrato} 
-                alt={nomePrato} 
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
-              />
-            ) : (
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <FaImage size={40} />
-              </div>
-            )}
-            <div className="flex-1 text-center sm:text-left">
-              <h4 className="text-xl font-bold text-gray-800 dark:text-white mb-1">{nomePrato}</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">Quantidade:</span> {pedido.quantidade}
-              </p>
-              <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
-                R$ {pedido.valor_total.toFixed(2).replace('.', ',')}
-              </p>
-            </div>
+          {/* Cabeçalho simplificado do pedido */}
+          <div className="text-center sm:text-left py-1">
+            <h4 className="text-xl font-bold text-gray-800 dark:text-white">
+              {pedido.itens && pedido.itens.length > 0 ? 
+                `${pedido.itens.length} item${pedido.itens.length > 1 ? 's' : ''} no pedido` :
+                'Pedido sem itens'
+              }
+            </h4>
+            {/* Removido: Descrição do item principal e valor total desta seção */}
           </div>
 
+          <hr className="dark:border-gray-700" />
+          
+          {/* Lista de todos os itens do pedido */}
+          {pedido.itens && pedido.itens.length > 0 && (
+            <div>
+              <h5 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <FaShoppingBag className="mr-2 text-gray-500 dark:text-gray-400"/> Itens do Pedido
+              </h5>
+              <ul className="space-y-3 pl-1 sm:pl-6">
+                {pedido.itens.map((item, index) => (
+                  <li key={index} className="flex items-start sm:items-center text-sm text-gray-600 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+                    {item.prato.imagem ? (
+                      <img 
+                        src={item.prato.imagem} 
+                        alt={item.prato.nome} 
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-md object-cover border border-gray-200 dark:border-gray-600 mr-3 shadow-sm flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600 mr-3 shadow-sm flex-shrink-0">
+                        <FaImage size={20} />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0"> {/* Adicionado min-w-0 para truncamento funcionar se necessário */}
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+                        <span className="font-semibold text-gray-800 dark:text-white truncate" title={`${item.quantidade}x ${item.prato.nome}`}>{item.quantidade}x {item.prato.nome}</span>
+                        <span className="text-gray-700 dark:text-gray-200 font-medium mt-0.5 sm:mt-0">R$ {(item.subtotal_item ?? 0).toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        (Preço und.: R$ {(item.preco_unitario_no_momento_do_pedido ?? 0).toFixed(2).replace('.', ',')})
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {/* Valor Total do Pedido - Movido para cá */}
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-right">
+                <p className="text-lg font-bold text-gray-800 dark:text-white">
+                  Valor Total: <span className="text-green-600 dark:text-green-400">R$ {valorTotalParaExibicao.toFixed(2).replace('.', ',')}</span>
+                </p>
+              </div>
+            </div>
+          )}
+          
           <hr className="dark:border-gray-700" />
 
           {/* Detalhes do Cliente */}
@@ -113,21 +158,22 @@ const DetalhesPedidoModal: React.FC<DetalhesPedidoModalProps> = ({ isOpen, onClo
               <p className="text-gray-600 dark:text-gray-300"><span className="font-medium">Tipo:</span> <span className={pedido.tipoEntrega === 'ENTREGA' ? 'text-orange-500' : 'text-purple-500'}>{pedido.tipoEntrega}</span></p>
               {pedido.tipoEntrega === 'ENTREGA' && pedido.enderecoEntrega && (
                 <>
-                  {enderecoDetalhado ? (
+                  {enderecoDetalhado && enderecoDetalhado.rua ? (
                     <>
                       <p className="text-gray-600 dark:text-gray-300 flex items-start">
-                        <FaMapMarkerAlt className="mr-1 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" /> 
-                        <span className="font-medium mr-1">Rua:</span> <span className="break-all">{enderecoDetalhado.rua}</span>
+                        <FaMapMarkerAlt className="mr-1.5 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" /> 
+                        <div><span className="font-medium mr-1">Rua:</span> <span className="break-all">{enderecoDetalhado.rua}</span></div>
                       </p>
                       <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">Número:</span> {enderecoDetalhado.numero}</p>
                       <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">Bairro:</span> {enderecoDetalhado.bairro}</p>
-                      <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">Cidade:</span> {enderecoDetalhado.cidade} - {enderecoDetalhado.estado}</p>
-                      <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">CEP:</span> {enderecoDetalhado.cep}</p>
+                      <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">Cidade:</span> {enderecoDetalhado.cidade}</p>
+                      {enderecoDetalhado.estado && <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">Estado:</span> {enderecoDetalhado.estado}</p>}
+                      {enderecoDetalhado.cep && <p className="text-gray-600 dark:text-gray-300 ml-5"><span className="font-medium mr-1">CEP:</span> {enderecoDetalhado.cep}</p>}
                     </>
                   ) : (
                     <p className="text-gray-600 dark:text-gray-300 flex items-start">
-                      <FaMapMarkerAlt className="mr-1 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" /> 
-                      <span className="font-medium mr-1">Endereço:</span> <span className="break-all">{pedido.enderecoEntrega}</span>
+                      <FaMapMarkerAlt className="mr-1.5 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" /> 
+                      <div><span className="font-medium mr-1">Endereço:</span> <span className="break-all">{pedido.enderecoEntrega}</span></div>
                     </p>
                   )}
                 </>

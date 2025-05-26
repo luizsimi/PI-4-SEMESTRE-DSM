@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import { useAuth } from "../contexts/AuthContext";
+import { useCarrinho, type CarrinhoItem } from "../contexts/CarrinhoContext";
 import {
   FaSignOutAlt,
   FaClipboardList,
@@ -16,6 +17,7 @@ import {
   FaPhoneAlt,
   FaBookMedical,
   FaShoppingBasket,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { HiChevronDown } from "react-icons/hi";
 import UserProfileModal from "./UserProfileModal";
@@ -74,6 +76,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, userType, userData, logout } = useAuth();
+  const { itens, obterTotalItensCarrinho } = useCarrinho();
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -162,6 +165,22 @@ const Navbar = () => {
 
           {/* Área de autenticação e botões */}
           <div className="flex items-center space-x-2">
+            {/* Ícone do Carrinho - Visível para clientes ou usuários não logados */}
+            {(userType === "cliente" || !isAuthenticated) && (
+              <Link
+                to="/carrinho"
+                className="relative p-2 rounded-lg text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Carrinho de compras"
+              >
+                <FaShoppingCart className="w-5 h-5" />
+                {obterTotalItensCarrinho() > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                    {obterTotalItensCarrinho()}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* Área de autenticação */}
             {isAuthenticated && userData ? (
               <div className="relative" ref={dropdownRef}>
@@ -407,7 +426,10 @@ const Navbar = () => {
       </div>
 
       {showLoginModal && (
-        <LoginModal onClose={() => setShowLoginModal(false)} />
+        <LoginModal onClose={() => {
+          console.log('[Navbar] onClose do LoginModal chamado. Setando showLoginModal para false.');
+          setShowLoginModal(false);
+        }} />
       )}
       {showRegisterModal && (
         <RegisterModal onClose={() => setShowRegisterModal(false)} />

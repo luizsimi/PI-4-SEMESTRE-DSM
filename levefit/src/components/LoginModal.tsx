@@ -110,40 +110,40 @@ const LoginModal = ({ onClose }: LoginModalProps) => {
         response.data[data.tipoUsuario]
       );
 
-      // Verificar assinatura para fornecedores
-      if (data.tipoUsuario === "fornecedor") {
-        console.log(
-          "DEBUG - LoginModal - Verificando assinatura do fornecedor"
-        );
-        const fornecedor = response.data.fornecedor;
-        console.log("DEBUG - LoginModal - Dados do fornecedor:", {
-          id: fornecedor.id,
-          nome: fornecedor.nome,
-          assinaturaAtiva: fornecedor.assinaturaAtiva,
-        });
+      // // Verificar assinatura para fornecedores (TEMPORARIAMENTE COMENTADO PARA DEBUG)
+      // if (data.tipoUsuario === "fornecedor") {
+      //   console.log(
+      //     "DEBUG - LoginModal - Verificando assinatura do fornecedor"
+      //   );
+      //   const fornecedor = response.data.fornecedor;
+      //   console.log("DEBUG - LoginModal - Dados do fornecedor:", {
+      //     id: fornecedor.id,
+      //     nome: fornecedor.nome,
+      //     assinaturaAtiva: fornecedor.assinaturaAtiva,
+      //   });
 
-        if (fornecedor.assinaturaAtiva === false) {
-          console.log(
-            "DEBUG - LoginModal - Fornecedor sem assinatura ativa, redirecionando"
-          );
-          setAssinaturaWarning("Sua assinatura não está ativa");
+      //   if (fornecedor.assinaturaAtiva === false) {
+      //     console.log(
+      //       "DEBUG - LoginModal - Fornecedor sem assinatura ativa, redirecionando"
+      //     );
+      //     setAssinaturaWarning("Sua assinatura não está ativa");
 
-          // Fechar modal e redirecionar após um curto delay
-          setTimeout(() => {
-            onClose();
-            console.log(
-              "DEBUG - LoginModal - Redirecionando para página de assinatura"
-            );
-            window.location.href = "/dashboard/fornecedor/assinatura";
-          }, 1500);
+      //     // Fechar modal e redirecionar após um curto delay
+      //     setTimeout(() => {
+      //       onClose(); // onClose aqui é chamado antes do redirecionamento
+      //       console.log(
+      //         "DEBUG - LoginModal - Redirecionando para página de assinatura"
+      //       );
+      //       window.location.href = "/dashboard/fornecedor/assinatura";
+      //     }, 1500);
 
-          return;
-        }
-      }
+      //     return; // Importante retornar para não chamar o onClose() abaixo
+      //   }
+      // }
 
-      // Fechar modal e não redireciona (mantém na página atual)
-      console.log("DEBUG - LoginModal - Login concluído com sucesso");
-      onClose();
+      // Fechar modal
+      console.log("DEBUG - LoginModal - Login concluído com sucesso, chamando onClose()");
+      onClose(); // Garantir que isso seja chamado para todos os tipos de usuário em caso de sucesso
     } catch (error: unknown) {
       console.error("DEBUG - LoginModal - Erro no login:", error);
 

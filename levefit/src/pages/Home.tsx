@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+// import Navbar from "../components/Navbar"; // Comentado - Navbar global será usada pelo App.tsx
+// import Footer from "../components/Footer"; // Comentado - Footer global será usado pelo App.tsx
 import FornecedorCarousel from "../components/FornecedorCarousel";
 import CategoriaFilter from "../components/CategoriaFilter";
 import PratoCard from "../components/PratoCard";
@@ -269,7 +269,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="container mx-auto px-4 py-8">
         {/* Banner Hero - Versão Simplificada com Imagem */}
@@ -1014,7 +1014,7 @@ const Home = () => {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
 
       {/* Modal de Tipo de Pedido */}
       {selectedPratoParaPedido && (
