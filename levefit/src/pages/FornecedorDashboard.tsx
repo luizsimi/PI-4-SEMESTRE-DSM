@@ -397,7 +397,10 @@ const FornecedorDashboard = () => {
     });
 
     const totalPedidosDia = pedidosFiltradosStats.length;
-    const totalVendasDia = pedidosFiltradosStats.reduce((sum, pedido) => sum + pedido.valor_total, 0);
+    // Calcula o total de vendas apenas para pedidos FINALIZADOS na data filtrada
+    const totalVendasDia = pedidosFiltradosStats
+        .filter(pedido => pedido.status === 'FINALIZADO')
+        .reduce((sum, pedido) => sum + pedido.valor_total, 0);
 
     return {
       totalPratos,
