@@ -187,7 +187,7 @@ const PromocoesModal = ({ isOpen, onClose }: PromocoesModalProps) => {
                         </div>
 
                         <Link
-                          to={`/prato/${prato.id}`}
+                          to={`/pratos/${prato.id}`}
                           className="flex flex-col h-full"
                         >
                           <div className="relative h-56 overflow-hidden bg-green-100 dark:bg-green-900/20">

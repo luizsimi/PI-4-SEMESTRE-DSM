@@ -86,6 +86,11 @@ const DetalhePrato = () => {
     id?: string | number;
   } | null>(null);
 
+  // Efeito para rolar a página para o topo quando o componente for montado
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const fetchPrato = async () => {
       try {
@@ -103,10 +108,12 @@ const DetalhePrato = () => {
     fetchPrato();
   }, [id]);
 
-  const handleSelecionarTipoPedido = async (tipoEntregaSelecionado: 'ENTREGA' | 'RETIRADA') => {
+  const handleSelecionarTipoPedido = async (
+    tipoEntregaSelecionado: "ENTREGA" | "RETIRADA"
+  ) => {
     if (!prato || !prato.fornecedor) {
-        alert("Erro: Informações do prato ou fornecedor não carregadas.");
-        return;
+      alert("Erro: Informações do prato ou fornecedor não carregadas.");
+      return;
     }
 
     let nomeCliente, contatoCliente, enderecoEntregaFinal, observacoes;
@@ -119,20 +126,26 @@ const DetalhePrato = () => {
         cidade: userData.cidade,
         estado: userData.estado,
         cep: userData.cep,
-        telefone: userData.telefone
+        telefone: userData.telefone,
       });
       nomeCliente = userData.nome;
-      contatoCliente = userData.telefone || ''; 
+      contatoCliente = userData.telefone || "";
 
-      if (tipoEntregaSelecionado === 'ENTREGA') {
-        let enderecoFormatado = '';
-        const temEnderecoCompleto = 
-          userData.rua && userData.rua.trim() !== '' &&
-          userData.numero && userData.numero.trim() !== '' &&
-          userData.bairro && userData.bairro.trim() !== '' &&
-          userData.cidade && userData.cidade.trim() !== '' &&
-          userData.estado && userData.estado.trim() !== '' &&
-          userData.cep && userData.cep.trim() !== '';
+      if (tipoEntregaSelecionado === "ENTREGA") {
+        let enderecoFormatado = "";
+        const temEnderecoCompleto =
+          userData.rua &&
+          userData.rua.trim() !== "" &&
+          userData.numero &&
+          userData.numero.trim() !== "" &&
+          userData.bairro &&
+          userData.bairro.trim() !== "" &&
+          userData.cidade &&
+          userData.cidade.trim() !== "" &&
+          userData.estado &&
+          userData.estado.trim() !== "" &&
+          userData.cep &&
+          userData.cep.trim() !== "";
 
         if (temEnderecoCompleto) {
           enderecoFormatado += `${userData.rua}, ${userData.numero}`;
@@ -140,42 +153,66 @@ const DetalhePrato = () => {
           if (userData.cidade) enderecoFormatado += `, ${userData.cidade}`;
           if (userData.estado) enderecoFormatado += ` - ${userData.estado}`;
           if (userData.cep) enderecoFormatado += ` (CEP: ${userData.cep})`;
-          
+
           enderecoEntregaFinal = enderecoFormatado;
-          console.log("DEBUG - DetalhePrato: Usando endereço cadastrado formatado:", enderecoEntregaFinal);
+          console.log(
+            "DEBUG - DetalhePrato: Usando endereço cadastrado formatado:",
+            enderecoEntregaFinal
+          );
         } else {
-           console.log("Endereço incompleto no userData. Solicitando via prompt. Campos:", {
-            rua: userData.rua, numero: userData.numero, bairro: userData.bairro, 
-            cidade: userData.cidade, estado: userData.estado, cep: userData.cep
-          });
+          console.log(
+            "Endereço incompleto no userData. Solicitando via prompt. Campos:",
+            {
+              rua: userData.rua,
+              numero: userData.numero,
+              bairro: userData.bairro,
+              cidade: userData.cidade,
+              estado: userData.estado,
+              cep: userData.cep,
+            }
+          );
         }
-        
-        if (enderecoFormatado.trim() === '' && tipoEntregaSelecionado === 'ENTREGA') {
-          enderecoEntregaFinal = window.prompt("Você não possui um endereço cadastrado ou ele está incompleto. Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):");
+
+        if (
+          enderecoFormatado.trim() === "" &&
+          tipoEntregaSelecionado === "ENTREGA"
+        ) {
+          enderecoEntregaFinal = window.prompt(
+            "Você não possui um endereço cadastrado ou ele está incompleto. Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):"
+          );
           if (!enderecoEntregaFinal) {
-            alert("Endereço de entrega é obrigatório para este tipo de pedido.");
+            alert(
+              "Endereço de entrega é obrigatório para este tipo de pedido."
+            );
             return;
           }
-        } else if (tipoEntregaSelecionado === 'ENTREGA' && !enderecoEntregaFinal) {
-          alert("Endereço de entrega é necessário. Por favor, verifique seu cadastro.");
+        } else if (
+          tipoEntregaSelecionado === "ENTREGA" &&
+          !enderecoEntregaFinal
+        ) {
+          alert(
+            "Endereço de entrega é necessário. Por favor, verifique seu cadastro."
+          );
           return;
         }
       }
-      
+
       if (!contatoCliente) {
-          contatoCliente = window.prompt("Não encontramos seu telefone no cadastro. Por favor, informe seu número de contato (WhatsApp):");
-          if (!contatoCliente) {
-              alert("Número de contato é obrigatório.");
-              return;
-          }
+        contatoCliente = window.prompt(
+          "Não encontramos seu telefone no cadastro. Por favor, informe seu número de contato (WhatsApp):"
+        );
+        if (!contatoCliente) {
+          alert("Número de contato é obrigatório.");
+          return;
+        }
       }
 
       // Não pedir observações para cliente logado, definir como string vazia ou null
       observacoes = undefined; // Ou null, ou string vazia, dependendo de como o backend trata
       // Se ainda quiser o prompt de observações, comente a linha acima e descomente a abaixo:
       // observacoes = window.prompt("Alguma observação para o seu pedido? (opcional)");
-
-    } else { // Cliente não autenticado
+    } else {
+      // Cliente não autenticado
       nomeCliente = window.prompt("Por favor, informe seu nome:");
       if (!nomeCliente) {
         alert("Nome do cliente é obrigatório.");
@@ -186,8 +223,10 @@ const DetalhePrato = () => {
         alert("Número de contato é obrigatório.");
         return;
       }
-      if (tipoEntregaSelecionado === 'ENTREGA') {
-        enderecoEntregaFinal = window.prompt("Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):");
+      if (tipoEntregaSelecionado === "ENTREGA") {
+        enderecoEntregaFinal = window.prompt(
+          "Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):"
+        );
         if (!enderecoEntregaFinal) {
           alert("Endereço de entrega é obrigatório para este tipo de pedido.");
           return;
@@ -203,7 +242,8 @@ const DetalhePrato = () => {
       nomeCliente,
       contatoCliente,
       tipoEntrega: tipoEntregaSelecionado,
-      enderecoEntrega: tipoEntregaSelecionado === 'ENTREGA' ? enderecoEntregaFinal : undefined,
+      enderecoEntrega:
+        tipoEntregaSelecionado === "ENTREGA" ? enderecoEntregaFinal : undefined,
       observacoes: observacoes || undefined,
       quantidade: quantidade,
     };
@@ -212,11 +252,15 @@ const DetalhePrato = () => {
     setShowTipoPedidoModal(false);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.post('http://localhost:3333/pedidos', pedidoData, { headers });
-      
+      const response = await axios.post(
+        "http://localhost:3333/pedidos",
+        pedidoData,
+        { headers }
+      );
+
       if (response.status === 201) {
         setPedidoSucessoInfo({
           nomePrato: prato.nome,
@@ -225,18 +269,26 @@ const DetalhePrato = () => {
         });
         setShowPedidoSucessoModal(true);
       } else {
-        alert(`Erro ao criar pedido: ${response.data.error || 'Resposta inesperada do servidor.'}`);
+        alert(
+          `Erro ao criar pedido: ${
+            response.data.error || "Resposta inesperada do servidor."
+          }`
+        );
       }
     } catch (error: any) {
       console.error("Erro ao criar pedido:", error);
       if (error.response && error.response.data && error.response.data.error) {
         if (error.response.data.details) {
-            alert(`Erro interno ao criar pedido: ${error.response.data.error} (${error.response.data.details})`);
+          alert(
+            `Erro interno ao criar pedido: ${error.response.data.error} (${error.response.data.details})`
+          );
         } else {
-            alert(`Erro interno ao criar pedido: ${error.response.data.error}`);
+          alert(`Erro interno ao criar pedido: ${error.response.data.error}`);
         }
       } else {
-        alert("Erro ao conectar com o servidor para criar o pedido. Verifique sua conexão ou tente mais tarde.");
+        alert(
+          "Erro ao conectar com o servidor para criar o pedido. Verifique sua conexão ou tente mais tarde."
+        );
       }
     }
   };
@@ -506,7 +558,7 @@ const DetalhePrato = () => {
   const handleClosePedidoSucessoModal = () => {
     setShowPedidoSucessoModal(false);
     setPedidoSucessoInfo(null);
-    navigate('/meus-pedidos');
+    navigate("/meus-pedidos");
   };
 
   if (loading) {
@@ -718,54 +770,104 @@ const DetalhePrato = () => {
 
                   <div className="mt-4">
                     {activeTab === "descricao" && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{prato.descricao}</p>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {prato.descricao}
+                        </p>
                         {(prato.calorias || prato.porcao) && (
-                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">Detalhes Adicionais:</h4>
-                                <ul className="list-none space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                                    {prato.porcao && <li className="flex items-center"><GiSlicedBread className="mr-2 text-green-500" /> Porção: {prato.porcao}</li>}
-                                    {prato.calorias && <li className="flex items-center"><FaFire className="mr-2 text-orange-500" /> Calorias: {prato.calorias} kcal</li>}
-                                </ul>
-                            </div>
+                          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">
+                              Detalhes Adicionais:
+                            </h4>
+                            <ul className="list-none space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                              {prato.porcao && (
+                                <li className="flex items-center">
+                                  <GiSlicedBread className="mr-2 text-green-500" />{" "}
+                                  Porção: {prato.porcao}
+                                </li>
+                              )}
+                              {prato.calorias && (
+                                <li className="flex items-center">
+                                  <FaFire className="mr-2 text-orange-500" />{" "}
+                                  Calorias: {prato.calorias} kcal
+                                </li>
+                              )}
+                            </ul>
+                          </div>
                         )}
                       </motion.div>
                     )}
 
                     {activeTab === "nutricional" && (
-                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                       { (prato.proteinas || prato.carboidratos || prato.gorduras || prato.fibras) ? (
-                           <TabelaNutricional prato={prato} />
-                       ) : (
-                           <p className="text-gray-600 dark:text-gray-400 italic">Informações nutricionais não disponíveis para este prato.</p>
-                       )}
-                       </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        {prato.proteinas ||
+                        prato.carboidratos ||
+                        prato.gorduras ||
+                        prato.fibras ? (
+                          <TabelaNutricional prato={prato} />
+                        ) : (
+                          <p className="text-gray-600 dark:text-gray-400 italic">
+                            Informações nutricionais não disponíveis para este
+                            prato.
+                          </p>
+                        )}
+                      </motion.div>
                     )}
 
                     {activeTab === "avaliacoes" && (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Avaliações ({prato.totalAvaliacoes})</h3>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                          Avaliações ({prato.totalAvaliacoes})
+                        </h3>
                         {prato.avaliacoes && prato.avaliacoes.length > 0 ? (
                           <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                             {prato.avaliacoes.map((avaliacao) => (
-                              <div key={avaliacao.id} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm">
+                              <div
+                                key={avaliacao.id}
+                                className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg shadow-sm"
+                              >
                                 <div className="flex justify-between items-center mb-1">
-                                  <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{avaliacao.cliente.nome}</span>
+                                  <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">
+                                    {avaliacao.cliente.nome}
+                                  </span>
                                   {renderEstrelas(avaliacao.nota)}
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">{formatarData(avaliacao.createdAt)}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{avaliacao.comentario}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+                                  {formatarData(avaliacao.createdAt)}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                                  {avaliacao.comentario}
+                                </p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-gray-600 dark:text-gray-400 italic">Ainda não há avaliações para este prato.</p>
+                          <p className="text-gray-600 dark:text-gray-400 italic">
+                            Ainda não há avaliações para este prato.
+                          </p>
                         )}
 
                         {isAuthenticated && userType === "cliente" && (
                           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">Deixe sua avaliação:</h4>
-                            <form onSubmit={handleSubmitAvaliacao} className="space-y-3">
+                            <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">
+                              Deixe sua avaliação:
+                            </h4>
+                            <form
+                              onSubmit={handleSubmitAvaliacao}
+                              className="space-y-3"
+                            >
                               <div className="mb-4">
                                 <label className="block text-gray-700 font-medium mb-2">
                                   Nota
@@ -841,13 +943,15 @@ const DetalhePrato = () => {
                     onClick={() => setShowTipoPedidoModal(true)}
                     disabled={!prato || !prato.disponivel}
                     className={`w-full sm:w-auto flex items-center justify-center text-lg font-semibold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-300 ${
-                      (prato && prato.disponivel)
-                        ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white transform hover:scale-105'
-                        : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                      prato && prato.disponivel
+                        ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white transform hover:scale-105"
+                        : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                     }`}
                   >
                     <FaShoppingBasket className="mr-2.5" />
-                    {(prato && prato.disponivel) ? "Fazer Pedido" : "Indisponível"}
+                    {prato && prato.disponivel
+                      ? "Fazer Pedido"
+                      : "Indisponível"}
                   </button>
 
                   <button
