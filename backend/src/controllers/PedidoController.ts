@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from "../server";
+const { toZonedTime } = require('date-fns-tz');
 
 // Definição de tipos para maior clareza, se necessário (opcional)
 // interface UserDataToken {
@@ -33,16 +34,32 @@ export class PedidoController {
 
   async getPedidosDoFornecedor(req: Request, res: Response) {
     const fornecedorId = req.userId;
-    console.log("[Controller] Buscando pedidos para fornecedor ID:", fornecedorId);
-
+    const dataFiltro = req.query.data as string; // Exemplo: "2025-05-29"
+  
+    console.log("[Controller] Buscando pedidos para fornecedor ID:", fornecedorId, "com filtro de data:", dataFiltro);
+  
     if (!fornecedorId) {
-      console.error("[Controller] ID do fornecedor não encontrado na requisição.");
       return res.status(401).json({ error: "Fornecedor não autenticado." });
     }
-
+  
     try {
+      const whereClause: any = {
+        id_fornecedor: Number(fornecedorId),
+      };
+  
+      // ✅ Aqui aplica o filtro por data (baseado em milissegundos)
+      if (dataFiltro) {
+        const startOfDay = new Date(`${dataFiltro}T00:00:00-03:00`).getTime();
+        const endOfDay = new Date(`${dataFiltro}T23:59:59-03:00`).getTime();
+  
+        whereClause.time_do_pedido = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
+  
       const pedidos = await prisma.pedido.findMany({
-        where: { id_fornecedor: Number(fornecedorId) },
+        where: whereClause,
         include: {
           itens: {
             include: {
@@ -51,7 +68,7 @@ export class PedidoController {
               }
             }
           },
-          cliente: { 
+          cliente: {
             select: { nome: true }
           }
         },
@@ -59,32 +76,14 @@ export class PedidoController {
           time_do_pedido: 'desc',
         },
       });
-      console.log("[Controller] Pedidos encontrados:", pedidos.length);
+  
       return res.json(pedidos);
     } catch (error) {
       console.error("[Controller] Erro ao buscar pedidos do fornecedor:", error);
-      let errorMessage = "Erro desconhecido ao processar sua solicitação.";
-      let errorDetails: any = {};
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      // Verificar se é um erro do Prisma e tentar extrair mais detalhes
-      if (typeof error === 'object' && error !== null) {
-        if ('code' in error) errorDetails.prismaCode = error.code;
-        if ('meta' in error) errorDetails.prismaMeta = error.meta;
-        if ('message' in error && typeof error.message === 'string') errorMessage = error.message;
-      }
-      
-      console.error("[Controller] Detalhes do Erro Prisma:", JSON.stringify(errorDetails, null, 2));
-
-      return res.status(500).json({ 
-        error: "Erro interno ao buscar pedidos.", 
-        details: errorMessage,
-        prismaDetails: Object.keys(errorDetails).length > 0 ? errorDetails : undefined
-      });
+      return res.status(500).json({ error: "Erro ao buscar pedidos." });
     }
   }
+  
 
   async updateStatusPedidoFornecedor(req: Request, res: Response) {
     const fornecedorIdAutenticado = req.userId;
@@ -156,16 +155,16 @@ export class PedidoController {
         mensagemWhatsApp = `Olá ${nomeClienteOriginal}! Seu pedido #${pedidoOriginal.id} (${nomesPratos} - Total: R$${valorTotalPedido}) está PRONTO PARA RETIRADA. Aguardamos você!`;
       }
       // Adicionar outras mensagens conforme necessário
-
       if (mensagemWhatsApp && contatoClienteOriginal) {
+        const telefoneLimpo = contatoClienteOriginal.replace(/\D/g, '');
+        const mensagemCodificada = encodeURIComponent(mensagemWhatsApp);
+        const urlWhatsApp = `https://wa.me/55${telefoneLimpo}?text=${mensagemCodificada}`;
+      
         console.log("--------------------------------------------------");
-        console.log("SIMULAÇÃO DE ENVIO DE MENSAGEM VIA WHATSAPP:");
-        console.log(`Para: ${contatoClienteOriginal}`);
-        console.log(`Mensagem: ${mensagemWhatsApp}`);
-        console.log("// TODO: Implementar integração real com API de WhatsApp aqui.");
+        console.log("ABRIR WHATSAPP:");
+        console.log("URL:", urlWhatsApp);
         console.log("--------------------------------------------------");
       }
-
       return res.json(pedidoAtualizado);
     } catch (error: any) {
       console.error("[Controller] Erro ao atualizar status do pedido:", error);
@@ -227,6 +226,7 @@ export class PedidoController {
             return res.status(400).json({ error: "Endereço de entrega é obrigatório para o tipo ENTREGA." });
         }
 
+        const dataPedido = toZonedTime(new Date(), 'America/Sao_Paulo');
         const resultadoPedido = await prisma.$transaction(async (tx) => {
             let valorTotalCalculadoPedido = 0;
 
@@ -240,7 +240,8 @@ export class PedidoController {
                     enderecoEntrega: tipoEntrega === "ENTREGA" ? enderecoEntrega : null,
                     observacoes,
                     status: "NOVO",
-                    valor_total_pedido: 0, 
+                    valor_total_pedido: 0,
+                    time_do_pedido: dataPedido,
                 },
             });
 

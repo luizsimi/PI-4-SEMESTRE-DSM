@@ -5,6 +5,7 @@ import { FaBoxOpen, FaShippingFast, FaTasks, FaCheckDouble, FaBan, FaRedo, FaInf
 // Importar a interface Pedido e ItemDoPedido do local correto
 import type { Pedido, ItemDoPedido } from '../../types'; // Modificado para incluir ItemDoPedido
 import DetalhesPedidoModal from './DetalhesPedidoModal'; // Importar o novo modal
+import { enviarMensagemWhatsApp } from '../../utils/whatsappMessage';
 
 interface PedidosKanbanProps {
   pedidosAgrupados: Record<string, Pedido[]>;
@@ -74,8 +75,30 @@ const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, l
   };
 
   const handleSelectNewStatus = (pedidoId: number, novoStatus: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Impedir que o clique na opção do dropdown abra o modal de detalhes
+    event.stopPropagation();
+    
+    // Se estiver aceitando o pedido (mudando para EM_PREPARO)
+    if (novoStatus === 'EM_PREPARO') {
+      const pedido = pedidosAgrupados['NOVO']?.find(p => p.id === pedidoId);
+      if (pedido && pedido.contatoCliente) {
+        enviarMensagemWhatsApp(pedido.contatoCliente, pedido);
+      }
+    }
+    
     onMudarStatus(pedidoId, novoStatus);
+    setEditingPedidoId(null);
+  };
+
+  const handleAceitarPedido = (pedido: Pedido, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    // Envia a mensagem WhatsApp
+    if (pedido.contatoCliente) {
+      enviarMensagemWhatsApp(pedido.contatoCliente, pedido);
+    }
+    
+    // Atualiza o status do pedido
+    onMudarStatus(pedido.id, 'EM_PREPARO');
     setEditingPedidoId(null);
   };
 
@@ -205,8 +228,8 @@ const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, l
                       </div>
 
                       {/* Valor e Data - Movido para dentro do div principal para melhor controle do flex */}
-                      <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-600 pt-2 flex justify-between items-center">
-                        <span className="font-semibold text-green-600 dark:text-green-400">R$ {(pedido.valor_total ?? 0).toFixed(2).replace('.', ',')}</span>
+                      <div className="flex justify-between text-xs mt-2">
+                        <span className="font-semibold text-green-600 dark:text-green-400">R$ {(pedido.valor_total_pedido ?? 0).toFixed(2).replace('.', ',')}</span>
                         <span>{new Date(pedido.time_do_pedido).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</span>
                       </div>
                     </div>
@@ -220,7 +243,14 @@ const RenderPedidosKanban: React.FC<PedidosKanbanProps> = ({ pedidosAgrupados, l
                           return (
                             <button 
                               key={acao.novoStatus + (acao.tipoEntrega || '')}
-                              onClick={(e) => { e.stopPropagation(); onMudarStatus(pedido.id, acao.novoStatus); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (acao.novoStatus === 'EM_PREPARO') {
+                                  handleAceitarPedido(pedido, e);
+                                } else {
+                                  onMudarStatus(pedido.id, acao.novoStatus);
+                                }
+                              }}
                               className={`w-full flex items-center justify-center text-xs font-medium text-white px-3 py-1.5 rounded-md shadow-sm hover:opacity-90 transition-opacity ${acao.className}`}
                             >
                               <IconeAcao className="mr-1.5" />

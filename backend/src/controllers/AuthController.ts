@@ -31,7 +31,7 @@ export class AuthController {
       const token = jwt.sign(
         { id: cliente.id, tipo: "cliente" },
         process.env.JWT_SECRET || "levefit-default-secret",
-        { expiresIn: "1d" }
+        { expiresIn: "7d" }
       );
 
       return res.json({
@@ -75,7 +75,7 @@ export class AuthController {
       const token = jwt.sign(
         { id: fornecedor.id, tipo: "fornecedor" },
         process.env.JWT_SECRET || "levefit-default-secret",
-        { expiresIn: "1d" }
+        { expiresIn: "7d" }
       );
 
       return res.json({

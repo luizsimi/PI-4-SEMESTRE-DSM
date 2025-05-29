@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext"; // useAuth é necessário para ProtectedRoute, mesmo comentado
 import { CarrinhoProvider } from "./contexts/CarrinhoContext";
@@ -32,13 +32,22 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedUserType }) => {
   const { isAuthenticated, userType, isRefreshing } = useAuth();
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    // Se não estiver mais atualizando e temos informações de autenticação, não estamos mais inicializando
+    if (!isRefreshing && (isAuthenticated !== null || userType !== null)) {
+      setIsInitializing(false);
+    }
+  }, [isRefreshing, isAuthenticated, userType]);
 
   console.log('[ProtectedRoute] Verificando rota:', window.location.pathname);
   console.log('[ProtectedRoute] Props:', { allowedUserType });
-  console.log('[ProtectedRoute] Estado Auth:', { isAuthenticated, userType, isRefreshing });
+  console.log('[ProtectedRoute] Estado Auth:', { isAuthenticated, userType, isRefreshing, isInitializing });
 
-  if (isRefreshing) {
-    console.log('[ProtectedRoute] Estado: IS_REFRESHING');
+  // Mostra loading apenas durante a inicialização ou refresh
+  if (isInitializing || isRefreshing) {
+    console.log('[ProtectedRoute] Estado: LOADING');
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-gray-900">
         <div className="text-center">

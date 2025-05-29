@@ -1,4 +1,7 @@
 import React, { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
+import Toast from '../components/Toast';
+import ConfirmacaoLimparCarrinhoModal from '../components/ConfirmacaoLimparCarrinhoModal';
+import ConfirmacaoPedidoModal from '../components/ConfirmacaoPedidoModal';
 
 // Interfaces
 export interface FornecedorInfo {
@@ -22,13 +25,14 @@ export interface CarrinhoItem {
 interface CarrinhoContextType {
   itens: CarrinhoItem[];
   fornecedorInfoAtual: FornecedorInfo | null;
-  adicionarAoCarrinho: (prato: PratoParaCarrinho, quantidade?: number) => boolean; // Retorna true se adicionado, false se necessitar confirmação
+  adicionarAoCarrinho: (prato: PratoParaCarrinho, quantidade?: number) => boolean;
   removerDoCarrinho: (pratoId: number) => void;
   atualizarQuantidadeNoCarrinho: (pratoId: number, novaQuantidade: number) => void;
   limparCarrinho: () => void;
   obterTotalItensCarrinho: () => number;
   obterValorTotalCarrinho: () => number;
   getQuantidadePrato: (pratoId: number) => number;
+  finalizarPedido: () => void;
 }
 
 const CarrinhoContext = createContext<CarrinhoContextType | undefined>(undefined);
@@ -38,10 +42,17 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
     const itensSalvos = localStorage.getItem('carrinhoItens');
     return itensSalvos ? JSON.parse(itensSalvos) : [];
   });
+  
   const [fornecedorInfoAtual, setFornecedorInfoAtual] = useState<FornecedorInfo | null>(() => {
     const fornecedorSalvo = localStorage.getItem('carrinhoFornecedorInfo');
     return fornecedorSalvo ? JSON.parse(fornecedorSalvo) : null;
   });
+  
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [pratoEmEspera, setPratoEmEspera] = useState<{prato: PratoParaCarrinho, quantidade: number} | null>(null);
+  const [showConfirmacaoPedido, setShowConfirmacaoPedido] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('carrinhoItens', JSON.stringify(itens));
@@ -50,30 +61,39 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const adicionarAoCarrinho = (prato: PratoParaCarrinho, quantidade: number = 1): boolean => {
     if (fornecedorInfoAtual && fornecedorInfoAtual.id !== prato.fornecedor.id) {
-      const confirmReset = window.confirm(
-        `Você já tem itens de "${fornecedorInfoAtual.nome}" no carrinho. \nDeseja limpar o carrinho e adicionar este item de "${prato.fornecedor.nome}"?`
-      );
-      if (confirmReset) {
-        setItens([{ prato, quantidade }]);
-        setFornecedorInfoAtual(prato.fornecedor);
-        return true;
-      }
-      return false; // Não adicionado, necessita confirmação
+      setPratoEmEspera({ prato, quantidade });
+      setShowModal(true);
+      return false;
     }
 
     setFornecedorInfoAtual(prato.fornecedor);
     setItens((prevItens) => {
       const itemExistente = prevItens.find((item) => item.prato.id === prato.id);
       if (itemExistente) {
+        setToastMessage(`${prato.nome} adicionado ao carrinho!`);
+        setShowToast(true);
         return prevItens.map((item) =>
           item.prato.id === prato.id
             ? { ...item, quantidade: item.quantidade + quantidade }
             : item
         );
       }
+      setToastMessage(`${prato.nome} adicionado ao carrinho!`);
+      setShowToast(true);
       return [...prevItens, { prato, quantidade }];
     });
-    return true; // Adicionado com sucesso
+    return true;
+  };
+
+  const handleConfirmarLimparCarrinho = () => {
+    if (pratoEmEspera) {
+      setItens([{ prato: pratoEmEspera.prato, quantidade: pratoEmEspera.quantidade }]);
+      setFornecedorInfoAtual(pratoEmEspera.prato.fornecedor);
+      setToastMessage(`${pratoEmEspera.prato.nome} adicionado ao carrinho!`);
+      setShowToast(true);
+      setShowModal(false);
+      setPratoEmEspera(null);
+    }
   };
 
   const removerDoCarrinho = (pratoId: number) => {
@@ -116,6 +136,16 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
     return item ? item.quantidade : 0;
   };
 
+  const finalizarPedido = () => {
+    setShowConfirmacaoPedido(true);
+  };
+
+  const handleConfirmarPedido = () => {
+    // Aqui você pode adicionar a lógica para enviar o pedido para o backend
+    limparCarrinho();
+    setShowConfirmacaoPedido(false);
+  };
+
   return (
     <CarrinhoContext.Provider
       value={{
@@ -128,9 +158,34 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
         obterTotalItensCarrinho,
         obterValorTotalCarrinho,
         getQuantidadePrato,
+        finalizarPedido,
       }}
     >
       {children}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          onClose={() => setShowToast(false)}
+        />
+      )}
+      {showModal && pratoEmEspera && fornecedorInfoAtual && (
+        <ConfirmacaoLimparCarrinhoModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setPratoEmEspera(null);
+          }}
+          onConfirm={handleConfirmarLimparCarrinho}
+          fornecedorAtual={fornecedorInfoAtual.nome}
+          novoFornecedor={pratoEmEspera.prato.fornecedor.nome}
+        />
+      )}
+      <ConfirmacaoPedidoModal
+        isOpen={showConfirmacaoPedido}
+        onClose={() => setShowConfirmacaoPedido(false)}
+        onConfirm={handleConfirmarPedido}
+      />
     </CarrinhoContext.Provider>
   );
 };

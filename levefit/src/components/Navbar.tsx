@@ -75,6 +75,7 @@ const Navbar = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { isAuthenticated, userType, userData, logout } = useAuth();
   const { itens, obterTotalItensCarrinho } = useCarrinho();
   const navigate = useNavigate();
@@ -93,6 +94,35 @@ const Navbar = () => {
     } else {
       document.documentElement.classList.remove("dark");
     }
+  }, []);
+
+  // Efeito para detectar scroll com throttle para melhor performance
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateScrollDir = () => {
+      const scrollY = window.scrollY;
+      
+      if (scrollY > lastScrollY && scrollY > 10) {
+        setIsScrolled(true);
+      } else if (scrollY < 10) {
+        setIsScrolled(false);
+      }
+      
+      lastScrollY = scrollY > 0 ? scrollY : 0;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrollDir);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = () => {
@@ -131,9 +161,19 @@ const Navbar = () => {
     };
   }, []);
 
+  const handleCarrinhoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate('/carrinho');
+  };
+
   return (
-    <nav className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 shadow-md transition-colors duration-300">
-      <div className="container mx-auto px-4 py-3">
+    <nav 
+      className={`sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 py-[15px] transform ${
+        isScrolled ? 'translate-y-0' : ''
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link
@@ -167,8 +207,9 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             {/* Ícone do Carrinho - Visível para clientes ou usuários não logados */}
             {(userType === "cliente" || !isAuthenticated) && (
-              <Link
-                to="/carrinho"
+              <a
+                href="/carrinho"
+                onClick={handleCarrinhoClick}
                 className="relative p-2 rounded-lg text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Carrinho de compras"
               >
@@ -178,7 +219,7 @@ const Navbar = () => {
                     {obterTotalItensCarrinho()}
                   </span>
                 )}
-              </Link>
+              </a>
             )}
 
             {/* Área de autenticação */}
@@ -305,13 +346,13 @@ const Navbar = () => {
             ) : (
               <div className="hidden sm:flex space-x-2 items-center">
                 <button
-                  onClick={() => setShowLoginModal(true)}
+                  onClick={() => navigate('/login')}
                   className="px-4 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors duration-300"
                 >
                   Login
                 </button>
                 <button
-                  onClick={() => setShowRegisterModal(true)}
+                  onClick={() => navigate('/register')}
                   className="px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-lg shadow-sm transition-colors duration-300"
                 >
                   Cadastro

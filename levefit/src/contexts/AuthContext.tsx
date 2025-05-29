@@ -50,53 +50,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUserType = localStorage.getItem("userType") as UserType;
-    const storedUserData = localStorage.getItem("userData");
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("token");
+      const storedUserType = localStorage.getItem("userType") as UserType;
+      const storedUserData = localStorage.getItem("userData");
 
-    console.log(
-      "DEBUG - AuthContext - Inicializando, verificando localStorage:",
-      {
-        token: token ? "Existe" : "Não existe",
-        storedUserType,
-        storedUserData: storedUserData ? JSON.stringify(JSON.parse(storedUserData), null, 2) : "Não existe",
-      }
-    );
+      console.log(
+        "DEBUG - AuthContext - Inicializando, verificando localStorage:",
+        {
+          token: token ? "Existe" : "Não existe",
+          storedUserType,
+          storedUserData: storedUserData ? "Existe" : "Não existe",
+        }
+      );
 
-    if (token && storedUserType) {
-      setIsAuthenticated(true);
-      setUserType(storedUserType);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      console.log("DEBUG - AuthContext - Token configurado no axios. Tentando refreshUserData.");
-      
-      if (storedUserData) {
+      if (token && storedUserType) {
         try {
-          const parsedUserData = JSON.parse(storedUserData);
-          setUserData(parsedUserData);
-          console.log("DEBUG - AuthContext - Dados do localStorage aplicados temporariamente:", parsedUserData);
-        } catch (e) {
-          console.error("DEBUG - AuthContext - Erro ao parsear userData do localStorage:", e);
-          localStorage.removeItem("userData");
-        }
-      }
-      
-      refreshUserData(storedUserType).then(refreshedData => {
-        if (refreshedData) {
-            console.log("DEBUG - AuthContext - Dados atualizados após refresh na inicialização:", refreshedData);
-        } else {
-            console.log("DEBUG - AuthContext - Não foi possível obter dados atualizados na inicialização, usando localStorage se disponível ou null.");
-        }
-      }).catch(error => {
-          console.error("DEBUG - AuthContext - Erro no refreshUserData durante inicialização:", error);
-      });
+          // Configura o token no axios
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          
+          // Tenta carregar os dados do localStorage primeiro
+          if (storedUserData) {
+            try {
+              const parsedUserData = JSON.parse(storedUserData);
+              setUserData(parsedUserData);
+              setIsAuthenticated(true);
+              setUserType(storedUserType);
+              console.log("DEBUG - AuthContext - Dados do localStorage aplicados:", parsedUserData);
+            } catch (e) {
+              console.error("DEBUG - AuthContext - Erro ao parsear userData do localStorage:", e);
+              localStorage.removeItem("userData");
+            }
+          }
 
-    } else {
-      console.log("DEBUG - AuthContext - Usuário não está autenticado na inicialização (sem token ou tipo).");
-      setIsAuthenticated(false);
-      setUserType(null);
-      setUserData(null);
-      delete axios.defaults.headers.common["Authorization"];
-    }
+          // Tenta atualizar os dados do servidor em segundo plano
+          const refreshedData = await refreshUserData(storedUserType);
+          if (refreshedData) {
+            console.log("DEBUG - AuthContext - Dados atualizados após refresh:", refreshedData);
+          } else {
+            console.log("DEBUG - AuthContext - Usando dados do localStorage");
+          }
+        } catch (error) {
+          console.error("DEBUG - AuthContext - Erro na inicialização:", error);
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            console.warn("DEBUG - AuthContext - Token inválido, realizando logout");
+            logout();
+          }
+        }
+      } else {
+        console.log("DEBUG - AuthContext - Usuário não está autenticado na inicialização");
+        logout();
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (token: string, type: UserType, data: UserData) => {

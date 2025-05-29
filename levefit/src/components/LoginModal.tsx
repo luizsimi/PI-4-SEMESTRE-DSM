@@ -12,6 +12,7 @@ import {
   FaStore,
   FaExclamationTriangle,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 interface LoginModalProps {
   onClose: () => void;
@@ -44,6 +45,7 @@ const LoginModal = ({ onClose }: LoginModalProps) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -143,7 +145,7 @@ const LoginModal = ({ onClose }: LoginModalProps) => {
 
       // Fechar modal
       console.log("DEBUG - LoginModal - Login concluído com sucesso, chamando onClose()");
-      onClose(); // Garantir que isso seja chamado para todos os tipos de usuário em caso de sucesso
+      navigate(-1);
     } catch (error: unknown) {
       console.error("DEBUG - LoginModal - Erro no login:", error);
 
@@ -168,15 +170,19 @@ const LoginModal = ({ onClose }: LoginModalProps) => {
     }
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full animate-scaleIn">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             Login
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-700 p-2 rounded-full transition-colors"
             aria-label="Fechar"
           >
@@ -290,7 +296,7 @@ const LoginModal = ({ onClose }: LoginModalProps) => {
           <div className="flex justify-between items-center space-x-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300 font-medium"
             >
               Cancelar

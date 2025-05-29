@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaTrash, FaPlus, FaMinus, FaShoppingCart, FaArrowLeft, FaCreditCard, FaSpinner } from 'react-icons/fa';
+import ConfirmacaoPedidoModal from '../components/ConfirmacaoPedidoModal';
 // import Navbar from '../components/Navbar'; // Será gerenciado pelo GlobalLayout
 // import Footer from '../components/Footer'; // Será gerenciado pelo GlobalLayout
 
@@ -21,6 +22,8 @@ const CarrinhoPage = () => {
   const { isAuthenticated, userData, userType } = useAuth();
   const navigate = useNavigate();
   const [isLoadingPedido, setIsLoadingPedido] = useState(false);
+  const [showConfirmacao, setShowConfirmacao] = useState(false);
+  const [tipoEntrega, setTipoEntrega] = useState<'ENTREGA' | 'RETIRADA'>('ENTREGA');
 
   const handleIncrementar = (pratoId: number) => {
     const item = itens.find(i => i.prato.id === pratoId);
@@ -64,7 +67,10 @@ const CarrinhoPage = () => {
         return;
     }
 
+    setShowConfirmacao(true);
+  };
 
+  const handleConfirmarPedido = async () => {
     setIsLoadingPedido(true);
     try {
       // Montar um único payload para o pedido consolidado
@@ -72,8 +78,8 @@ const CarrinhoPage = () => {
         fornecedorId: fornecedorInfoAtual.id,
         nomeCliente: userData.nome,
         contatoCliente: userData.telefone,
-        tipoEntrega: 'ENTREGA',
-        enderecoEntrega: [
+        tipoEntrega: tipoEntrega,
+        enderecoEntrega: tipoEntrega === 'ENTREGA' ? [
           userData.rua,
           userData.numero,
           userData.complemento,
@@ -81,7 +87,7 @@ const CarrinhoPage = () => {
           userData.cidade,
           userData.estado,
           userData.cep,
-        ].filter(Boolean).join(', '),
+        ].filter(Boolean).join(', ') : undefined,
         // observacoes: "", // Adicionar se houver um campo de observações no carrinho/state
         pratos: itens.map(item => ({
           pratoId: item.prato.id,
@@ -232,7 +238,36 @@ const CarrinhoPage = () => {
                 <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
                   Resumo do Pedido
                 </h2>
-                
+
+                {/* Opção de ENTREGA ou RETIRADA */}
+                <div className="mb-6">
+                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">Como você quer receber?</label>
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setTipoEntrega('ENTREGA')}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors font-semibold text-sm ${
+                        tipoEntrega === 'ENTREGA'
+                          ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                          : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-400 dark:hover:border-green-500'
+                      }`}
+                    >
+                      Entrega
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTipoEntrega('RETIRADA')}
+                      className={`flex-1 px-4 py-2 rounded-lg border-2 transition-colors font-semibold text-sm ${
+                        tipoEntrega === 'RETIRADA'
+                          ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                          : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-400 dark:hover:border-green-500'
+                      }`}
+                    >
+                      Retirada no local
+                    </button>
+                  </div>
+                </div>
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Subtotal ({obterTotalItensCarrinho()} itens)</span>
@@ -277,6 +312,14 @@ const CarrinhoPage = () => {
         </div>
       </main>
       {/* <Footer /> */}
+
+      {showConfirmacao && (
+        <ConfirmacaoPedidoModal
+          isOpen={showConfirmacao}
+          onClose={() => setShowConfirmacao(false)}
+          onConfirm={handleConfirmarPedido}
+        />
+      )}
     </>
   );
 };

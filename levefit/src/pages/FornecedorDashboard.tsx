@@ -76,6 +76,14 @@ interface ErrorResponse {
   error: string;
 }
 
+// Função para data local no formato yyyy-mm-dd
+function getDataLocalISO() {
+  const hoje = new Date();
+  return hoje.getFullYear() + '-' +
+    String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
+    String(hoje.getDate()).padStart(2, '0');
+}
+
 const FornecedorDashboard = () => {
   const [fornecedor, setFornecedor] = useState<Fornecedor | null>(null);
   const [pratos, setPratos] = useState<Prato[]>([]);
@@ -90,8 +98,8 @@ const FornecedorDashboard = () => {
   const [errorPedidos, setErrorPedidos] = useState("");
   
   // Estados para o filtro de data
-  const [dataFiltroStats, setDataFiltroStats] = useState(() => new Date().toISOString().split('T')[0]);
-  const [dataAplicadaStats, setDataAplicadaStats] = useState(() => new Date().toISOString().split('T')[0]);
+  const [dataFiltroStats, setDataFiltroStats] = useState(() => getDataLocalISO());
+  const [dataAplicadaStats, setDataAplicadaStats] = useState(() => getDataLocalISO());
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -280,7 +288,10 @@ const FornecedorDashboard = () => {
     if (activeTab !== 'pedidos') return [];
     console.log(`Filtrando pedidos para o Kanban com data APLICADA: ${dataAplicadaStats}`);
     const filtrados = pedidos.filter(pedido => {
-        const dataPedido = pedido.time_do_pedido.split('T')[0];
+      const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString('sv-SE', {
+        timeZone: 'America/Sao_Paulo'
+      });
+      
         return dataPedido === dataAplicadaStats;
     });
     console.log(`Pedidos filtrados para o Kanban (${dataAplicadaStats}):`, filtrados.length);
@@ -392,15 +403,25 @@ const FornecedorDashboard = () => {
         : 0;
 
     const pedidosFiltradosStats = pedidos.filter(pedido => {
-        const dataPedido = pedido.time_do_pedido.split('T')[0];
-        return dataPedido === dataAplicadaStats; // USA dataAplicadaStats
+        if (!pedido.time_do_pedido) return false;
+        const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString('sv-SE', {
+          timeZone: 'America/Sao_Paulo'
+        });
+        
+        return dataPedido === dataAplicadaStats;
     });
 
     const totalPedidosDia = pedidosFiltradosStats.length;
+    
     // Calcula o total de vendas apenas para pedidos FINALIZADOS na data filtrada
     const totalVendasDia = pedidosFiltradosStats
         .filter(pedido => pedido.status === 'FINALIZADO')
-        .reduce((sum, pedido) => sum + pedido.valor_total, 0);
+        .reduce((sum, pedido) => {
+            // Garante que valor_total_pedido seja um número válido, usando 0 se não for
+            if (!pedido.valor_total_pedido) return sum;
+            const valor = Number(pedido.valor_total_pedido);
+            return sum + (isNaN(valor) ? 0 : valor);
+        }, 0);
 
     return {
       totalPratos,

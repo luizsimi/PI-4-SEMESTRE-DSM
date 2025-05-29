@@ -303,7 +303,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
               }}
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
             >
-              Add ao Carrinho <FaCartPlus className="ml-1" />
+              Fazer Pedido <FaCartPlus className="ml-1" />
             </button>
           </div>
         </div>

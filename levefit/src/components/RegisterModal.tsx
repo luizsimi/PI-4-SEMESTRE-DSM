@@ -17,6 +17,7 @@ import {
   FaExclamationCircle,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface RegisterModalProps {
   onClose: () => void;
@@ -155,6 +156,7 @@ const registerSchema = yup
   .required();
 
 const RegisterModal = ({ onClose }: RegisterModalProps) => {
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -313,7 +315,7 @@ const RegisterModal = ({ onClose }: RegisterModalProps) => {
       console.log("Resposta:", response.data);
       setSuccess(`Cadastro realizado com sucesso! Faça login para continuar.`);
       setTimeout(() => {
-        onClose();
+        navigate(-1);
       }, 3000);
     } catch (error: unknown) {
       console.error("Erro completo:", error);
@@ -368,30 +370,33 @@ const RegisterModal = ({ onClose }: RegisterModalProps) => {
     exit: { opacity: 0, y: 50, transition: { duration: 0.2 } },
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4" // Adicionado padding para evitar corte nas bordas
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         initial="hidden"
         animate="visible"
         exit="exit"
         variants={modalContainerVariants}
         onClick={(e: React.MouseEvent) =>
-          e.target === e.currentTarget && onClose()
+          e.target === e.currentTarget && handleClose()
         }
       >
         <motion.div
-          // Aplicar max-h e overflow-y aqui para o conteúdo do modal
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 max-w-lg w-full shadow-xl max-h-[90vh] flex flex-col" 
+          className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 max-w-lg w-full shadow-xl max-h-[90vh] flex flex-col"
           variants={modalContentVariants}
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center mb-6 flex-shrink-0"> {/* Header não rola */}
+          <div className="flex justify-between items-center mb-6 flex-shrink-0">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
               {step === 1 ? "Informações Pessoais" : "Defina sua Senha"}
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               aria-label="Fechar"
             >
@@ -870,7 +875,7 @@ const RegisterModal = ({ onClose }: RegisterModalProps) => {
                   <>
                     <button
                       type="button"
-                      onClick={onClose}
+                      onClick={handleClose}
                       className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       Cancelar
