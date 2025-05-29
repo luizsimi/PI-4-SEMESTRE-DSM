@@ -66,7 +66,8 @@ const Home = () => {
   const autoPlayInterval = useRef<number | null>(null);
   const { userData } = useAuth();
   const [showTipoPedidoModal, setShowTipoPedidoModal] = useState(false);
-  const [selectedPratoParaPedido, setSelectedPratoParaPedido] = useState<Prato | null>(null);
+  const [selectedPratoParaPedido, setSelectedPratoParaPedido] =
+    useState<Prato | null>(null);
 
   // Refs e estado para efeito de parallax
   const heroImageRef = useRef<HTMLDivElement>(null);
@@ -218,7 +219,9 @@ const Home = () => {
     setShowTipoPedidoModal(true);
   };
 
-  const handleSelecionarTipoPedidoHome = async (tipoPedido: 'ENTREGA' | 'RETIRADA') => {
+  const handleSelecionarTipoPedidoHome = async (
+    tipoPedido: "ENTREGA" | "RETIRADA"
+  ) => {
     if (!selectedPratoParaPedido) return;
 
     // 1. Montar dados para criar o pedido no sistema
@@ -226,9 +229,13 @@ const Home = () => {
       pratoId: selectedPratoParaPedido.id,
       fornecedorId: selectedPratoParaPedido.fornecedor.id,
       nomeCliente: userData?.user?.nome || "Cliente via App",
-      contatoCliente: userData?.user?.telefone || userData?.user?.whatsapp || "",
+      contatoCliente:
+        userData?.user?.telefone || userData?.user?.whatsapp || "",
       tipoEntrega: tipoPedido,
-      enderecoEntrega: tipoPedido === 'ENTREGA' ? (userData?.user?.endereco || "A ser informado") : undefined,
+      enderecoEntrega:
+        tipoPedido === "ENTREGA"
+          ? userData?.user?.endereco || "A ser informado"
+          : undefined,
       quantidade: 1,
     };
 
@@ -245,23 +252,31 @@ const Home = () => {
     }
 
     // 3. Montar e abrir link do WhatsApp (lógica existente)
-    const numero = selectedPratoParaPedido.fornecedor.whatsapp.replace(/D/g, "");
+    const numero = selectedPratoParaPedido.fornecedor.whatsapp.replace(
+      /D/g,
+      ""
+    );
     let mensagemBase = `Olá, ${selectedPratoParaPedido.fornecedor.nome}! Gostaria de pedir o prato "${selectedPratoParaPedido.nome}" (1 unidade).`;
     let mensagemCompleta = "";
-    const precoFormatado = selectedPratoParaPedido.preco.toFixed(2).replace(".", ",");
+    const precoFormatado = selectedPratoParaPedido.preco
+      .toFixed(2)
+      .replace(".", ",");
 
-    if (tipoPedido === 'ENTREGA') {
+    if (tipoPedido === "ENTREGA") {
       const enderecoClienteApi = dadosNovoPedido.enderecoEntrega;
       if (enderecoClienteApi && enderecoClienteApi !== "A ser informado") {
         mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nEndereço: ${enderecoClienteApi}\nPor favor, confirme o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
       } else {
         mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nPor favor, informe seu ENDEREÇO COMPLETO para entrega.\nConfirme também o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
       }
-    } else { // RETIRADA
+    } else {
+      // RETIRADA
       mensagemCompleta = `${mensagemBase}\nTipo: Retirada no local\nPor favor, confirme o valor total (R$ ${precoFormatado}) e quando posso retirar.`;
     }
 
-    const link = `https://wa.me/${numero}?text=${encodeURIComponent(mensagemCompleta)}`;
+    const link = `https://wa.me/${numero}?text=${encodeURIComponent(
+      mensagemCompleta
+    )}`;
     window.open(link, "_blank");
     setShowTipoPedidoModal(false);
     setSelectedPratoParaPedido(null);
@@ -565,9 +580,7 @@ const Home = () => {
                         {/* Dividir pratos em "páginas" para o carrossel */}
                         {[
                           ...Array(
-                            Math.ceil(
-                              pratosPromocao.length / promocoesPerPage
-                            )
+                            Math.ceil(pratosPromocao.length / promocoesPerPage)
                           ),
                         ].map((_, pageIndex) => (
                           <div
@@ -659,7 +672,7 @@ const Home = () => {
                                     </div>
 
                                     <Link
-                                      to={`/prato/${prato.id}`}
+                                      to={`/pratos/${prato.id}`}
                                       className="mt-3 w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-md"
                                     >
                                       Ver detalhes
@@ -968,7 +981,9 @@ const Home = () => {
                 <PratoCard
                   key={prato.id}
                   {...prato}
-                  onAbrirTipoPedidoModal={() => handleAbrirTipoPedidoModal(prato)}
+                  onAbrirTipoPedidoModal={() =>
+                    handleAbrirTipoPedidoModal(prato)
+                  }
                 />
               ))}
             </div>
@@ -1020,7 +1035,10 @@ const Home = () => {
       {selectedPratoParaPedido && (
         <TipoPedidoModal
           isOpen={showTipoPedidoModal}
-          onClose={() => { setShowTipoPedidoModal(false); setSelectedPratoParaPedido(null); }}
+          onClose={() => {
+            setShowTipoPedidoModal(false);
+            setSelectedPratoParaPedido(null);
+          }}
           nomePrato={selectedPratoParaPedido.nome}
           onSelectTipo={handleSelecionarTipoPedidoHome}
         />
