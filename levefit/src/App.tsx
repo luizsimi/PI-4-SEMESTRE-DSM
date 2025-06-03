@@ -21,6 +21,8 @@ import Categorias from "./pages/Categorias";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CarrinhoPage from "./pages/CarrinhoPage";
+import AssinaturaFornecedor from "./pages/AssinaturaFornecedor";
+
 // import { ToastContainer } from 'react-toastify'; // Comentado novamente
 // import 'react-toastify/dist/ReactToastify.css'; // Comentado novamente
 
@@ -154,7 +156,17 @@ function AppContent() {
         path="/dashboard/fornecedor"
         element={<NoGlobalLayout><ProtectedRouteFornecedor><FornecedorDashboard /></ProtectedRouteFornecedor></NoGlobalLayout>}
       />
-      
+      <Route
+        path="/dashboard/fornecedor/assinatura"
+        element={
+          <NoGlobalLayout>
+            <ProtectedRouteFornecedor>
+              <AssinaturaFornecedor />
+            </ProtectedRouteFornecedor>
+          </NoGlobalLayout>
+        }
+      />
+
       <Route path="*" element={<GlobalLayout><div>PÁGINA NÃO ENCONTRADA (App.tsx principal)</div></GlobalLayout>} />
     </Routes>
   );

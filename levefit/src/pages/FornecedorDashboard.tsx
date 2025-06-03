@@ -520,6 +520,7 @@ const FornecedorDashboard = () => {
     localStorage.setItem('notificationSoundEnabled', JSON.stringify(isSoundEnabled));
   }, [isSoundEnabled]);
 
+  
   if (loading && activeTab !== 'pedidos') return <div className="flex justify-center items-center h-screen"><p>Carregando dados do fornecedor...</p></div>;
   if (error) return <div className="text-red-500 text-center p-4">Erro: {error}</div>;
   if (!fornecedor && !loading) return <div className="text-center p-4">Nenhum dado de fornecedor encontrado.</div>;
@@ -1091,8 +1092,21 @@ const FornecedorDashboard = () => {
                   </div>
                   {/* Placeholder para avaliações */}
                   {pratosComAvaliacoes.length === 0 && <p>Nenhuma avaliação para mostrar.</p>}
-                  {pratosComAvaliacoes.length > 0 && <p>{pratosComAvaliacoes.length} pratos com avaliações (conteúdo omitido para teste)</p>}
-                  {/* AQUI IRIA O MAPEAMENTO E RENDERIZAÇÃO DAS AVALIAÇÕES COMPLETAS */}
+                  {pratosComAvaliacoes.map((prato) => (
+                <div key={prato.id} className="mb-6">
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">{prato.nome}</h4>
+                  {prato.avaliacoes.map((avaliacao) => (
+                    <div key={avaliacao.id} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-3 border dark:border-gray-600">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">{avaliacao.cliente.nome}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{formatarData(avaliacao.createdAt)}</div>
+                      </div>
+                      <div className="mb-2">{renderEstrelas(avaliacao.nota)}</div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{avaliacao.comentario}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
                 </div>
               )}
 
