@@ -142,7 +142,7 @@ const FormularioPrato = () => {
     watch,
     reset,
     setValue,
-    formState: { errors, isValid, isDirty },
+    formState: { errors },
   } = useForm<PratoFormData>({
     resolver: yupResolver(pratoSchema),
     defaultValues: {
@@ -166,10 +166,7 @@ const FormularioPrato = () => {
   });
 
   const imagemValue = watch("imagem");
-  const categoriaValue = watch("categoria");
-  const disponivelValue = watch("disponivel");
   const emPromocaoValue = watch("emPromocao");
-  const precoValue = watch("preco");
 
   useEffect(() => {
     const buscarPrato = async () => {
@@ -330,6 +327,7 @@ const FormularioPrato = () => {
   };
 
   const onSubmit = async (data: PratoFormData) => {
+    console.log("onSubmit chamado com dados:", data);
     setLoading(true);
     setError("");
     setSuccess("");
@@ -338,9 +336,12 @@ const FormularioPrato = () => {
       // Se houver um arquivo de imagem, fazer o upload primeiro
       if (imageFile) {
         try {
+          console.log("Enviando imagem para upload...");
           const imageUrl = await uploadImage(imageFile);
           data.imagem = imageUrl;
+          console.log("Upload de imagem concluído:", imageUrl);
         } catch (error) {
+          console.error("Erro no upload da imagem:", error);
           setError("Falha ao fazer upload da imagem. Tente novamente.");
           setLoading(false);
           return;
@@ -351,29 +352,38 @@ const FormularioPrato = () => {
       }
 
       const token = localStorage.getItem("token");
+      console.log(
+        "Token recuperado:",
+        token ? "Token existe" : "Token não existe"
+      );
 
       if (editando) {
         // Atualizar prato existente
+        console.log(`Atualizando prato ID ${id} com dados:`, data);
         await axios.put(`http://localhost:3333/pratos/${id}`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("Prato atualizado com sucesso!");
 
         setSuccess("Prato atualizado com sucesso!");
       } else {
         // Criar novo prato
+        console.log("Criando novo prato com dados:", data);
         await axios.post("http://localhost:3333/pratos", data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("Prato criado com sucesso!");
 
         setSuccess("Prato criado com sucesso!");
       }
 
       // Resetar o formulário após sucesso e navegar de volta
       setTimeout(() => {
+        console.log("Redirecionando para dashboard do fornecedor...");
         navigate("/dashboard/fornecedor");
       }, 2000);
     } catch (error) {
@@ -410,21 +420,21 @@ const FormularioPrato = () => {
         </div>
 
         {error && (
-          <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 flex items-center">
             <FaExclamationCircle className="mr-2 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6 flex items-center">
             <FaCheckCircle className="mr-2 flex-shrink-0" />
             <span>{success}</span>
           </div>
         )}
 
         {buscandoPrato ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="animate-pulse space-y-4">
               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
               <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -434,8 +444,8 @@ const FormularioPrato = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6 text-white">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-600 to-green-600 dark:from-green-700 dark:to-green-700 p-6 text-white">
               <div className="flex items-center">
                 <div className="bg-white/20 p-3 rounded-full mr-4">
                   <FaUtensils className="text-xl" />
@@ -453,7 +463,13 @@ const FormularioPrato = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-8">
+            <form
+              onSubmit={(e) => {
+                console.log("Formulário submetido, event:", e.type);
+                handleSubmit(onSubmit)(e);
+              }}
+              className="p-6 space-y-8"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Coluna da esquerda - Informações básicas */}
                 <div className="space-y-6">
@@ -691,7 +707,7 @@ const FormularioPrato = () => {
                   </h3>
                 </div>
 
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800/50">
                   <div className="flex items-center mb-4">
                     <input
                       type="checkbox"
@@ -829,7 +845,7 @@ const FormularioPrato = () => {
                 )}
 
                 {exibirInfoNutricional && (
-                  <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <label
@@ -1006,9 +1022,43 @@ const FormularioPrato = () => {
                   Cancelar
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => {
+                    console.log("Botão de submissão clicado");
+                    const formData = {
+                      nome: watch("nome"),
+                      descricao: watch("descricao"),
+                      preco: Number(watch("preco")),
+                      imagem: watch("imagem"),
+                      categoria: watch("categoria"),
+                      disponivel: watch("disponivel"),
+                      emPromocao: watch("emPromocao"),
+                      precoOriginal: watch("emPromocao")
+                        ? Number(watch("precoOriginal"))
+                        : undefined,
+                      dataFimPromocao: watch("emPromocao")
+                        ? watch("dataFimPromocao")
+                        : undefined,
+                      calorias: watch("calorias")
+                        ? Number(watch("calorias"))
+                        : null,
+                      proteinas: watch("proteinas")
+                        ? Number(watch("proteinas"))
+                        : null,
+                      carboidratos: watch("carboidratos")
+                        ? Number(watch("carboidratos"))
+                        : null,
+                      gorduras: watch("gorduras")
+                        ? Number(watch("gorduras"))
+                        : null,
+                      fibras: watch("fibras") ? Number(watch("fibras")) : null,
+                      porcao: watch("porcao"),
+                    };
+                    console.log("Dados coletados do formulário:", formData);
+                    onSubmit(formData);
+                  }}
                   disabled={loading}
-                  className={`px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white rounded-lg hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
+                  className={`flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm transition-colors ${
                     loading ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >

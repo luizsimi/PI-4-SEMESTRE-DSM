@@ -1,17 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaStar,
   FaRegStar,
-  FaWhatsapp,
   FaArrowRight,
   FaFire,
-  FaCartPlus
+  FaCartPlus,
+  FaLock,
 } from "react-icons/fa";
 import { BiDumbbell } from "react-icons/bi";
 import { IoNutrition } from "react-icons/io5";
 import { GiSlicedBread } from "react-icons/gi";
-import { useCarrinho, type PratoParaCarrinho, type FornecedorInfo } from '../contexts/CarrinhoContext';
-import { toast } from 'react-toastify';
+import {
+  useCarrinho,
+  type PratoParaCarrinho,
+} from "../contexts/CarrinhoContext";
+import { toast } from "react-toastify";
+import { useAuth } from "../contexts/AuthContext";
 
 interface PratoCardPassedProps {
   id: number;
@@ -75,12 +79,28 @@ const getDefaultImage = (categoria: string) => {
 };
 
 const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
-  const { 
-    id, nome, descricao, preco, imagem, categoria, mediaAvaliacao, totalAvaliacoes, 
-    fornecedor, calorias, proteinas, carboidratos, gorduras, porcao, 
+  const {
+    id,
+    nome,
+    descricao,
+    preco,
+    imagem,
+    categoria,
+    mediaAvaliacao,
+    totalAvaliacoes,
+    fornecedor,
+    calorias,
+    proteinas,
+    carboidratos,
+    gorduras,
+    porcao,
+    emPromocao,
+    precoOriginal,
   } = props;
 
   const { adicionarAoCarrinho } = useCarrinho();
+  const { isAuthenticated, userType } = useAuth();
+  const navigate = useNavigate();
 
   const descricaoResumida =
     descricao.length > 80 ? `${descricao.substring(0, 80)}...` : descricao;
@@ -124,7 +144,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
     return (
       <div className="flex items-center">
         <div className="flex mr-1">{estrelas}</div>
-        <span className="text-[10px] text-gray-600 dark:text-gray-400">
+        <span className="text-[10px] text-gray-300 dark:text-gray-300">
           ({totalAvaliacoes}{" "}
           {totalAvaliacoes === 1 ? "avaliação" : "avaliações"})
         </span>
@@ -207,9 +227,36 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
     );
   };
 
+  const handleFazerPedido = () => {
+    if (!isAuthenticated || userType !== "cliente") {
+      toast.info("Faça login como cliente para fazer pedidos!", {
+        icon: <FaLock />,
+        position: "top-center",
+      });
+      navigate("/login");
+      return;
+    }
+
+    const pratoParaAdicionar: PratoParaCarrinho = {
+      id: props.id,
+      nome: props.nome,
+      preco: props.preco,
+      imagem: props.imagem,
+      fornecedor: {
+        id: props.fornecedor.id,
+        nome: props.fornecedor.nome,
+      },
+    };
+
+    const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
+    if (foiAdicionado) {
+      toast.success(`${props.nome} adicionado ao carrinho!`);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group">
-      <div className="relative h-44 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group h-[400px] flex flex-col">
+      <div className="relative h-40 bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
         {imagem ? (
           <img
             src={imagem}
@@ -231,32 +278,43 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
         <div className="absolute top-2 right-2 bg-green-500 dark:bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold tracking-wide shadow-md">
           {categoria}
         </div>
-        <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-          <span className="font-bold text-white text-lg shadow-sm">
-            R$ {preco.toFixed(2).replace(".", ",")}
-          </span>
-        </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-1">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight">
-            {nome}
-          </h3>
-          <span className="font-bold text-green-600 dark:text-green-400 text-base">
-            R$ {preco.toFixed(2).replace(".", ",")}
-          </span>
-        </div>
+      <div className="p-4 flex-grow flex flex-col">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1 line-clamp-1">
+          {nome}
+        </h3>
 
         <div className="mb-2">{renderEstrelas()}</div>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs">
+        <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs line-clamp-2">
           {descricaoResumida}
         </p>
 
         {renderInformacoesNutricionais()}
 
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-auto">
+        <div className="flex justify-between items-center mb-3 mt-auto">
+          {emPromocao && precoOriginal ? (
+            <div className="flex flex-col">
+              <span className="line-through text-gray-400 dark:text-gray-500 text-xs">
+                R$ {precoOriginal.toFixed(2).replace(".", ",")}
+              </span>
+              <span className="font-bold text-green-600 dark:text-green-400 text-base">
+                R$ {preco.toFixed(2).replace(".", ",")}
+              </span>
+            </div>
+          ) : (
+            <span className="font-bold text-green-600 dark:text-green-400 text-base">
+              R$ {preco.toFixed(2).replace(".", ",")}
+            </span>
+          )}
+
+          <div className="text-right text-[10px] bg-green-500 text-white px-2 py-1 rounded-full font-medium">
+            {categoria}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
           <div className="flex items-center mb-2">
             <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full overflow-hidden mr-2 flex-shrink-0">
               {fornecedor.logo ? (
@@ -272,12 +330,12 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
                 </div>
               )}
             </div>
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
               {fornecedor.nome}
             </span>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex mt-3 space-x-2">
             <Link
               to={`/pratos/${id}`}
               className="flex-1 bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 border border-green-500 dark:border-green-500 font-medium text-xs py-2 rounded-lg text-center hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300 flex items-center justify-center"
@@ -285,22 +343,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
               Detalhes <FaArrowRight className="ml-1 text-xs" />
             </Link>
             <button
-              onClick={() => {
-                const pratoParaAdicionar: PratoParaCarrinho = {
-                  id: props.id,
-                  nome: props.nome,
-                  preco: props.preco,
-                  imagem: props.imagem,
-                  fornecedor: {
-                    id: props.fornecedor.id,
-                    nome: props.fornecedor.nome,
-                  }
-                };
-                const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
-                if (foiAdicionado) {
-                  toast.success(`${props.nome} adicionado ao carrinho!`);
-                }
-              }}
+              onClick={handleFazerPedido}
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
             >
               Fazer Pedido <FaCartPlus className="ml-1" />

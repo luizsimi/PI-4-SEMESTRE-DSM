@@ -190,38 +190,41 @@ const FornecedorCarousel = () => {
                 style={{ width: `${100 / itemsPerSlide}%` }}
               >
                 <div
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg dark:shadow-gray-900/30 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg dark:shadow-gray-900/30 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group border border-gray-100 dark:border-gray-700 h-[250px]"
                   onClick={() => handleOpenModal(fornecedor)}
                 >
                   <div className="flex flex-col items-center text-center h-full p-4">
-                    {fornecedor.logo ? (
-                      <img
-                        src={fornecedor.logo}
-                        alt={fornecedor.nome}
-                        className="w-16 h-16 rounded-full mb-3 object-cover border-2 border-white dark:border-gray-700 shadow-sm transition-transform duration-300 group-hover:scale-105"
-                        onError={handleImageError}
-                      />
-                    ) : (
-                      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mb-3 border-2 border-white dark:border-gray-700 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                        <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                          {fornecedor.nome.charAt(0)}
-                        </span>
+                    <div className="relative mb-3">
+                      {fornecedor.logo ? (
+                        <img
+                          src={fornecedor.logo}
+                          alt={fornecedor.nome}
+                          className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm transition-transform duration-300 group-hover:scale-105"
+                          onError={handleImageError}
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center border-2 border-white dark:border-gray-700 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                          <span className="text-2xl font-bold text-white">
+                            {fornecedor.nome.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 dark:bg-green-600 rounded-full flex items-center justify-center shadow-md border border-white dark:border-gray-800">
+                        <span className="text-xs text-white">✓</span>
                       </div>
-                    )}
-                    <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-1 tracking-tight">
+                    </div>
+                    <h3 className="text-base font-bold text-gray-800 dark:text-white mb-2 line-clamp-1">
                       {fornecedor.nome}
                     </h3>
                     {fornecedor.descricao && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
-                        {fornecedor.descricao.length > 80
-                          ? `${fornecedor.descricao.substring(0, 80)}...`
-                          : fornecedor.descricao}
+                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3 mb-3">
+                        {fornecedor.descricao}
                       </p>
                     )}
-                    <div className="mt-auto w-full pt-2 border-t border-gray-100 dark:border-gray-700">
-                      <span className="text-green-600 dark:text-green-400 font-medium text-xs inline-flex items-center group-hover:underline">
+                    <div className="mt-auto w-full pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <button className="w-full bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 border border-green-500 dark:border-green-500 font-medium text-xs py-2 rounded-lg text-center hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300">
                         Ver detalhes
-                      </span>
+                      </button>
                     </div>
                   </div>
                 </div>
