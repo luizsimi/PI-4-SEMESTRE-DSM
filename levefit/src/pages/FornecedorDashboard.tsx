@@ -1252,47 +1252,93 @@ const FornecedorDashboard = () => {
                       {pratos.map((prato) => (
                         <div
                           key={prato.id}
-                          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border border-gray-100 dark:border-gray-700"
+                          className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group flex flex-col h-[400px]"
                         >
-                          {prato.imagem && (
-                            <img
-                              src={prato.imagem}
-                              alt={prato.nome}
-                              className="w-full h-48 object-cover"
-                            />
-                          )}
-                          <div className="p-4">
-                            <h3
-                              className="text-lg font-semibold text-gray-800 dark:text-white mb-1 truncate"
-                              title={prato.nome}
-                            >
+                          <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0 w-full">
+                            {prato.imagem ? (
+                              <img
+                                src={prato.imagem}
+                                alt={prato.nome}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                                <span className="text-gray-400 dark:text-gray-500 text-sm">
+                                  Sem imagem
+                                </span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute top-2 right-2 bg-green-500 dark:bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold tracking-wide shadow-md">
+                              {prato.categoria}
+                            </div>
+                            <div className="absolute top-2 left-2">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                  prato.disponivel
+                                    ? "bg-green-500 text-white"
+                                    : "bg-red-500 text-white"
+                                }`}
+                              >
+                                {prato.disponivel
+                                  ? "Disponível"
+                                  : "Indisponível"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="p-4 flex-grow flex flex-col">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1 line-clamp-1">
                               {prato.nome}
                             </h3>
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
-                              R$ {prato.preco.toFixed(2).replace(".", ",")}
+
+                            <div className="mb-2">
+                              {prato.avaliacoes &&
+                                prato.avaliacoes.length > 0 && (
+                                  <div className="flex items-center">
+                                    <div className="flex mr-1">
+                                      {renderEstrelas(
+                                        calcularMediaAvaliacoes(
+                                          prato.avaliacoes
+                                        )
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-gray-300 dark:text-gray-300">
+                                      ({prato.avaliacoes.length}{" "}
+                                      {prato.avaliacoes.length === 1
+                                        ? "avaliação"
+                                        : "avaliações"}
+                                      )
+                                    </span>
+                                  </div>
+                                )}
+                            </div>
+
+                            <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs line-clamp-3">
+                              {prato.descricao}
                             </p>
-                            <p
-                              className={`text-sm font-medium ${
-                                prato.disponivel
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
-                              } mb-3`}
-                            >
-                              {prato.disponivel ? "Disponível" : "Indisponível"}
-                            </p>
-                            <div className="flex justify-between space-x-2">
-                              <button
-                                onClick={() => handleEditarPrato(prato.id)}
-                                className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"
-                              >
-                                <FaEdit className="mr-1.5" /> Editar
-                              </button>
-                              <button
-                                onClick={() => handleExcluirPrato(prato.id)}
-                                className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"
-                              >
-                                <FaTrash className="mr-1.5" /> Excluir
-                              </button>
+
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-bold text-green-600 dark:text-green-400 text-base">
+                                R$ {formatarPreco(prato.preco)}
+                              </span>
+                            </div>
+
+                            <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-auto">
+                              <div className="flex mt-3 space-x-2">
+                                <button
+                                  onClick={() => handleEditarPrato(prato.id)}
+                                  className="flex-1 bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 border border-green-500 dark:border-green-500 font-medium text-xs py-2 rounded-lg text-center hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300 flex items-center justify-center"
+                                >
+                                  <FaEdit className="mr-1.5" /> Editar
+                                </button>
+                                <button
+                                  onClick={() => handleExcluirPrato(prato.id)}
+                                  className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
+                                >
+                                  <FaTrash className="mr-1.5" /> Excluir
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>

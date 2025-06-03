@@ -625,9 +625,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ onClose }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
-        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scaleIn my-auto">
+        <div className="sticky top-0 z-10 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-800">
           <div className="flex items-center">
             <FaUser className="text-green-600 dark:text-green-400 mr-2" />
             <h2 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -675,7 +675,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ onClose }) => {
                 : renderFornecedorForm()}
               {renderPasswordFields()}
 
-              <div className="flex justify-end mt-6 space-x-3">
+              <div className="flex justify-end mt-6 space-x-3 pb-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}

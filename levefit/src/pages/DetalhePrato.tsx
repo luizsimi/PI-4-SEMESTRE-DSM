@@ -13,6 +13,7 @@ import {
   FaClock,
   FaLeaf,
   FaFire,
+  FaLock,
 } from "react-icons/fa";
 import { GiSlicedBread } from "react-icons/gi";
 import { BiDumbbell } from "react-icons/bi";
@@ -132,6 +133,35 @@ const DetalhePrato = () => {
     if (foiAdicionado) {
       toast.success(`${prato.nome} adicionado ao carrinho!`);
       setShowTipoPedidoModal(false);
+    }
+  };
+
+  const handleFazerPedido = () => {
+    if (!isAuthenticated || userType !== "cliente") {
+      toast.info("Faça login como cliente para fazer pedidos!", {
+        icon: <FaLock />,
+        position: "top-center",
+      });
+      navigate("/login");
+      return;
+    }
+
+    if (prato && prato.disponivel) {
+      const pratoParaAdicionar: PratoParaCarrinho = {
+        id: prato.id,
+        nome: prato.nome,
+        preco: prato.preco,
+        imagem: prato.imagem,
+        fornecedor: {
+          id: prato.fornecedor.id,
+          nome: prato.fornecedor.nome,
+        },
+      };
+
+      const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
+      if (foiAdicionado) {
+        toast.success(`${prato.nome} adicionado ao carrinho!`);
+      }
     }
   };
 
@@ -777,30 +807,7 @@ const DetalhePrato = () => {
 
                 <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
                   <button
-                    onClick={() => {
-                      if (prato && prato.disponivel) {
-                        const pratoParaAdicionar: PratoParaCarrinho = {
-                          id: prato.id,
-                          nome: prato.nome,
-                          preco: prato.preco,
-                          imagem: prato.imagem,
-                          fornecedor: {
-                            id: prato.fornecedor.id,
-                            nome: prato.fornecedor.nome,
-                          },
-                        };
-
-                        const foiAdicionado = adicionarAoCarrinho(
-                          pratoParaAdicionar,
-                          1
-                        );
-                        if (foiAdicionado) {
-                          toast.success(
-                            `${prato.nome} adicionado ao carrinho!`
-                          );
-                        }
-                      }
-                    }}
+                    onClick={handleFazerPedido}
                     disabled={!prato || !prato.disponivel}
                     className={`w-full sm:w-auto flex items-center justify-center text-lg font-semibold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-300 ${
                       prato && prato.disponivel

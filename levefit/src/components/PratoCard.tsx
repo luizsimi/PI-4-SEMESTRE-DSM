@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaStar,
   FaRegStar,
   FaArrowRight,
   FaFire,
   FaCartPlus,
+  FaLock,
 } from "react-icons/fa";
 import { BiDumbbell } from "react-icons/bi";
 import { IoNutrition } from "react-icons/io5";
@@ -14,6 +15,7 @@ import {
   type PratoParaCarrinho,
 } from "../contexts/CarrinhoContext";
 import { toast } from "react-toastify";
+import { useAuth } from "../contexts/AuthContext";
 
 interface PratoCardPassedProps {
   id: number;
@@ -97,6 +99,8 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
   } = props;
 
   const { adicionarAoCarrinho } = useCarrinho();
+  const { isAuthenticated, userType } = useAuth();
+  const navigate = useNavigate();
 
   const descricaoResumida =
     descricao.length > 80 ? `${descricao.substring(0, 80)}...` : descricao;
@@ -223,9 +227,36 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
     );
   };
 
+  const handleFazerPedido = () => {
+    if (!isAuthenticated || userType !== "cliente") {
+      toast.info("Faça login como cliente para fazer pedidos!", {
+        icon: <FaLock />,
+        position: "top-center",
+      });
+      navigate("/login");
+      return;
+    }
+
+    const pratoParaAdicionar: PratoParaCarrinho = {
+      id: props.id,
+      nome: props.nome,
+      preco: props.preco,
+      imagem: props.imagem,
+      fornecedor: {
+        id: props.fornecedor.id,
+        nome: props.fornecedor.nome,
+      },
+    };
+
+    const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
+    if (foiAdicionado) {
+      toast.success(`${props.nome} adicionado ao carrinho!`);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group">
-      <div className="relative h-44 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group h-[400px] flex flex-col">
+      <div className="relative h-40 bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
         {imagem ? (
           <img
             src={imagem}
@@ -249,20 +280,20 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
         </div>
       </div>
 
-      <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1">
+      <div className="p-4 flex-grow flex flex-col">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1 line-clamp-1">
           {nome}
         </h3>
 
         <div className="mb-2">{renderEstrelas()}</div>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs">
+        <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs line-clamp-2">
           {descricaoResumida}
         </p>
 
         {renderInformacoesNutricionais()}
 
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-center mb-3 mt-auto">
           {emPromocao && precoOriginal ? (
             <div className="flex flex-col">
               <span className="line-through text-gray-400 dark:text-gray-500 text-xs">
@@ -277,9 +308,13 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
               R$ {preco.toFixed(2).replace(".", ",")}
             </span>
           )}
+
+          <div className="text-right text-[10px] bg-green-500 text-white px-2 py-1 rounded-full font-medium">
+            {categoria}
+          </div>
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-auto">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
           <div className="flex items-center mb-2">
             <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full overflow-hidden mr-2 flex-shrink-0">
               {fornecedor.logo ? (
@@ -295,7 +330,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
                 </div>
               )}
             </div>
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
               {fornecedor.nome}
             </span>
           </div>
@@ -308,25 +343,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
               Detalhes <FaArrowRight className="ml-1 text-xs" />
             </Link>
             <button
-              onClick={() => {
-                const pratoParaAdicionar: PratoParaCarrinho = {
-                  id: props.id,
-                  nome: props.nome,
-                  preco: props.preco,
-                  imagem: props.imagem,
-                  fornecedor: {
-                    id: props.fornecedor.id,
-                    nome: props.fornecedor.nome,
-                  },
-                };
-                const foiAdicionado = adicionarAoCarrinho(
-                  pratoParaAdicionar,
-                  1
-                );
-                if (foiAdicionado) {
-                  toast.success(`${props.nome} adicionado ao carrinho!`);
-                }
-              }}
+              onClick={handleFazerPedido}
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
             >
               Fazer Pedido <FaCartPlus className="ml-1" />

@@ -1,7 +1,16 @@
-import React, { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
-import Toast from '../components/Toast';
-import ConfirmacaoLimparCarrinhoModal from '../components/ConfirmacaoLimparCarrinhoModal';
-import ConfirmacaoPedidoModal from '../components/ConfirmacaoPedidoModal';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  type ReactNode,
+  useEffect,
+} from "react";
+import Toast from "../components/Toast";
+import ConfirmacaoLimparCarrinhoModal from "../components/ConfirmacaoLimparCarrinhoModal";
+import ConfirmacaoPedidoModal from "../components/ConfirmacaoPedidoModal";
+import { useAuth } from "./AuthContext";
+import { toast } from "react-toastify";
+import { FaLock } from "react-icons/fa";
 
 // Interfaces
 export interface FornecedorInfo {
@@ -14,7 +23,7 @@ export interface PratoParaCarrinho {
   nome: string;
   preco: number;
   imagem?: string;
-  fornecedor: FornecedorInfo; 
+  fornecedor: FornecedorInfo;
 }
 
 export interface CarrinhoItem {
@@ -25,9 +34,15 @@ export interface CarrinhoItem {
 interface CarrinhoContextType {
   itens: CarrinhoItem[];
   fornecedorInfoAtual: FornecedorInfo | null;
-  adicionarAoCarrinho: (prato: PratoParaCarrinho, quantidade?: number) => boolean;
+  adicionarAoCarrinho: (
+    prato: PratoParaCarrinho,
+    quantidade?: number
+  ) => boolean;
   removerDoCarrinho: (pratoId: number) => void;
-  atualizarQuantidadeNoCarrinho: (pratoId: number, novaQuantidade: number) => void;
+  atualizarQuantidadeNoCarrinho: (
+    pratoId: number,
+    novaQuantidade: number
+  ) => void;
   limparCarrinho: () => void;
   obterTotalItensCarrinho: () => number;
   obterValorTotalCarrinho: () => number;
@@ -35,31 +50,46 @@ interface CarrinhoContextType {
   finalizarPedido: () => void;
 }
 
-const CarrinhoContext = createContext<CarrinhoContextType | undefined>(undefined);
+const CarrinhoContext = createContext<CarrinhoContextType | undefined>(
+  undefined
+);
 
-export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [itens, setItens] = useState<CarrinhoItem[]>(() => {
-    const itensSalvos = localStorage.getItem('carrinhoItens');
+    const itensSalvos = localStorage.getItem("carrinhoItens");
     return itensSalvos ? JSON.parse(itensSalvos) : [];
   });
-  
-  const [fornecedorInfoAtual, setFornecedorInfoAtual] = useState<FornecedorInfo | null>(() => {
-    const fornecedorSalvo = localStorage.getItem('carrinhoFornecedorInfo');
-    return fornecedorSalvo ? JSON.parse(fornecedorSalvo) : null;
-  });
-  
+
+  const [fornecedorInfoAtual, setFornecedorInfoAtual] =
+    useState<FornecedorInfo | null>(() => {
+      const fornecedorSalvo = localStorage.getItem("carrinhoFornecedorInfo");
+      return fornecedorSalvo ? JSON.parse(fornecedorSalvo) : null;
+    });
+
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [pratoEmEspera, setPratoEmEspera] = useState<{prato: PratoParaCarrinho, quantidade: number} | null>(null);
+  const [pratoEmEspera, setPratoEmEspera] = useState<{
+    prato: PratoParaCarrinho;
+    quantidade: number;
+  } | null>(null);
   const [showConfirmacaoPedido, setShowConfirmacaoPedido] = useState(false);
+  const { isAuthenticated, userType } = useAuth();
 
   useEffect(() => {
-    localStorage.setItem('carrinhoItens', JSON.stringify(itens));
-    localStorage.setItem('carrinhoFornecedorInfo', JSON.stringify(fornecedorInfoAtual));
+    localStorage.setItem("carrinhoItens", JSON.stringify(itens));
+    localStorage.setItem(
+      "carrinhoFornecedorInfo",
+      JSON.stringify(fornecedorInfoAtual)
+    );
   }, [itens, fornecedorInfoAtual]);
 
-  const adicionarAoCarrinho = (prato: PratoParaCarrinho, quantidade: number = 1): boolean => {
+  const adicionarAoCarrinho = (
+    prato: PratoParaCarrinho,
+    quantidade: number = 1
+  ): boolean => {
     if (fornecedorInfoAtual && fornecedorInfoAtual.id !== prato.fornecedor.id) {
       setPratoEmEspera({ prato, quantidade });
       setShowModal(true);
@@ -68,7 +98,9 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setFornecedorInfoAtual(prato.fornecedor);
     setItens((prevItens) => {
-      const itemExistente = prevItens.find((item) => item.prato.id === prato.id);
+      const itemExistente = prevItens.find(
+        (item) => item.prato.id === prato.id
+      );
       if (itemExistente) {
         setToastMessage(`${prato.nome} adicionado ao carrinho!`);
         setShowToast(true);
@@ -87,7 +119,9 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const handleConfirmarLimparCarrinho = () => {
     if (pratoEmEspera) {
-      setItens([{ prato: pratoEmEspera.prato, quantidade: pratoEmEspera.quantidade }]);
+      setItens([
+        { prato: pratoEmEspera.prato, quantidade: pratoEmEspera.quantidade },
+      ]);
       setFornecedorInfoAtual(pratoEmEspera.prato.fornecedor);
       setToastMessage(`${pratoEmEspera.prato.nome} adicionado ao carrinho!`);
       setShowToast(true);
@@ -106,14 +140,19 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
   };
 
-  const atualizarQuantidadeNoCarrinho = (pratoId: number, novaQuantidade: number) => {
+  const atualizarQuantidadeNoCarrinho = (
+    pratoId: number,
+    novaQuantidade: number
+  ) => {
     if (novaQuantidade <= 0) {
       removerDoCarrinho(pratoId);
       return;
     }
     setItens((prevItens) =>
       prevItens.map((item) =>
-        item.prato.id === pratoId ? { ...item, quantidade: novaQuantidade } : item
+        item.prato.id === pratoId
+          ? { ...item, quantidade: novaQuantidade }
+          : item
       )
     );
   };
@@ -128,15 +167,26 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const obterValorTotalCarrinho = (): number => {
-    return itens.reduce((total, item) => total + item.prato.preco * item.quantidade, 0);
+    return itens.reduce(
+      (total, item) => total + item.prato.preco * item.quantidade,
+      0
+    );
   };
 
   const getQuantidadePrato = (pratoId: number): number => {
-    const item = itens.find(i => i.prato.id === pratoId);
+    const item = itens.find((i) => i.prato.id === pratoId);
     return item ? item.quantidade : 0;
   };
 
   const finalizarPedido = () => {
+    if (!isAuthenticated || userType !== "cliente") {
+      toast.info("Faça login como cliente para finalizar seu pedido!", {
+        icon: <FaLock />,
+        position: "top-center",
+      });
+      return;
+    }
+
     setShowConfirmacaoPedido(true);
   };
 
@@ -193,7 +243,7 @@ export const CarrinhoProvider: React.FC<{ children: ReactNode }> = ({ children }
 export const useCarrinho = (): CarrinhoContextType => {
   const context = useContext(CarrinhoContext);
   if (context === undefined) {
-    throw new Error('useCarrinho deve ser usado dentro de um CarrinhoProvider');
+    throw new Error("useCarrinho deve ser usado dentro de um CarrinhoProvider");
   }
   return context;
-}; 
+};
