@@ -5,7 +5,6 @@ import {
   FaStar,
   FaRegStar,
   FaArrowLeft,
-  FaWhatsapp,
   FaHeart,
   FaRegHeart,
   FaShoppingBasket,
@@ -23,6 +22,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 import TipoPedidoModal from "../components/TipoPedidoModal";
 import PedidoSucessoModal from "../components/PedidoSucessoModal";
+import {
+  useCarrinho,
+  type PratoParaCarrinho,
+} from "../contexts/CarrinhoContext";
+import { toast } from "react-toastify";
 
 interface Avaliacao {
   id: number;
@@ -66,15 +70,12 @@ const DetalhePrato = () => {
   const [prato, setPrato] = useState<Prato | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantidade, setQuantidade] = useState(1);
-  const { isAuthenticated, userData, userType } = useAuth();
+  const { isAuthenticated, userType } = useAuth();
   const [novaAvaliacao, setNovaAvaliacao] = useState({
     nota: 0,
     comentario: "",
   });
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
-  const [avaliacaoSucesso, setAvaliacaoSucesso] = useState("");
-  const [avaliacaoErro, setAvaliacaoErro] = useState("");
   const [notaHover, setNotaHover] = useState(0);
   const [activeTab, setActiveTab] = useState("descricao");
   const [favorito, setFavorito] = useState(false);
@@ -85,6 +86,7 @@ const DetalhePrato = () => {
     status?: string;
     id?: string | number;
   } | null>(null);
+  const { adicionarAoCarrinho } = useCarrinho();
 
   // Efeito para rolar a página para o topo quando o componente for montado
   useEffect(() => {
@@ -108,188 +110,28 @@ const DetalhePrato = () => {
     fetchPrato();
   }, [id]);
 
-  const handleSelecionarTipoPedido = async (
-    tipoEntregaSelecionado: "ENTREGA" | "RETIRADA"
-  ) => {
+  const handleSelecionarTipoPedido = () => {
     if (!prato || !prato.fornecedor) {
       alert("Erro: Informações do prato ou fornecedor não carregadas.");
       return;
     }
 
-    let nomeCliente, contatoCliente, enderecoEntregaFinal, observacoes;
-
-    if (isAuthenticated && userData) {
-      console.log("Cliente autenticado com endereço:", {
-        rua: userData.rua,
-        numero: userData.numero,
-        bairro: userData.bairro,
-        cidade: userData.cidade,
-        estado: userData.estado,
-        cep: userData.cep,
-        telefone: userData.telefone,
-      });
-      nomeCliente = userData.nome;
-      contatoCliente = userData.telefone || "";
-
-      if (tipoEntregaSelecionado === "ENTREGA") {
-        let enderecoFormatado = "";
-        const temEnderecoCompleto =
-          userData.rua &&
-          userData.rua.trim() !== "" &&
-          userData.numero &&
-          userData.numero.trim() !== "" &&
-          userData.bairro &&
-          userData.bairro.trim() !== "" &&
-          userData.cidade &&
-          userData.cidade.trim() !== "" &&
-          userData.estado &&
-          userData.estado.trim() !== "" &&
-          userData.cep &&
-          userData.cep.trim() !== "";
-
-        if (temEnderecoCompleto) {
-          enderecoFormatado += `${userData.rua}, ${userData.numero}`;
-          if (userData.bairro) enderecoFormatado += ` - ${userData.bairro}`;
-          if (userData.cidade) enderecoFormatado += `, ${userData.cidade}`;
-          if (userData.estado) enderecoFormatado += ` - ${userData.estado}`;
-          if (userData.cep) enderecoFormatado += ` (CEP: ${userData.cep})`;
-
-          enderecoEntregaFinal = enderecoFormatado;
-          console.log(
-            "DEBUG - DetalhePrato: Usando endereço cadastrado formatado:",
-            enderecoEntregaFinal
-          );
-        } else {
-          console.log(
-            "Endereço incompleto no userData. Solicitando via prompt. Campos:",
-            {
-              rua: userData.rua,
-              numero: userData.numero,
-              bairro: userData.bairro,
-              cidade: userData.cidade,
-              estado: userData.estado,
-              cep: userData.cep,
-            }
-          );
-        }
-
-        if (
-          enderecoFormatado.trim() === "" &&
-          tipoEntregaSelecionado === "ENTREGA"
-        ) {
-          enderecoEntregaFinal = window.prompt(
-            "Você não possui um endereço cadastrado ou ele está incompleto. Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):"
-          );
-          if (!enderecoEntregaFinal) {
-            alert(
-              "Endereço de entrega é obrigatório para este tipo de pedido."
-            );
-            return;
-          }
-        } else if (
-          tipoEntregaSelecionado === "ENTREGA" &&
-          !enderecoEntregaFinal
-        ) {
-          alert(
-            "Endereço de entrega é necessário. Por favor, verifique seu cadastro."
-          );
-          return;
-        }
-      }
-
-      if (!contatoCliente) {
-        contatoCliente = window.prompt(
-          "Não encontramos seu telefone no cadastro. Por favor, informe seu número de contato (WhatsApp):"
-        );
-        if (!contatoCliente) {
-          alert("Número de contato é obrigatório.");
-          return;
-        }
-      }
-
-      // Não pedir observações para cliente logado, definir como string vazia ou null
-      observacoes = undefined; // Ou null, ou string vazia, dependendo de como o backend trata
-      // Se ainda quiser o prompt de observações, comente a linha acima e descomente a abaixo:
-      // observacoes = window.prompt("Alguma observação para o seu pedido? (opcional)");
-    } else {
-      // Cliente não autenticado
-      nomeCliente = window.prompt("Por favor, informe seu nome:");
-      if (!nomeCliente) {
-        alert("Nome do cliente é obrigatório.");
-        return;
-      }
-      contatoCliente = window.prompt("Qual seu número de contato (WhatsApp)?");
-      if (!contatoCliente) {
-        alert("Número de contato é obrigatório.");
-        return;
-      }
-      if (tipoEntregaSelecionado === "ENTREGA") {
-        enderecoEntregaFinal = window.prompt(
-          "Por favor, informe o endereço de entrega completo (Rua, Número, Bairro, Cidade, CEP):"
-        );
-        if (!enderecoEntregaFinal) {
-          alert("Endereço de entrega é obrigatório para este tipo de pedido.");
-          return;
-        }
-      }
-      // Não pedir observações para cliente não logado, definir como string vazia ou null
-      observacoes = undefined; // Ou null, ou string vazia, dependendo de como o backend trata
-    }
-
-    const pedidoData = {
-      pratoId: prato.id,
-      fornecedorId: prato.fornecedor.id,
-      nomeCliente,
-      contatoCliente,
-      tipoEntrega: tipoEntregaSelecionado,
-      enderecoEntrega:
-        tipoEntregaSelecionado === "ENTREGA" ? enderecoEntregaFinal : undefined,
-      observacoes: observacoes || undefined,
-      quantidade: quantidade,
+    // Adicionar ao carrinho em vez de abrir modal de tipo de pedido
+    const pratoParaAdicionar: PratoParaCarrinho = {
+      id: prato.id,
+      nome: prato.nome,
+      preco: prato.preco,
+      imagem: prato.imagem,
+      fornecedor: {
+        id: prato.fornecedor.id,
+        nome: prato.fornecedor.nome,
+      },
     };
 
-    console.log("Enviando dados do pedido:", pedidoData);
-    setShowTipoPedidoModal(false);
-
-    try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const response = await axios.post(
-        "http://localhost:3333/pedidos",
-        pedidoData,
-        { headers }
-      );
-
-      if (response.status === 201) {
-        setPedidoSucessoInfo({
-          nomePrato: prato.nome,
-          status: response.data.status,
-          id: response.data.id,
-        });
-        setShowPedidoSucessoModal(true);
-      } else {
-        alert(
-          `Erro ao criar pedido: ${
-            response.data.error || "Resposta inesperada do servidor."
-          }`
-        );
-      }
-    } catch (error: any) {
-      console.error("Erro ao criar pedido:", error);
-      if (error.response && error.response.data && error.response.data.error) {
-        if (error.response.data.details) {
-          alert(
-            `Erro interno ao criar pedido: ${error.response.data.error} (${error.response.data.details})`
-          );
-        } else {
-          alert(`Erro interno ao criar pedido: ${error.response.data.error}`);
-        }
-      } else {
-        alert(
-          "Erro ao conectar com o servidor para criar o pedido. Verifique sua conexão ou tente mais tarde."
-        );
-      }
+    const foiAdicionado = adicionarAoCarrinho(pratoParaAdicionar, 1);
+    if (foiAdicionado) {
+      toast.success(`${prato.nome} adicionado ao carrinho!`);
+      setShowTipoPedidoModal(false);
     }
   };
 
@@ -331,19 +173,17 @@ const DetalhePrato = () => {
     e.preventDefault();
 
     if (!isAuthenticated || userType !== "cliente") {
-      setAvaliacaoErro(
-        "Você precisa estar logado como cliente para avaliar um prato."
-      );
+      setError("Você precisa estar logado como cliente para avaliar um prato.");
       return;
     }
 
     if (novaAvaliacao.nota === 0) {
-      setAvaliacaoErro("Selecione uma nota de 1 a 5 estrelas.");
+      setError("Selecione uma nota de 1 a 5 estrelas.");
       return;
     }
 
     setEnviandoAvaliacao(true);
-    setAvaliacaoErro("");
+    setError("");
 
     try {
       const token = localStorage.getItem("token");
@@ -361,21 +201,18 @@ const DetalhePrato = () => {
         }
       );
 
-      setAvaliacaoSucesso("Sua avaliação foi enviada com sucesso!");
-      setNovaAvaliacao({ nota: 0, comentario: "" });
-
       const response = await axios.get(`http://localhost:3333/pratos/${id}`);
       setPrato(response.data);
 
       setTimeout(() => {
-        setAvaliacaoSucesso("");
+        setError("");
       }, 5000);
     } catch (error) {
       console.error("Erro ao enviar avaliação:", error);
       if (axios.isAxiosError(error) && error.response?.status === 409) {
-        setAvaliacaoErro("Você já avaliou este prato anteriormente.");
+        setError("Você já avaliou este prato anteriormente.");
       } else {
-        setAvaliacaoErro(
+        setError(
           "Ocorreu um erro ao enviar sua avaliação. Tente novamente mais tarde."
         );
       }
@@ -940,7 +777,30 @@ const DetalhePrato = () => {
 
                 <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
                   <button
-                    onClick={() => setShowTipoPedidoModal(true)}
+                    onClick={() => {
+                      if (prato && prato.disponivel) {
+                        const pratoParaAdicionar: PratoParaCarrinho = {
+                          id: prato.id,
+                          nome: prato.nome,
+                          preco: prato.preco,
+                          imagem: prato.imagem,
+                          fornecedor: {
+                            id: prato.fornecedor.id,
+                            nome: prato.fornecedor.nome,
+                          },
+                        };
+
+                        const foiAdicionado = adicionarAoCarrinho(
+                          pratoParaAdicionar,
+                          1
+                        );
+                        if (foiAdicionado) {
+                          toast.success(
+                            `${prato.nome} adicionado ao carrinho!`
+                          );
+                        }
+                      }
+                    }}
                     disabled={!prato || !prato.disponivel}
                     className={`w-full sm:w-auto flex items-center justify-center text-lg font-semibold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-300 ${
                       prato && prato.disponivel

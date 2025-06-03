@@ -103,13 +103,13 @@ const Navbar = () => {
 
     const updateScrollDir = () => {
       const scrollY = window.scrollY;
-      
+
       if (scrollY > lastScrollY && scrollY > 10) {
         setIsScrolled(true);
       } else if (scrollY < 10) {
         setIsScrolled(false);
       }
-      
+
       lastScrollY = scrollY > 0 ? scrollY : 0;
       ticking = false;
     };
@@ -163,14 +163,14 @@ const Navbar = () => {
 
   const handleCarrinhoClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    navigate('/carrinho');
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigate("/carrinho");
   };
 
   return (
-    <nav 
+    <nav
       className={`sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 py-[15px] transform ${
-        isScrolled ? 'translate-y-0' : ''
+        isScrolled ? "translate-y-0" : ""
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -346,13 +346,13 @@ const Navbar = () => {
             ) : (
               <div className="hidden sm:flex space-x-2 items-center">
                 <button
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                   className="px-4 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors duration-300"
                 >
                   Login
                 </button>
                 <button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate("/register")}
                   className="px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-lg shadow-sm transition-colors duration-300"
                 >
                   Cadastro
@@ -467,10 +467,14 @@ const Navbar = () => {
       </div>
 
       {showLoginModal && (
-        <LoginModal onClose={() => {
-          console.log('[Navbar] onClose do LoginModal chamado. Setando showLoginModal para false.');
-          setShowLoginModal(false);
-        }} />
+        <LoginModal
+          onClose={() => {
+            console.log(
+              "[Navbar] onClose do LoginModal chamado. Setando showLoginModal para false."
+            );
+            setShowLoginModal(false);
+          }}
+        />
       )}
       {showRegisterModal && (
         <RegisterModal onClose={() => setShowRegisterModal(false)} />

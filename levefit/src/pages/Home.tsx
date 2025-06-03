@@ -68,6 +68,9 @@ const Home = () => {
   const [showTipoPedidoModal, setShowTipoPedidoModal] = useState(false);
   const [selectedPratoParaPedido, setSelectedPratoParaPedido] =
     useState<Prato | null>(null);
+  // Estado para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const pratosPerPage = 8; // Número de pratos por página
 
   // Refs e estado para efeito de parallax
   const heroImageRef = useRef<HTMLDivElement>(null);
@@ -126,6 +129,7 @@ const Home = () => {
           "http://localhost:3333/pratos/promocoes"
         );
         setPratosPromocao(response.data);
+        console.log("Pratos em promoção recebidos:", response.data);
         setLoadingPromocoes(false);
       } catch (error) {
         console.error("Erro ao buscar promoções:", error);
@@ -256,7 +260,7 @@ const Home = () => {
       /D/g,
       ""
     );
-    let mensagemBase = `Olá, ${selectedPratoParaPedido.fornecedor.nome}! Gostaria de pedir o prato "${selectedPratoParaPedido.nome}" (1 unidade).`;
+    const mensagemBase = `Olá, ${selectedPratoParaPedido.fornecedor.nome}! Gostaria de pedir o prato "${selectedPratoParaPedido.nome}" (1 unidade).`;
     let mensagemCompleta = "";
     const precoFormatado = selectedPratoParaPedido.preco
       .toFixed(2)
@@ -281,6 +285,30 @@ const Home = () => {
     setShowTipoPedidoModal(false);
     setSelectedPratoParaPedido(null);
   };
+
+  // Funções para paginação
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Rolar para o topo da seção de pratos
+    const pratosSection = document.getElementById("cardapio-section");
+    if (pratosSection) {
+      pratosSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Calcular índices dos pratos a serem exibidos na página atual
+  const indexOfLastPrato = currentPage * pratosPerPage;
+  const indexOfFirstPrato = indexOfLastPrato - pratosPerPage;
+  const currentPratos = pratos.slice(indexOfFirstPrato, indexOfLastPrato);
+
+  // Calcular total de páginas
+  const totalPages = Math.ceil(pratos.length / pratosPerPage);
+
+  // Gerar array com números das páginas a serem exibidas
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -928,7 +956,7 @@ const Home = () => {
         </section>
 
         {/* Seção de Pratos */}
-        <section className="mt-16">
+        <section className="mt-16" id="cardapio-section">
           <div className="flex flex-col mb-8">
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white inline-flex items-center">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-400 dark:from-green-400 dark:to-green-300">
@@ -976,17 +1004,72 @@ const Home = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {pratos.map((prato) => (
-                <PratoCard
-                  key={prato.id}
-                  {...prato}
-                  onAbrirTipoPedidoModal={() =>
-                    handleAbrirTipoPedidoModal(prato)
-                  }
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {currentPratos.map((prato) => (
+                  <PratoCard
+                    key={prato.id}
+                    {...prato}
+                    onAbrirTipoPedidoModal={() =>
+                      handleAbrirTipoPedidoModal(prato)
+                    }
+                  />
+                ))}
+              </div>
+
+              {/* Paginação - Design simplificado */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <div className="inline-flex items-center bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-2 rounded-l-lg ${
+                        currentPage === 1
+                          ? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                          : "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      } transition-colors`}
+                      aria-label="Página anterior"
+                    >
+                      <FaChevronLeft className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex border-l border-r border-gray-200 dark:border-gray-700">
+                      {pageNumbers.map((number) => (
+                        <button
+                          key={number}
+                          onClick={() => handlePageChange(number)}
+                          className={`px-4 py-2 ${
+                            currentPage === number
+                              ? "bg-green-500 text-white font-medium"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20"
+                          } transition-colors`}
+                          aria-label={`Página ${number}`}
+                          aria-current={
+                            currentPage === number ? "page" : undefined
+                          }
+                        >
+                          {number}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-2 rounded-r-lg ${
+                        currentPage === totalPages
+                          ? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                          : "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      } transition-colors`}
+                      aria-label="Próxima página"
+                    >
+                      <FaChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </section>
 

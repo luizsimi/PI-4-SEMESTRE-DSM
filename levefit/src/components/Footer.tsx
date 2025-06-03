@@ -315,6 +315,15 @@ const Footer = () => {
             <FaHeart className="text-red-500 mx-1 inline-block animate-pulse" />{" "}
             por <span className="font-medium ml-1">luizsimi</span>
           </p>
+
+          <div className="mt-6">
+            <Link
+              to="/restrito"
+              className="text-gray-400 dark:text-gray-500 text-xs hover:text-gray-600 dark:hover:text-gray-400 transition-colors duration-300 px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 inline-flex items-center"
+            >
+              <FaLock className="mr-1 text-xs" /> Acesso Administrativo
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -28,7 +28,7 @@ import {
   FaChevronRight,
   FaInfoCircle,
   FaBell,
-  FaRegBell
+  FaRegBell,
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfileModal from "../components/UserProfileModal";
@@ -36,7 +36,7 @@ import UserProfileModal from "../components/UserProfileModal";
 // import Footer from "../components/Footer"; // Comentado - Footer global será usado pelo App.tsx
 import RenderPedidosKanban from "../components/fornecedor/RenderPedidosKanban";
 // import SidebarFornecedor from '../components/fornecedor/SidebarFornecedor'; // Comentado - Arquivo não encontrado
-import type { Pedido } from '../types';
+import type { Pedido } from "../types";
 // import LoadingSpinner from '../components/common/LoadingSpinner'; // Comentado - Arquivo não encontrado
 
 interface Prato {
@@ -79,9 +79,13 @@ interface ErrorResponse {
 // Função para data local no formato yyyy-mm-dd
 function getDataLocalISO() {
   const hoje = new Date();
-  return hoje.getFullYear() + '-' +
-    String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
-    String(hoje.getDate()).padStart(2, '0');
+  return (
+    hoje.getFullYear() +
+    "-" +
+    String(hoje.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(hoje.getDate()).padStart(2, "0")
+  );
 }
 
 const FornecedorDashboard = () => {
@@ -93,13 +97,17 @@ const FornecedorDashboard = () => {
   const [pratosComAvaliacoes, setPratosComAvaliacoes] = useState<Prato[]>([]);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [activeTab, setActiveTab] = useState("pedidos");
-  const [pedidos, setPedidos] = useState<Pedido[]>([]); 
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [errorPedidos, setErrorPedidos] = useState("");
-  
+
   // Estados para o filtro de data
-  const [dataFiltroStats, setDataFiltroStats] = useState(() => getDataLocalISO());
-  const [dataAplicadaStats, setDataAplicadaStats] = useState(() => getDataLocalISO());
+  const [dataFiltroStats, setDataFiltroStats] = useState(() =>
+    getDataLocalISO()
+  );
+  const [dataAplicadaStats, setDataAplicadaStats] = useState(() =>
+    getDataLocalISO()
+  );
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -107,12 +115,20 @@ const FornecedorDashboard = () => {
   const notifiedNewOrderIds = useRef(new Set<number>());
 
   // Estados para o sino de notificações
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] =
+    useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    const savedSoundPreference = localStorage.getItem('notificationSoundEnabled');
-    console.log('[Dashboard] Lendo preferência de som do localStorage:', savedSoundPreference);
-    const initialValue = savedSoundPreference ? JSON.parse(savedSoundPreference) : true;
-    console.log('[Dashboard] Valor inicial para isSoundEnabled:', initialValue);
+    const savedSoundPreference = localStorage.getItem(
+      "notificationSoundEnabled"
+    );
+    console.log(
+      "[Dashboard] Lendo preferência de som do localStorage:",
+      savedSoundPreference
+    );
+    const initialValue = savedSoundPreference
+      ? JSON.parse(savedSoundPreference)
+      : true;
+    console.log("[Dashboard] Valor inicial para isSoundEnabled:", initialValue);
     return initialValue;
   });
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -179,90 +195,119 @@ const FornecedorDashboard = () => {
     buscarDados();
   }, [navigate, logout]);
 
-  const fetchAndUpdateOrders = useCallback(async (isPolling = false) => {
-    if (!isPolling && activeTab !== 'pedidos') {
-      // Se não for polling e a aba não for de pedidos, não faz nada (a menos que queiramos notificações em outras abas)
-      // Para notificações em qualquer aba, remova ou ajuste esta condição.
-      // Por ora, o polling buscará independentemente da aba ativa para notificar.
-    }
-
-    console.log(isPolling ? "Polling: Verificando pedidos..." : "Buscando todos os pedidos do fornecedor...");
-    if (!isPolling) setLoadingPedidos(true); // Mostrar loading só na carga inicial da aba
-    setErrorPedidos("");
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3333/pedidos/fornecedor",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const fetchedPedidos: Pedido[] = response.data || [];
-
-      // Lógica de notificação para NOVOS pedidos
-      const newIncomingOrders = fetchedPedidos.filter(p => p.status === "NOVO");
-      let newOrderDetectedThisPoll = false;
-      let newOrdersAddedCount = 0;
-
-      newIncomingOrders.forEach(newOrder => {
-        if (!notifiedNewOrderIds.current.has(newOrder.id)) {
-          newOrderDetectedThisPoll = true;
-          notifiedNewOrderIds.current.add(newOrder.id);
-          newOrdersAddedCount++;
-          console.log(`Novo pedido processado para notificação: ID ${newOrder.id}`);
-        }
-      });
-
-      if (newOrderDetectedThisPoll && newOrdersAddedCount > 0) {
-        setToastMessage(`Novo(s) pedido(s) realizado(s)! (${newOrdersAddedCount})`);
-        setShowToast(true);
-        if (isSoundEnabled) { // Tocar som apenas se estiver habilitado
-            playNotificationSound();
-        }
-        // Incrementar contador de não lidas se o dropdown estiver fechado
-        if (!showNotificationDropdown) {
-            setUnreadNotificationCount(prev => prev + newOrdersAddedCount);
-        }
-        setTimeout(() => {
-          setShowToast(false);
-        }, 5000);
+  const fetchAndUpdateOrders = useCallback(
+    async (isPolling = false) => {
+      if (!isPolling && activeTab !== "pedidos") {
+        // Se não for polling e a aba não for de pedidos, não faz nada (a menos que queiramos notificações em outras abas)
+        // Para notificações em qualquer aba, remova ou ajuste esta condição.
+        // Por ora, o polling buscará independentemente da aba ativa para notificar.
       }
 
-      // Lógica para atualizar o estado 'pedidos' (que alimenta o Kanban) de forma condicional
-      let shouldUpdatePedidosState = false;
-      if (fetchedPedidos.length !== pedidos.length) {
-        shouldUpdatePedidosState = true;
-        console.log("[Dashboard] Mudança detectada: número de pedidos diferente.");
-      } else {
-        const currentPedidosMap = new Map(pedidos.map(p => [p.id, p.status]));
-        for (const fetchedP of fetchedPedidos) {
-          if (!currentPedidosMap.has(fetchedP.id) || currentPedidosMap.get(fetchedP.id) !== fetchedP.status) {
-            shouldUpdatePedidosState = true;
-            console.log(`[Dashboard] Mudança detectada: pedido ${fetchedP.id} novo ou status alterado.`);
-            break;
+      console.log(
+        isPolling
+          ? "Polling: Verificando pedidos..."
+          : "Buscando todos os pedidos do fornecedor..."
+      );
+      if (!isPolling) setLoadingPedidos(true); // Mostrar loading só na carga inicial da aba
+      setErrorPedidos("");
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:3333/pedidos/fornecedor",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const fetchedPedidos: Pedido[] = response.data || [];
+
+        // Lógica de notificação para NOVOS pedidos
+        const newIncomingOrders = fetchedPedidos.filter(
+          (p) => p.status === "NOVO"
+        );
+        let newOrderDetectedThisPoll = false;
+        let newOrdersAddedCount = 0;
+
+        newIncomingOrders.forEach((newOrder) => {
+          if (!notifiedNewOrderIds.current.has(newOrder.id)) {
+            newOrderDetectedThisPoll = true;
+            notifiedNewOrderIds.current.add(newOrder.id);
+            newOrdersAddedCount++;
+            console.log(
+              `Novo pedido processado para notificação: ID ${newOrder.id}`
+            );
+          }
+        });
+
+        if (newOrderDetectedThisPoll && newOrdersAddedCount > 0) {
+          setToastMessage(
+            `Novo(s) pedido(s) realizado(s)! (${newOrdersAddedCount})`
+          );
+          setShowToast(true);
+          if (isSoundEnabled) {
+            // Tocar som apenas se estiver habilitado
+            playNotificationSound();
+          }
+          // Incrementar contador de não lidas se o dropdown estiver fechado
+          if (!showNotificationDropdown) {
+            setUnreadNotificationCount((prev) => prev + newOrdersAddedCount);
+          }
+          setTimeout(() => {
+            setShowToast(false);
+          }, 5000);
+        }
+
+        // Lógica para atualizar o estado 'pedidos' (que alimenta o Kanban) de forma condicional
+        let shouldUpdatePedidosState = false;
+        if (fetchedPedidos.length !== pedidos.length) {
+          shouldUpdatePedidosState = true;
+          console.log(
+            "[Dashboard] Mudança detectada: número de pedidos diferente."
+          );
+        } else {
+          const currentPedidosMap = new Map(
+            pedidos.map((p) => [p.id, p.status])
+          );
+          for (const fetchedP of fetchedPedidos) {
+            if (
+              !currentPedidosMap.has(fetchedP.id) ||
+              currentPedidosMap.get(fetchedP.id) !== fetchedP.status
+            ) {
+              shouldUpdatePedidosState = true;
+              console.log(
+                `[Dashboard] Mudança detectada: pedido ${fetchedP.id} novo ou status alterado.`
+              );
+              break;
+            }
           }
         }
-      }
 
-      if (shouldUpdatePedidosState) {
-        console.log("[Dashboard] Atualizando lista de pedidos para o Kanban.");
-        setPedidos(fetchedPedidos);
-      } else {
-        console.log("[Dashboard] Sem mudanças relevantes para a lista de pedidos do Kanban. Estado não atualizado.");
+        if (shouldUpdatePedidosState) {
+          console.log(
+            "[Dashboard] Atualizando lista de pedidos para o Kanban."
+          );
+          setPedidos(fetchedPedidos);
+        } else {
+          console.log(
+            "[Dashboard] Sem mudanças relevantes para a lista de pedidos do Kanban. Estado não atualizado."
+          );
+        }
+      } catch (err) {
+        console.error("Erro ao buscar pedidos:", err);
+        if (!isPolling)
+          setErrorPedidos("Não foi possível carregar seus pedidos.");
+      } finally {
+        if (!isPolling) setLoadingPedidos(false);
       }
-
-    } catch (err) {
-      console.error("Erro ao buscar pedidos:", err);
-      if (!isPolling) setErrorPedidos("Não foi possível carregar seus pedidos.");
-    } finally {
-      if (!isPolling) setLoadingPedidos(false);
-    }
-  }, [activeTab, isSoundEnabled, showNotificationDropdown, pedidos]);
+    },
+    [activeTab, isSoundEnabled, showNotificationDropdown, pedidos]
+  );
 
   useEffect(() => {
-    if (activeTab === 'pedidos') {
+    if (activeTab === "pedidos") {
       // Adicionar um pequeno delay para a primeira busca de pedidos ao carregar a aba
       // para dar chance ao usuário de interagir com a página e desbloquear o áudio.
-      console.log("Aba Pedidos ativa. Agendando primeira busca de pedidos em 2 segundos.");
+      console.log(
+        "Aba Pedidos ativa. Agendando primeira busca de pedidos em 2 segundos."
+      );
       const timerId = setTimeout(() => {
         console.log("Executando primeira busca de pedidos após delay.");
         fetchAndUpdateOrders(false); // Carga inicial, não é polling
@@ -285,16 +330,24 @@ const FornecedorDashboard = () => {
   }, [fetchAndUpdateOrders]);
 
   const pedidosFiltradosParaKanban = useMemo(() => {
-    if (activeTab !== 'pedidos') return [];
-    console.log(`Filtrando pedidos para o Kanban com data APLICADA: ${dataAplicadaStats}`);
-    const filtrados = pedidos.filter(pedido => {
-      const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString('sv-SE', {
-        timeZone: 'America/Sao_Paulo'
-      });
-      
-        return dataPedido === dataAplicadaStats;
+    if (activeTab !== "pedidos") return [];
+    console.log(
+      `Filtrando pedidos para o Kanban com data APLICADA: ${dataAplicadaStats}`
+    );
+    const filtrados = pedidos.filter((pedido) => {
+      const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString(
+        "sv-SE",
+        {
+          timeZone: "America/Sao_Paulo",
+        }
+      );
+
+      return dataPedido === dataAplicadaStats;
     });
-    console.log(`Pedidos filtrados para o Kanban (${dataAplicadaStats}):`, filtrados.length);
+    console.log(
+      `Pedidos filtrados para o Kanban (${dataAplicadaStats}):`,
+      filtrados.length
+    );
     return filtrados;
   }, [pedidos, dataAplicadaStats, activeTab]);
 
@@ -398,30 +451,34 @@ const FornecedorDashboard = () => {
   const calcularEstatisticasVisor = useCallback(() => {
     const totalPratos = pratos.length;
     const pratosDisponiveis = pratos.filter((prato) => prato.disponivel).length;
-    const mediaPrecoPratos = totalPratos > 0
+    const mediaPrecoPratos =
+      totalPratos > 0
         ? pratos.reduce((acc, prato) => acc + prato.preco, 0) / totalPratos
         : 0;
 
-    const pedidosFiltradosStats = pedidos.filter(pedido => {
-        if (!pedido.time_do_pedido) return false;
-        const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString('sv-SE', {
-          timeZone: 'America/Sao_Paulo'
-        });
-        
-        return dataPedido === dataAplicadaStats;
+    const pedidosFiltradosStats = pedidos.filter((pedido) => {
+      if (!pedido.time_do_pedido) return false;
+      const dataPedido = new Date(pedido.time_do_pedido).toLocaleDateString(
+        "sv-SE",
+        {
+          timeZone: "America/Sao_Paulo",
+        }
+      );
+
+      return dataPedido === dataAplicadaStats;
     });
 
     const totalPedidosDia = pedidosFiltradosStats.length;
-    
+
     // Calcula o total de vendas apenas para pedidos FINALIZADOS na data filtrada
     const totalVendasDia = pedidosFiltradosStats
-        .filter(pedido => pedido.status === 'FINALIZADO')
-        .reduce((sum, pedido) => {
-            // Garante que valor_total_pedido seja um número válido, usando 0 se não for
-            if (!pedido.valor_total_pedido) return sum;
-            const valor = Number(pedido.valor_total_pedido);
-            return sum + (isNaN(valor) ? 0 : valor);
-        }, 0);
+      .filter((pedido) => pedido.status === "FINALIZADO")
+      .reduce((sum, pedido) => {
+        // Garante que valor_total_pedido seja um número válido, usando 0 se não for
+        if (!pedido.valor_total_pedido) return sum;
+        const valor = Number(pedido.valor_total_pedido);
+        return sum + (isNaN(valor) ? 0 : valor);
+      }, 0);
 
     return {
       totalPratos,
@@ -433,48 +490,67 @@ const FornecedorDashboard = () => {
   }, [pratos, pedidos, dataAplicadaStats]); // Depende de dataAplicadaStats
 
   // Função para mudar o status do pedido
-  const handleChangeStatusPedido = async (pedidoId: number, novoStatus: string) => {
-    console.log(`Dashboard: Mudando status do pedido ${pedidoId} para ${novoStatus}`);
+  const handleChangeStatusPedido = async (
+    pedidoId: number,
+    novoStatus: string
+  ) => {
+    console.log(
+      `Dashboard: Mudando status do pedido ${pedidoId} para ${novoStatus}`
+    );
     try {
-        const token = localStorage.getItem("token");
-        // Corrigir o nome da chave no corpo da requisição para "novoStatus"
-        await axios.put(`http://localhost:3333/pedidos/fornecedor/${pedidoId}/status`, 
-            { novoStatus: novoStatus }, // Alterado de { status: novoStatus } para { novoStatus: novoStatus }
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setPedidos(prevPedidos => 
-            prevPedidos.map(p => p.id === pedidoId ? { ...p, status: novoStatus } : p)
-        );
-        console.log(`Status do pedido #${pedidoId} atualizado para ${novoStatus.replace('_', ' ')} com sucesso!`);
+      const token = localStorage.getItem("token");
+      // Corrigir o nome da chave no corpo da requisição para "novoStatus"
+      await axios.put(
+        `http://localhost:3333/pedidos/fornecedor/${pedidoId}/status`,
+        { novoStatus: novoStatus }, // Alterado de { status: novoStatus } para { novoStatus: novoStatus }
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPedidos((prevPedidos) =>
+        prevPedidos.map((p) =>
+          p.id === pedidoId ? { ...p, status: novoStatus } : p
+        )
+      );
+      console.log(
+        `Status do pedido #${pedidoId} atualizado para ${novoStatus.replace(
+          "_",
+          " "
+        )} com sucesso!`
+      );
     } catch (error) {
-        console.error("Erro ao mudar status do pedido:", error);
-        setErrorPedidos("Erro ao atualizar status do pedido.");
-        // Você pode querer extrair a mensagem de erro específica do backend aqui, se disponível
-        // if (axios.isAxiosError(error) && error.response?.data?.error) {
-        //   setErrorPedidos(error.response.data.error);
-        // } else {
-        //   setErrorPedidos("Erro ao atualizar status do pedido.");
-        // }
+      console.error("Erro ao mudar status do pedido:", error);
+      setErrorPedidos("Erro ao atualizar status do pedido.");
+      // Você pode querer extrair a mensagem de erro específica do backend aqui, se disponível
+      // if (axios.isAxiosError(error) && error.response?.data?.error) {
+      //   setErrorPedidos(error.response.data.error);
+      // } else {
+      //   setErrorPedidos("Erro ao atualizar status do pedido.");
+      // }
     }
   };
-  
+
   // Função para agrupar pedidos por status para o Kanban
-  const agruparPedidosPorStatus = useCallback((pedidosParaAgrupar: Pedido[]): Record<string, Pedido[]> => {
-    console.log("Agrupando pedidos para o Kanban:", pedidosParaAgrupar.length);
-    return pedidosParaAgrupar.reduce((acc, pedido) => {
-      const { status } = pedido;
-      if (!acc[status]) {
-        acc[status] = [];
-      }
-      acc[status].push(pedido);
-      return acc;
-    }, {} as Record<string, Pedido[]>);
-  }, []);
+  const agruparPedidosPorStatus = useCallback(
+    (pedidosParaAgrupar: Pedido[]): Record<string, Pedido[]> => {
+      console.log(
+        "Agrupando pedidos para o Kanban:",
+        pedidosParaAgrupar.length
+      );
+      return pedidosParaAgrupar.reduce((acc, pedido) => {
+        const { status } = pedido;
+        if (!acc[status]) {
+          acc[status] = [];
+        }
+        acc[status].push(pedido);
+        return acc;
+      }, {} as Record<string, Pedido[]>);
+    },
+    []
+  );
 
   // Adicionar um novo useMemo para a contagem de novos pedidos filtrados por data
   const novosPedidosFiltradosCount = useMemo(() => {
-    if (activeTab !== 'pedidos') return 0;
-    return pedidosFiltradosParaKanban.filter(p => p.status === "NOVO").length;
+    if (activeTab !== "pedidos") return 0;
+    return pedidosFiltradosParaKanban.filter((p) => p.status === "NOVO").length;
   }, [pedidosFiltradosParaKanban, activeTab]);
 
   // Novas funções para aplicar e limpar filtro
@@ -484,7 +560,7 @@ const FornecedorDashboard = () => {
   };
 
   const handleLimparFiltro = () => {
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = new Date().toISOString().split("T")[0];
     console.log("Limpando filtro, voltando para data de hoje:", hoje);
     setDataFiltroStats(hoje);
     setDataAplicadaStats(hoje);
@@ -492,51 +568,81 @@ const FornecedorDashboard = () => {
 
   function playNotificationSound() {
     if (!isSoundEnabled) {
-        console.log("Som de notificação desabilitado pelo usuário.");
-        return;
+      console.log("Som de notificação desabilitado pelo usuário.");
+      return;
     }
-    audioPlayer.current?.play().catch(error => console.log("Erro ao tocar som de notificação:", error));
+    audioPlayer.current
+      ?.play()
+      .catch((error) =>
+        console.log("Erro ao tocar som de notificação:", error)
+      );
   }
 
   const stats = calcularEstatisticasVisor();
 
   const notificacoesDoDiaParaDropdown = useMemo(() => {
-    if (activeTab !== 'pedidos') return [];
+    if (activeTab !== "pedidos") return [];
     // Filtra pedidos com status "NOVO" da data aplicada
-    return pedidosFiltradosParaKanban.filter(p => p.status === "NOVO")
-      .sort((a, b) => new Date(b.time_do_pedido).getTime() - new Date(a.time_do_pedido).getTime()); // Ordena mais recentes primeiro
+    return pedidosFiltradosParaKanban
+      .filter((p) => p.status === "NOVO")
+      .sort(
+        (a, b) =>
+          new Date(b.time_do_pedido).getTime() -
+          new Date(a.time_do_pedido).getTime()
+      ); // Ordena mais recentes primeiro
   }, [pedidosFiltradosParaKanban, activeTab]);
 
   const toggleNotificationDropdown = () => {
-    setShowNotificationDropdown(prev => !prev);
-    if (!showNotificationDropdown) { // Se está abrindo o dropdown
+    setShowNotificationDropdown((prev) => !prev);
+    if (!showNotificationDropdown) {
+      // Se está abrindo o dropdown
       setUnreadNotificationCount(0); // Marca como lidas
     }
   };
 
   // Efeito para persistir a preferência de som
   useEffect(() => {
-    console.log('[Dashboard] Salvando preferência de som no localStorage:', isSoundEnabled);
-    localStorage.setItem('notificationSoundEnabled', JSON.stringify(isSoundEnabled));
+    console.log(
+      "[Dashboard] Salvando preferência de som no localStorage:",
+      isSoundEnabled
+    );
+    localStorage.setItem(
+      "notificationSoundEnabled",
+      JSON.stringify(isSoundEnabled)
+    );
   }, [isSoundEnabled]);
 
-  
-  if (loading && activeTab !== 'pedidos') return <div className="flex justify-center items-center h-screen"><p>Carregando dados do fornecedor...</p></div>;
-  if (error) return <div className="text-red-500 text-center p-4">Erro: {error}</div>;
-  if (!fornecedor && !loading) return <div className="text-center p-4">Nenhum dado de fornecedor encontrado.</div>;
+  if (loading && activeTab !== "pedidos")
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Carregando dados do fornecedor...</p>
+      </div>
+    );
+  if (error)
+    return <div className="text-red-500 text-center p-4">Erro: {error}</div>;
+  if (!fornecedor && !loading)
+    return (
+      <div className="text-center p-4">
+        Nenhum dado de fornecedor encontrado.
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
       {/* Áudio Player Escondido */}
-      <audio ref={audioPlayer} src="/sounds/new-notification-3-323602.mp3" preload="auto"></audio>
+      <audio
+        ref={audioPlayer}
+        src="/sounds/new-notification-3-323602.mp3"
+        preload="auto"
+      ></audio>
 
       {/* Notificação Toast */}
       {showToast && (
         <div className="fixed top-5 right-5 bg-green-500 text-white p-4 rounded-lg shadow-xl z-50 flex items-center animate-fadeInUp">
           <FaInfoCircle className="mr-3 text-2xl" />
           <span>{toastMessage}</span>
-          <button 
-            onClick={() => setShowToast(false)} 
+          <button
+            onClick={() => setShowToast(false)}
             className="ml-4 text-white hover:text-gray-200"
           >
             <FaTimes />
@@ -572,12 +678,18 @@ const FornecedorDashboard = () => {
                   ref={notificationBellRef}
                   onClick={toggleNotificationDropdown}
                   className={`p-2 rounded-lg transition-colors
-                              ${unreadNotificationCount > 0 
-                                ? 'text-yellow-500 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-700/50' 
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                              ${
+                                unreadNotificationCount > 0
+                                  ? "text-yellow-500 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-700/50"
+                                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              }`}
                   title="Notificações"
                 >
-                  {unreadNotificationCount > 0 ? <FaBell className="h-5 w-5" /> : <FaRegBell className="h-5 w-5" />}
+                  {unreadNotificationCount > 0 ? (
+                    <FaBell className="h-5 w-5" />
+                  ) : (
+                    <FaRegBell className="h-5 w-5" />
+                  )}
                   {unreadNotificationCount > 0 && (
                     <span className="absolute top-0 right-0 block h-2 w-2 transform -translate-y-1/2 translate-x-1/2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800"></span>
                   )}
@@ -590,44 +702,72 @@ const FornecedorDashboard = () => {
                     className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 z-50 overflow-hidden"
                   >
                     <div className="p-4 border-b dark:border-gray-700">
-                      <h3 className="text-base font-semibold text-gray-800 dark:text-white">Notificações de Hoje</h3>
+                      <h3 className="text-base font-semibold text-gray-800 dark:text-white">
+                        Notificações de Hoje
+                      </h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Exibindo novos pedidos para {new Date(dataAplicadaStats + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        Exibindo novos pedidos para{" "}
+                        {new Date(
+                          dataAplicadaStats + "T00:00:00"
+                        ).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
                     <div className="max-h-80 overflow-y-auto">
                       {notificacoesDoDiaParaDropdown.length === 0 ? (
-                        <p className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">Nenhuma nova notificação para hoje.</p>
+                        <p className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                          Nenhuma nova notificação para hoje.
+                        </p>
                       ) : (
                         notificacoesDoDiaParaDropdown.map((pedido) => (
-                          <div key={pedido.id} className="p-3 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <div
+                            key={pedido.id}
+                            className="p-3 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                          >
                             <p className="text-xs text-gray-700 dark:text-gray-200">
-                              <span className="font-medium">Pedido #{pedido.id}</span> - {pedido.prato?.nome || 'Detalhes indisponíveis'}
+                              <span className="font-medium">
+                                Pedido #{pedido.id}
+                              </span>{" "}
+                              - {pedido.prato?.nome || "Detalhes indisponíveis"}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Recebido às {new Date(pedido.time_do_pedido).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              Recebido às{" "}
+                              {new Date(
+                                pedido.time_do_pedido
+                              ).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </p>
                           </div>
                         ))
                       )}
                     </div>
                     <div className="p-3 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                        <label htmlFor="soundToggle" className="flex items-center cursor-pointer">
-                            <div className="relative">
-                                <input 
-                                    type="checkbox" 
-                                    id="soundToggle" 
-                                    className="sr-only" 
-                                    checked={isSoundEnabled}
-                                    onChange={() => setIsSoundEnabled(!isSoundEnabled)}
-                                />
-                                <div className="block bg-gray-300 dark:bg-gray-600 w-10 h-5 rounded-full"></div>
-                                <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${isSoundEnabled ? 'translate-x-5 bg-green-500' : 'bg-gray-400'}`}></div>
-                            </div>
-                            <div className="ml-3 text-xs text-gray-700 dark:text-gray-300 font-medium">
-                                Ativar som de notificação
-                            </div>
-                        </label>
+                      <label
+                        htmlFor="soundToggle"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            id="soundToggle"
+                            className="sr-only"
+                            checked={isSoundEnabled}
+                            onChange={() => setIsSoundEnabled(!isSoundEnabled)}
+                          />
+                          <div className="block bg-gray-300 dark:bg-gray-600 w-10 h-5 rounded-full"></div>
+                          <div
+                            className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${
+                              isSoundEnabled
+                                ? "translate-x-5 bg-green-500"
+                                : "bg-gray-400"
+                            }`}
+                          ></div>
+                        </div>
+                        <div className="ml-3 text-xs text-gray-700 dark:text-gray-300 font-medium">
+                          Ativar som de notificação
+                        </div>
+                      </label>
                     </div>
                   </div>
                 )}
@@ -756,7 +896,7 @@ const FornecedorDashboard = () => {
                 }
               />
               <span>Pedidos</span>
-              {activeTab === 'pedidos' && novosPedidosFiltradosCount > 0 && (
+              {activeTab === "pedidos" && novosPedidosFiltradosCount > 0 && (
                 <span className="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs bg-red-500 text-white rounded-full font-medium">
                   {novosPedidosFiltradosCount} Novo(s)
                 </span>
@@ -831,14 +971,20 @@ const FornecedorDashboard = () => {
                     <FaUtensils className="text-xl" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total de Pratos</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Total de Pratos
+                    </h3>
                     <div className="mt-1 flex items-baseline">
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.totalPratos}</p>
-                      {stats.totalPratos > 0 && stats.pratosDisponiveis < stats.totalPratos && (
-                        <p className="ml-2 text-xs text-red-600 dark:text-red-400">
-                          {stats.totalPratos - stats.pratosDisponiveis} indisponível
-                        </p>
-                      )}
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {stats.totalPratos}
+                      </p>
+                      {stats.totalPratos > 0 &&
+                        stats.pratosDisponiveis < stats.totalPratos && (
+                          <p className="ml-2 text-xs text-red-600 dark:text-red-400">
+                            {stats.totalPratos - stats.pratosDisponiveis}{" "}
+                            indisponível
+                          </p>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -850,12 +996,20 @@ const FornecedorDashboard = () => {
                     <FaCheck className="text-xl" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Disponíveis</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Disponíveis
+                    </h3>
                     <div className="mt-1 flex items-baseline">
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.pratosDisponiveis}</p>
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {stats.pratosDisponiveis}
+                      </p>
                       {stats.totalPratos > 0 && (
                         <p className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                          de {stats.totalPratos} ({Math.round((stats.pratosDisponiveis / stats.totalPratos) * 100)}%)
+                          de {stats.totalPratos} (
+                          {Math.round(
+                            (stats.pratosDisponiveis / stats.totalPratos) * 100
+                          )}
+                          %)
                         </p>
                       )}
                     </div>
@@ -869,9 +1023,14 @@ const FornecedorDashboard = () => {
                     <FaStar className="text-xl" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Avaliações</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Avaliações
+                    </h3>
                     <div className="mt-1 flex items-baseline">
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{calcularTotalAvaliacoes()}</p> {/* Usar a função original para contagem simples */}
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        {calcularTotalAvaliacoes()}
+                      </p>{" "}
+                      {/* Usar a função original para contagem simples */}
                       {calcularTotalAvaliacoes() > 0 && (
                         <button
                           onClick={buscarPratosComAvaliacoes}
@@ -891,9 +1050,13 @@ const FornecedorDashboard = () => {
                     <FaTag className="text-xl" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Preço Médio (Pratos)</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Preço Médio (Pratos)
+                    </h3>
                     <div className="mt-1">
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">R$ {stats.mediaPrecoPratos.toFixed(2).replace(".", ",")}</p>
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        R$ {stats.mediaPrecoPratos.toFixed(2).replace(".", ",")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -907,16 +1070,19 @@ const FornecedorDashboard = () => {
               <div className="mb-4 bg-white dark:bg-gray-800 p-2 rounded-lg shadow-xs border border-gray-200 dark:border-gray-700/60">
                 <div className="flex flex-col sm:flex-row sm:items-end sm:space-x-2 space-y-2 sm:space-y-0">
                   <div>
-                    <label htmlFor="dataFiltroStats" className="block text-xs font-normal text-gray-600 dark:text-gray-400 mb-1">
+                    <label
+                      htmlFor="dataFiltroStats"
+                      className="block text-xs font-normal text-gray-600 dark:text-gray-400 mb-1"
+                    >
                       Filtrar por data:
                     </label>
-                    <input 
-                        type="date" 
-                        id="dataFiltroStats" 
-                        name="dataFiltroStats"
-                        value={dataFiltroStats}
-                        onChange={(e) => setDataFiltroStats(e.target.value)}
-                        className="inline-block w-44 pl-3 pr-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs"
+                    <input
+                      type="date"
+                      id="dataFiltroStats"
+                      name="dataFiltroStats"
+                      value={dataFiltroStats}
+                      onChange={(e) => setDataFiltroStats(e.target.value)}
+                      className="inline-block w-44 pl-3 pr-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs"
                     />
                   </div>
                   <button
@@ -933,7 +1099,7 @@ const FornecedorDashboard = () => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Cards de estatísticas de PEDIDOS - Atualizar data exibida */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 border border-gray-100 dark:border-gray-700">
@@ -943,7 +1109,11 @@ const FornecedorDashboard = () => {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Total de Pedidos ({new Date(dataAplicadaStats + 'T00:00:00').toLocaleDateString('pt-BR')})
+                        Total de Pedidos (
+                        {new Date(
+                          dataAplicadaStats + "T00:00:00"
+                        ).toLocaleDateString("pt-BR")}
+                        )
                       </h3>
                       <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                         {stats.totalPedidosDia}
@@ -958,10 +1128,14 @@ const FornecedorDashboard = () => {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Total de Vendas ({new Date(dataAplicadaStats + 'T00:00:00').toLocaleDateString('pt-BR')})
+                        Total de Vendas (
+                        {new Date(
+                          dataAplicadaStats + "T00:00:00"
+                        ).toLocaleDateString("pt-BR")}
+                        )
                       </h3>
                       <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                        R$ {stats.totalVendasDia.toFixed(2).replace('.', ',')}
+                        R$ {stats.totalVendasDia.toFixed(2).replace(".", ",")}
                       </p>
                     </div>
                   </div>
@@ -1051,7 +1225,9 @@ const FornecedorDashboard = () => {
                 <div id="pratos-content">
                   {/* Cabeçalho com ações (apenas para pratos) */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 sm:mb-0">Meus Pratos</h3>
+                    <h3 className="text-xl font-bold text-white mb-3 sm:mb-0">
+                      Meus Pratos
+                    </h3>
                     <button
                       onClick={handleNovoPrato}
                       className="flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm transition-colors"
@@ -1060,26 +1236,67 @@ const FornecedorDashboard = () => {
                     </button>
                   </div>
                   {/* Placeholder para a lista de pratos */}
-                  {loading && pratos.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-4">Carregando pratos...</p>}
-                  {!loading && pratos.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-4">Nenhum prato cadastrado ainda. Clique em "Novo Prato" para começar.</p>}
+                  {loading && pratos.length === 0 && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      Carregando pratos...
+                    </p>
+                  )}
+                  {!loading && pratos.length === 0 && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      Nenhum prato cadastrado ainda. Clique em "Novo Prato" para
+                      começar.
+                    </p>
+                  )}
                   {pratos.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {pratos.map((prato) => (
-                            <div key={prato.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                                {prato.imagem && <img src={prato.imagem} alt={prato.nome} className="w-full h-48 object-cover"/>}
-                                <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate" title={prato.nome}>{prato.nome}</h3>
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">R$ {prato.preco.toFixed(2).replace('.', ',')}</p>
-                                    <p className={`text-sm font-medium ${prato.disponivel ? 'text-green-500' : 'text-red-500'} mb-3`}>
-                                        {prato.disponivel ? 'Disponível' : 'Indisponível'}
-                                    </p>
-                                    <div className="flex justify-between space-x-2">
-                                        <button onClick={() => handleEditarPrato(prato.id)} className="flex-1 py-2 px-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"><FaEdit className="mr-1.5"/> Editar</button>
-                                        <button onClick={() => handleExcluirPrato(prato.id)} className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"><FaTrash className="mr-1.5" /> Excluir</button>
-                                    </div>
-                                </div>
+                      {pratos.map((prato) => (
+                        <div
+                          key={prato.id}
+                          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 border border-gray-100 dark:border-gray-700"
+                        >
+                          {prato.imagem && (
+                            <img
+                              src={prato.imagem}
+                              alt={prato.nome}
+                              className="w-full h-48 object-cover"
+                            />
+                          )}
+                          <div className="p-4">
+                            <h3
+                              className="text-lg font-semibold text-gray-800 dark:text-white mb-1 truncate"
+                              title={prato.nome}
+                            >
+                              {prato.nome}
+                            </h3>
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+                              R$ {prato.preco.toFixed(2).replace(".", ",")}
+                            </p>
+                            <p
+                              className={`text-sm font-medium ${
+                                prato.disponivel
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                              } mb-3`}
+                            >
+                              {prato.disponivel ? "Disponível" : "Indisponível"}
+                            </p>
+                            <div className="flex justify-between space-x-2">
+                              <button
+                                onClick={() => handleEditarPrato(prato.id)}
+                                className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"
+                              >
+                                <FaEdit className="mr-1.5" /> Editar
+                              </button>
+                              <button
+                                onClick={() => handleExcluirPrato(prato.id)}
+                                className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-sm text-xs font-medium flex items-center justify-center"
+                              >
+                                <FaTrash className="mr-1.5" /> Excluir
+                              </button>
                             </div>
-                        ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -1088,31 +1305,50 @@ const FornecedorDashboard = () => {
               {activeTab === "avaliacoes" && (
                 <div id="avaliacoes-content">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 sm:mb-0">Avaliações dos Clientes</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 sm:mb-0">
+                      Avaliações dos Clientes
+                    </h3>
                   </div>
                   {/* Placeholder para avaliações */}
-                  {pratosComAvaliacoes.length === 0 && <p>Nenhuma avaliação para mostrar.</p>}
+                  {pratosComAvaliacoes.length === 0 && (
+                    <p>Nenhuma avaliação para mostrar.</p>
+                  )}
                   {pratosComAvaliacoes.map((prato) => (
-                <div key={prato.id} className="mb-6">
-                  <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">{prato.nome}</h4>
-                  {prato.avaliacoes.map((avaliacao) => (
-                    <div key={avaliacao.id} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-3 border dark:border-gray-600">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">{avaliacao.cliente.nome}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{formatarData(avaliacao.createdAt)}</div>
-                      </div>
-                      <div className="mb-2">{renderEstrelas(avaliacao.nota)}</div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{avaliacao.comentario}</p>
+                    <div key={prato.id} className="mb-6">
+                      <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-2">
+                        {prato.nome}
+                      </h4>
+                      {prato.avaliacoes.map((avaliacao) => (
+                        <div
+                          key={avaliacao.id}
+                          className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow mb-3 border dark:border-gray-600"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+                              {avaliacao.cliente.nome}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatarData(avaliacao.createdAt)}
+                            </div>
+                          </div>
+                          <div className="mb-2">
+                            {renderEstrelas(avaliacao.nota)}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {avaliacao.comentario}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   ))}
-                </div>
-              ))}
                 </div>
               )}
 
               {activeTab === "pedidos" && (
                 <RenderPedidosKanban
-                  pedidosAgrupados={agruparPedidosPorStatus(pedidosFiltradosParaKanban)}
+                  pedidosAgrupados={agruparPedidosPorStatus(
+                    pedidosFiltradosParaKanban
+                  )}
                   loading={loadingPedidos}
                   error={errorPedidos}
                   onMudarStatus={handleChangeStatusPedido}
