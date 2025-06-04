@@ -171,7 +171,7 @@ export class PratoController {
 
   async listarTodosPratos(req: Request, res: Response) {
     try {
-      const { categoria } = req.query;
+      const { categoria, fornecedorId } = req.query;
 
       // Filtro por categoria (opcional)
       const filtro: any = {
@@ -184,6 +184,11 @@ export class PratoController {
 
       if (categoria) {
         filtro.categoria = String(categoria);
+      }
+
+      // Filtro por fornecedor (opcional)
+      if (fornecedorId) {
+        filtro.fornecedorId = Number(fornecedorId);
       }
 
       const pratos = await prisma.prato.findMany({
