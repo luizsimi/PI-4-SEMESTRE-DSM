@@ -7,7 +7,6 @@ import {
   FaFilter,
   FaArrowLeft,
   FaMapMarkerAlt,
-  FaWhatsapp,
   FaUtensils,
 } from "react-icons/fa";
 // import Navbar from "../components/Navbar";
@@ -422,20 +421,6 @@ const Fornecedores = () => {
                       >
                         Ver produtos
                       </Link>
-                      {fornecedor.whatsapp && (
-                        <a
-                          href={`https://wa.me/${fornecedor.whatsapp.replace(
-                            /\D/g,
-                            ""
-                          )}?text=Olá, vim pelo LeveFit e gostaria de saber sobre seus produtos.`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium text-xs py-2 rounded-lg text-center transition-colors duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
-                        >
-                          <FaWhatsapp className="mr-1" />
-                          Contato
-                        </a>
-                      )}
                     </div>
                   </div>
                 </div>
