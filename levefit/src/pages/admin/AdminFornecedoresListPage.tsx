@@ -8,7 +8,6 @@ import {
   FaTimesCircle,
   FaSpinner,
   FaExclamationTriangle,
-  FaImage,
   FaIdBadge,
   FaUsers,
   FaEye,
@@ -18,8 +17,9 @@ import {
   FaTag,
   FaMoneyBillWave,
   FaCheck,
-  FaTimes,
-  FaEdit,
+  FaToggleOn,
+  FaToggleOff,
+  FaExclamationCircle,
 } from "react-icons/fa";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
@@ -87,6 +87,17 @@ const AdminFornecedoresListPage: React.FC = () => {
   const [selectedFornecedor, setSelectedFornecedor] =
     useState<FornecedorAdmin | null>(null);
   const [isDetailView, setIsDetailView] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<number | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    fornecedorId: number;
+    action: "ativar" | "desativar";
+    type: "conta" | "assinatura";
+  } | null>(null);
 
   const [vendasChartData, setVendasChartData] = useState<ChartData | null>(
     null
@@ -178,6 +189,102 @@ const AdminFornecedoresListPage: React.FC = () => {
     setIsDetailView(false);
   };
 
+  const handleToggleStatus = (fornecedorId: number, currentStatus: boolean) => {
+    setConfirmAction({
+      fornecedorId,
+      action: currentStatus ? "desativar" : "ativar",
+      type: "conta",
+    });
+    setShowConfirmModal(true);
+  };
+
+  const handleToggleAssinatura = (
+    fornecedorId: number,
+    currentStatus: boolean
+  ) => {
+    setConfirmAction({
+      fornecedorId,
+      action: currentStatus ? "desativar" : "ativar",
+      type: "assinatura",
+    });
+    setShowConfirmModal(true);
+  };
+
+  const executeStatusChange = async () => {
+    if (!confirmAction) return;
+
+    const { fornecedorId, action, type } = confirmAction;
+    setLoadingAction(fornecedorId);
+    setStatusMessage(null);
+    setShowConfirmModal(false);
+
+    try {
+      const endpoint =
+        type === "conta"
+          ? `/admin/fornecedores/${fornecedorId}/${
+              action === "ativar" ? "ativar" : "desativar"
+            }`
+          : `/admin/fornecedores/${fornecedorId}/${
+              action === "ativar" ? "ativar-assinatura" : "desativar-assinatura"
+            }`;
+
+      await axios.put(`http://localhost:3333${endpoint}`);
+
+      // Atualizar o estado localmente
+      setFornecedores((prevFornecedores) =>
+        prevFornecedores.map((f) => {
+          if (f.id === fornecedorId) {
+            if (type === "conta") {
+              return { ...f, status: action === "ativar" };
+            } else {
+              return { ...f, assinaturaAtiva: action === "ativar" };
+            }
+          }
+          return f;
+        })
+      );
+
+      setStatusMessage({
+        type: "success",
+        text: `Fornecedor ${
+          action === "ativar" ? "ativado" : "desativado"
+        } com sucesso!`,
+      });
+
+      // Se estiver na view de detalhes e o fornecedor atual for o afetado
+      if (
+        isDetailView &&
+        selectedFornecedor &&
+        selectedFornecedor.id === fornecedorId
+      ) {
+        if (type === "conta") {
+          setSelectedFornecedor({
+            ...selectedFornecedor,
+            status: action === "ativar",
+          });
+        } else {
+          setSelectedFornecedor({
+            ...selectedFornecedor,
+            assinaturaAtiva: action === "ativar",
+          });
+        }
+      }
+    } catch (err) {
+      console.error(`Erro ao ${action} fornecedor:`, err);
+      setStatusMessage({
+        type: "error",
+        text: `Falha ao ${action} fornecedor. Tente novamente.`,
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const cancelAction = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
   const renderDetailView = () => {
     if (!selectedFornecedor) return null;
 
@@ -202,13 +309,63 @@ const AdminFornecedoresListPage: React.FC = () => {
               <FaStore />
             </div>
           )}
-          <div>
+          <div className="flex-grow">
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
               {selectedFornecedor.nome}
             </h2>
             <p className="text-gray-500 dark:text-gray-400">
               ID: {selectedFornecedor.id}
             </p>
+          </div>
+          <div className="flex space-x-2 mt-4 md:mt-0">
+            <button
+              onClick={() =>
+                handleToggleStatus(
+                  selectedFornecedor.id,
+                  selectedFornecedor.status
+                )
+              }
+              disabled={loadingAction === selectedFornecedor.id}
+              className={`px-3 py-2 rounded-lg text-white font-medium text-sm flex items-center ${
+                selectedFornecedor.status
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-green-500 hover:bg-green-600"
+              }`}
+            >
+              {loadingAction === selectedFornecedor.id ? (
+                <FaSpinner className="animate-spin mr-2" />
+              ) : selectedFornecedor.status ? (
+                <FaToggleOff className="mr-2" />
+              ) : (
+                <FaToggleOn className="mr-2" />
+              )}
+              {selectedFornecedor.status ? "Desativar Conta" : "Ativar Conta"}
+            </button>
+            <button
+              onClick={() =>
+                handleToggleAssinatura(
+                  selectedFornecedor.id,
+                  selectedFornecedor.assinaturaAtiva
+                )
+              }
+              disabled={loadingAction === selectedFornecedor.id}
+              className={`px-3 py-2 rounded-lg text-white font-medium text-sm flex items-center ${
+                selectedFornecedor.assinaturaAtiva
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              {loadingAction === selectedFornecedor.id ? (
+                <FaSpinner className="animate-spin mr-2" />
+              ) : selectedFornecedor.assinaturaAtiva ? (
+                <FaToggleOff className="mr-2" />
+              ) : (
+                <FaToggleOn className="mr-2" />
+              )}
+              {selectedFornecedor.assinaturaAtiva
+                ? "Desativar Assinatura"
+                : "Ativar Assinatura"}
+            </button>
           </div>
         </div>
 
@@ -379,6 +536,23 @@ const AdminFornecedoresListPage: React.FC = () => {
 
   return (
     <div className="animate-fadeIn">
+      {statusMessage && (
+        <div
+          className={`mb-4 p-4 rounded-lg ${
+            statusMessage.type === "success"
+              ? "bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300"
+              : "bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-300"
+          } border-l-4 flex items-center shadow-md`}
+        >
+          {statusMessage.type === "success" ? (
+            <FaCheckCircle className="mr-2 text-green-500 dark:text-green-400" />
+          ) : (
+            <FaExclamationCircle className="mr-2 text-red-500 dark:text-red-400" />
+          )}
+          {statusMessage.text}
+        </div>
+      )}
+
       {!isDetailView ? (
         <>
           <h2 className="text-3xl font-semibold text-gray-800 dark:text-white mb-6">
@@ -512,14 +686,70 @@ const AdminFornecedoresListPage: React.FC = () => {
                             )}
                           </p>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => handleViewDetails(fornecedor)}
-                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150"
-                            title="Ver Detalhes"
-                          >
-                            <FaEye size={18} />
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleViewDetails(fornecedor)}
+                              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150"
+                              title="Ver Detalhes"
+                            >
+                              <FaEye size={18} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleToggleStatus(
+                                  fornecedor.id,
+                                  fornecedor.status
+                                )
+                              }
+                              disabled={loadingAction === fornecedor.id}
+                              className={`p-2 rounded-full transition-colors duration-150 ${
+                                fornecedor.status
+                                  ? "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                  : "text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
+                              }`}
+                              title={
+                                fornecedor.status
+                                  ? "Desativar Conta"
+                                  : "Ativar Conta"
+                              }
+                            >
+                              {loadingAction === fornecedor.id ? (
+                                <FaSpinner className="animate-spin" size={18} />
+                              ) : fornecedor.status ? (
+                                <FaToggleOff size={18} />
+                              ) : (
+                                <FaToggleOn size={18} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleToggleAssinatura(
+                                  fornecedor.id,
+                                  fornecedor.assinaturaAtiva
+                                )
+                              }
+                              disabled={loadingAction === fornecedor.id}
+                              className={`p-2 rounded-full transition-colors duration-150 ${
+                                fornecedor.assinaturaAtiva
+                                  ? "text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+                                  : "text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                              }`}
+                              title={
+                                fornecedor.assinaturaAtiva
+                                  ? "Desativar Assinatura"
+                                  : "Ativar Assinatura"
+                              }
+                            >
+                              {loadingAction === fornecedor.id ? (
+                                <FaSpinner className="animate-spin" size={18} />
+                              ) : fornecedor.assinaturaAtiva ? (
+                                <FaIdBadge size={18} />
+                              ) : (
+                                <FaCheck size={18} />
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -531,6 +761,49 @@ const AdminFornecedoresListPage: React.FC = () => {
         </>
       ) : (
         renderDetailView()
+      )}
+
+      {/* Modal de confirmação */}
+      {showConfirmModal && confirmAction && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 dark:bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 animate-scaleIn">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+              Confirmar ação
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Tem certeza que deseja{" "}
+              {confirmAction.action === "ativar" ? "ativar" : "desativar"}
+              {confirmAction.type === "conta"
+                ? " a conta"
+                : " a assinatura"}{" "}
+              deste fornecedor?
+              {confirmAction.type === "conta" &&
+                confirmAction.action === "desativar" && (
+                  <span className="block mt-2 text-red-600 dark:text-red-400 font-medium">
+                    Esta ação impedirá o acesso do fornecedor à plataforma.
+                  </span>
+                )}
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelAction}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeStatusChange}
+                className={`px-4 py-2 text-white rounded-lg ${
+                  confirmAction.action === "desativar"
+                    ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                    : "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
+                }`}
+              >
+                {confirmAction.action === "ativar" ? "Ativar" : "Desativar"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

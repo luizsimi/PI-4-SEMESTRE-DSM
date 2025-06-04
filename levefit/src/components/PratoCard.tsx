@@ -255,7 +255,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group h-[400px] flex flex-col">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 dark:shadow-gray-900/30 border border-gray-100 dark:border-gray-700 group h-[420px] flex flex-col">
       <div className="relative h-40 bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
         {imagem ? (
           <img
@@ -280,42 +280,44 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
         </div>
       </div>
 
-      <div className="p-4 flex-grow flex flex-col">
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1 line-clamp-1">
-          {nome}
-        </h3>
+      <div className="p-3 flex-grow flex flex-col justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white tracking-tight leading-tight mb-1 line-clamp-1">
+            {nome}
+          </h3>
 
-        <div className="mb-2">{renderEstrelas()}</div>
+          <div className="mb-1">{renderEstrelas()}</div>
 
-        <p className="text-gray-600 dark:text-gray-300 mb-3 text-xs line-clamp-2">
-          {descricaoResumida}
-        </p>
+          <p className="text-gray-600 dark:text-gray-300 mb-2 text-xs line-clamp-2">
+            {descricaoResumida}
+          </p>
 
-        {renderInformacoesNutricionais()}
+          {renderInformacoesNutricionais()}
 
-        <div className="flex justify-between items-center mb-3 mt-auto">
-          {emPromocao && precoOriginal ? (
-            <div className="flex flex-col">
-              <span className="line-through text-gray-400 dark:text-gray-500 text-xs">
-                R$ {precoOriginal.toFixed(2).replace(".", ",")}
-              </span>
+          <div className="flex justify-between items-center mb-2">
+            {emPromocao && precoOriginal ? (
+              <div className="flex flex-col">
+                <span className="line-through text-gray-400 dark:text-gray-500 text-xs">
+                  R$ {precoOriginal.toFixed(2).replace(".", ",")}
+                </span>
+                <span className="font-bold text-green-600 dark:text-green-400 text-base">
+                  R$ {preco.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+            ) : (
               <span className="font-bold text-green-600 dark:text-green-400 text-base">
                 R$ {preco.toFixed(2).replace(".", ",")}
               </span>
-            </div>
-          ) : (
-            <span className="font-bold text-green-600 dark:text-green-400 text-base">
-              R$ {preco.toFixed(2).replace(".", ",")}
-            </span>
-          )}
+            )}
 
-          <div className="text-right text-[10px] bg-green-500 text-white px-2 py-1 rounded-full font-medium">
-            {categoria}
+            <div className="text-right text-[10px] bg-green-500 text-white px-2 py-1 rounded-full font-medium">
+              {categoria}
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
-          <div className="flex items-center mb-2">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-2">
+          <div className="flex items-center mb-1">
             <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full overflow-hidden mr-2 flex-shrink-0">
               {fornecedor.logo ? (
                 <img
@@ -335,7 +337,7 @@ const PratoCard: React.FC<PratoCardComponentProps> = (props) => {
             </span>
           </div>
 
-          <div className="flex mt-3 space-x-2">
+          <div className="flex mt-2 space-x-2">
             <Link
               to={`/pratos/${id}`}
               className="flex-1 bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 border border-green-500 dark:border-green-500 font-medium text-xs py-2 rounded-lg text-center hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300 flex items-center justify-center"

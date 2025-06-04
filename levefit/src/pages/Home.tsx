@@ -24,9 +24,11 @@ import {
   FaChevronRight,
   FaPause,
   FaPlay,
+  FaCartPlus,
 } from "react-icons/fa";
 import { HiArrowRight } from "react-icons/hi";
 import { useAuth } from "../contexts/AuthContext";
+import { openWhatsAppLink } from "../utils/whatsappMessage";
 
 interface Prato {
   id: number;
@@ -71,10 +73,10 @@ const Home = () => {
   // Estado para paginação
   const [currentPage, setCurrentPage] = useState(1);
   const pratosPerPage = 8; // Número de pratos por página
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Refs e estado para efeito de parallax
   const heroImageRef = useRef<HTMLDivElement>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   // Gerenciar posição do mouse para efeito de parallax
   useEffect(() => {
@@ -224,40 +226,40 @@ const Home = () => {
   };
 
   const handleSelecionarTipoPedidoHome = async (
-    tipoPedido: "ENTREGA" | "RETIRADA"
+    tipo: "ENTREGA" | "RETIRADA"
   ) => {
-    if (!selectedPratoParaPedido) return;
-
-    // 1. Montar dados para criar o pedido no sistema
-    const dadosNovoPedido = {
-      pratoId: selectedPratoParaPedido.id,
-      fornecedorId: selectedPratoParaPedido.fornecedor.id,
-      nomeCliente: userData?.user?.nome || "Cliente via App",
-      contatoCliente:
-        userData?.user?.telefone || userData?.user?.whatsapp || "",
-      tipoEntrega: tipoPedido,
-      enderecoEntrega:
-        tipoPedido === "ENTREGA"
-          ? userData?.user?.endereco || "A ser informado"
-          : undefined,
-      quantidade: 1,
-    };
+    if (!selectedPratoParaPedido) {
+      console.error("Nenhum prato selecionado");
+      return;
+    }
 
     try {
-      // 2. Tentar criar o pedido no sistema
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:3333/pedidos", dadosNovoPedido, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const { data: dadosNovoPedido } = await axios.post(
+        "http://localhost:3333/pedidos",
+        {
+          fornecedorId: selectedPratoParaPedido.fornecedor.id,
+          nomeCliente: userData?.user?.nome || "Cliente",
+          contatoCliente: userData?.user?.telefone || "",
+          tipoEntrega: tipo,
+          enderecoEntrega:
+            tipo === "ENTREGA"
+              ? userData?.user?.endereco || "A ser informado"
+              : null,
+          pratos: [{ pratoId: selectedPratoParaPedido.id, quantidade: 1 }],
+        },
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
       console.log("Pedido (da Home) registrado no sistema:", dadosNovoPedido);
     } catch (error) {
       console.error("Falha ao registrar pedido (da Home) no sistema:", error);
-      // Considerar como lidar com este erro - por enquanto, continua para o WhatsApp
     }
 
-    // 3. Montar e abrir link do WhatsApp (lógica existente)
+    // Preparar e enviar mensagem pelo WhatsApp
     const numero = selectedPratoParaPedido.fornecedor.whatsapp.replace(
-      /D/g,
+      /\D/g,
       ""
     );
     const mensagemBase = `Olá, ${selectedPratoParaPedido.fornecedor.nome}! Gostaria de pedir o prato "${selectedPratoParaPedido.nome}" (1 unidade).`;
@@ -266,10 +268,10 @@ const Home = () => {
       .toFixed(2)
       .replace(".", ",");
 
-    if (tipoPedido === "ENTREGA") {
-      const enderecoClienteApi = dadosNovoPedido.enderecoEntrega;
-      if (enderecoClienteApi && enderecoClienteApi !== "A ser informado") {
-        mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nEndereço: ${enderecoClienteApi}\nPor favor, confirme o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
+    if (tipo === "ENTREGA") {
+      const enderecoCliente = userData?.user?.endereco || "";
+      if (enderecoCliente && enderecoCliente !== "A ser informado") {
+        mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nEndereço: ${enderecoCliente}\nPor favor, confirme o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
       } else {
         mensagemCompleta = `${mensagemBase}\nTipo: Entrega\nPor favor, informe seu ENDEREÇO COMPLETO para entrega.\nConfirme também o valor total (R$ ${precoFormatado}) e o tempo estimado.`;
       }
@@ -278,10 +280,9 @@ const Home = () => {
       mensagemCompleta = `${mensagemBase}\nTipo: Retirada no local\nPor favor, confirme o valor total (R$ ${precoFormatado}) e quando posso retirar.`;
     }
 
-    const link = `https://wa.me/${numero}?text=${encodeURIComponent(
-      mensagemCompleta
-    )}`;
-    window.open(link, "_blank");
+    // Usar nossa função utilitária para abrir o WhatsApp
+    openWhatsAppLink(numero, encodeURIComponent(mensagemCompleta));
+
     setShowTipoPedidoModal(false);
     setSelectedPratoParaPedido(null);
   };
@@ -623,7 +624,7 @@ const Home = () => {
                               .map((prato) => (
                                 <div
                                   key={prato.id}
-                                  className="min-w-[300px] max-w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-red-200 dark:border-red-900/20 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 relative group"
+                                  className="min-w-[300px] max-w-[300px] bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-red-200 dark:border-red-900/20 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 relative group h-[420px] flex flex-col"
                                 >
                                   {/* Tag de desconto em formato de balão (maior) */}
                                   <div className="absolute -top-1 -right-1 z-20">
@@ -668,7 +669,7 @@ const Home = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                   </div>
 
-                                  <div className="p-4">
+                                  <div className="p-4 flex-grow flex flex-col">
                                     <h3 className="font-bold text-base mb-2 text-gray-800 dark:text-white line-clamp-1">
                                       {prato.nome}
                                     </h3>
@@ -699,12 +700,23 @@ const Home = () => {
                                       </div>
                                     </div>
 
-                                    <Link
-                                      to={`/pratos/${prato.id}`}
-                                      className="mt-3 w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-md"
-                                    >
-                                      Ver detalhes
-                                    </Link>
+                                    <div className="mt-auto pt-3">
+                                      <Link
+                                        to={`/pratos/${prato.id}`}
+                                        className="mt-3 w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-md"
+                                      >
+                                        Ver detalhes
+                                      </Link>
+                                      <button
+                                        onClick={() =>
+                                          handleAbrirTipoPedidoModal(prato)
+                                        }
+                                        className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center group-hover:shadow-md"
+                                      >
+                                        Fazer Pedido{" "}
+                                        <FaCartPlus className="ml-1" />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               ))}

@@ -118,6 +118,24 @@ export class AdminController {
         where: { assinaturaAtiva: true },
       });
 
+      // Total de clientes cadastrados
+      const totalClientes = await prisma.cliente.count();
+
+      // Novos clientes no período
+      const novosClientesPeriodo = await prisma.cliente.count({
+        where: {
+          createdAt: { gte: dataInicio },
+        },
+      });
+
+      // Cálculo de variação de novos clientes (%)
+      let variacaoClientes = 0;
+      if (novosClientesPeriodo > 0 && totalClientes > 0) {
+        variacaoClientes = Math.round(
+          (novosClientesPeriodo / totalClientes) * 100
+        );
+      }
+
       // Conta assinaturas ativas do período anterior para cálculo de variação
       const dataInicioAnterior = new Date(dataInicio);
       if (periodo === "mes") {
@@ -229,6 +247,9 @@ export class AdminController {
         totalPedidosHoje,
         totalPratosAtivos,
         totalFornecedores,
+        totalClientes,
+        novosClientesPeriodo,
+        variacaoClientes,
         variacaoAssinaturas,
         novosFornecedoresSemana,
         pedidosRecentes: pedidosFormatados,
@@ -236,6 +257,217 @@ export class AdminController {
       });
     } catch (error) {
       console.error("Erro ao buscar estatísticas do dashboard:", error);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async ativarFornecedor(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ error: "ID do fornecedor inválido" });
+      }
+
+      const fornecedor = await prisma.fornecedor.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!fornecedor) {
+        return res.status(404).json({ error: "Fornecedor não encontrado" });
+      }
+
+      const fornecedorAtualizado = await prisma.fornecedor.update({
+        where: { id: Number(id) },
+        data: { status: true },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          status: true,
+          assinaturaAtiva: true,
+        },
+      });
+
+      return res.json({
+        message: "Fornecedor ativado com sucesso",
+        fornecedor: fornecedorAtualizado,
+      });
+    } catch (error) {
+      console.error("Erro ao ativar fornecedor:", error);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async desativarFornecedor(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ error: "ID do fornecedor inválido" });
+      }
+
+      const fornecedor = await prisma.fornecedor.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!fornecedor) {
+        return res.status(404).json({ error: "Fornecedor não encontrado" });
+      }
+
+      const fornecedorAtualizado = await prisma.fornecedor.update({
+        where: { id: Number(id) },
+        data: { status: false },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          status: true,
+          assinaturaAtiva: true,
+        },
+      });
+
+      return res.json({
+        message: "Fornecedor desativado com sucesso",
+        fornecedor: fornecedorAtualizado,
+      });
+    } catch (error) {
+      console.error("Erro ao desativar fornecedor:", error);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async ativarAssinaturaFornecedor(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ error: "ID do fornecedor inválido" });
+      }
+
+      const fornecedor = await prisma.fornecedor.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!fornecedor) {
+        return res.status(404).json({ error: "Fornecedor não encontrado" });
+      }
+
+      const fornecedorAtualizado = await prisma.fornecedor.update({
+        where: { id: Number(id) },
+        data: { assinaturaAtiva: true },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          status: true,
+          assinaturaAtiva: true,
+        },
+      });
+
+      return res.json({
+        message: "Assinatura do fornecedor ativada com sucesso",
+        fornecedor: fornecedorAtualizado,
+      });
+    } catch (error) {
+      console.error("Erro ao ativar assinatura do fornecedor:", error);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async desativarAssinaturaFornecedor(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ error: "ID do fornecedor inválido" });
+      }
+
+      const fornecedor = await prisma.fornecedor.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!fornecedor) {
+        return res.status(404).json({ error: "Fornecedor não encontrado" });
+      }
+
+      const fornecedorAtualizado = await prisma.fornecedor.update({
+        where: { id: Number(id) },
+        data: { assinaturaAtiva: false },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          status: true,
+          assinaturaAtiva: true,
+        },
+      });
+
+      return res.json({
+        message: "Assinatura do fornecedor desativada com sucesso",
+        fornecedor: fornecedorAtualizado,
+      });
+    } catch (error) {
+      console.error("Erro ao desativar assinatura do fornecedor:", error);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  }
+
+  async getAllClientes(req: Request, res: Response) {
+    try {
+      // TODO: Adicionar autenticação de admin aqui em um cenário real
+
+      const clientes = await prisma.cliente.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          telefone: true,
+          createdAt: true,
+          updatedAt: true,
+          // Não selecionamos a senha por segurança
+          pedidos: {
+            select: {
+              id: true,
+              valor_total_pedido: true,
+              status: true,
+              time_do_pedido: true,
+            },
+            orderBy: {
+              time_do_pedido: "desc",
+            },
+            take: 3, // Apenas os 3 pedidos mais recentes
+          },
+        },
+      });
+
+      // Calcular estatísticas para cada cliente
+      const clientesComEstatisticas = clientes.map((cliente) => {
+        const totalGasto = cliente.pedidos.reduce(
+          (sum, pedido) => sum + (pedido.valor_total_pedido || 0),
+          0
+        );
+        const pedidosFinalizados = cliente.pedidos.filter(
+          (pedido) =>
+            pedido.status === "entregue" || pedido.status === "finalizado"
+        ).length;
+
+        return {
+          ...cliente,
+          estatisticas: {
+            totalGasto,
+            totalPedidos: cliente.pedidos.length,
+            pedidosFinalizados,
+          },
+        };
+      });
+
+      return res.json(clientesComEstatisticas);
+    } catch (error) {
+      console.error("Erro ao buscar todos os clientes:", error);
       return res.status(500).json({ error: "Erro interno do servidor" });
     }
   }

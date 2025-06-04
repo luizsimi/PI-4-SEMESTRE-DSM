@@ -1,4 +1,5 @@
 import { FaTimes, FaWhatsapp, FaInfoCircle } from "react-icons/fa";
+import { openWhatsAppLink } from "../utils/whatsappMessage";
 
 interface Fornecedor {
   id: number;
@@ -39,10 +40,16 @@ const FornecedorModal = ({ fornecedor, onClose }: FornecedorModalProps) => {
       console.log("Usando número de fallback");
     }
 
+    return numero;
+  };
+
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const numero = criarLinkWhatsApp();
     const mensagem = encodeURIComponent(
       `Olá! Estou interessado nos produtos de ${fornecedor.nome}. Gostaria de mais informações.`
     );
-    return `https://wa.me/${numero}?text=${mensagem}`;
+    openWhatsAppLink(numero, mensagem);
   };
 
   return (
@@ -141,9 +148,8 @@ const FornecedorModal = ({ fornecedor, onClose }: FornecedorModalProps) => {
           {/* Botões de ação */}
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <a
-              href={criarLinkWhatsApp()}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#"
+              onClick={handleWhatsAppClick}
               className="flex flex-grow items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-lg transition-colors duration-300 shadow-md font-medium"
             >
               <FaWhatsapp className="mr-2 text-lg" /> Contatar via WhatsApp

@@ -4,6 +4,12 @@ import axios from "axios";
 // import Navbar from "../components/Navbar"; // Comentado
 import { FaStar, FaRegStar, FaArrowLeft } from "react-icons/fa";
 
+// URLs de fallback para imagens
+const DEFAULT_FORNECEDOR_IMAGE =
+  "https://via.placeholder.com/128/2F855A/FFFFFF?text=F";
+const DEFAULT_PRATO_IMAGE =
+  "https://via.placeholder.com/300x200/E2E8F0/1A202C?text=Sem+Imagem";
+
 interface Fornecedor {
   id: number;
   nome: string;
@@ -38,18 +44,16 @@ const DetalheFornecedor = () => {
   const handleImageError = (
     e: React.SyntheticEvent<HTMLImageElement, Event>
   ) => {
-    console.log("Erro ao carregar imagem do fornecedor, usando fallback");
     e.currentTarget.onerror = null; // Evita loop infinito
-    e.currentTarget.src = "/default-avatar.png"; // Usa uma imagem local de fallback
+    e.currentTarget.src = DEFAULT_FORNECEDOR_IMAGE;
   };
 
   // Handler para erros de imagem do prato
   const handlePratoImageError = (
     e: React.SyntheticEvent<HTMLImageElement, Event>
   ) => {
-    console.log("Erro ao carregar imagem do prato, usando fallback");
     e.currentTarget.onerror = null; // Evita loop infinito
-    e.currentTarget.src = "/default-dish.png"; // Usa uma imagem local de fallback
+    e.currentTarget.src = DEFAULT_PRATO_IMAGE;
   };
 
   useEffect(() => {
@@ -149,31 +153,31 @@ const DetalheFornecedor = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* <Navbar /> */}
       <main className="container mx-auto px-4 py-8">
         {/* Botão voltar */}
         <Link
-          to="/"
+          to="/fornecedores"
           className="inline-flex items-center text-green-600 hover:text-green-700 mb-6"
         >
-          <FaArrowLeft className="mr-2" /> Voltar para página inicial
+          <FaArrowLeft className="mr-2" /> Voltar para fornecedores
         </Link>
 
         {/* Header do fornecedor */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start">
-            <div className="w-32 h-32 mb-4 md:mb-0 md:mr-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <div className="w-32 h-32 flex-shrink-0">
               {fornecedor.logo ? (
                 <img
                   src={fornecedor.logo}
                   alt={fornecedor.nome}
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-full h-full rounded-full object-cover border-4 border-green-100 dark:border-green-800"
                   onError={handleImageError}
                 />
               ) : (
-                <div className="w-full h-full rounded-full bg-green-100 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-green-600">
+                <div className="w-full h-full rounded-full bg-green-100 dark:bg-green-800/30 flex items-center justify-center">
+                  <span className="text-4xl font-bold text-green-600 dark:text-green-400">
                     {fornecedor.nome.charAt(0)}
                   </span>
                 </div>
@@ -181,24 +185,26 @@ const DetalheFornecedor = () => {
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
                 {fornecedor.nome}
               </h1>
 
               {fornecedor.descricao && (
-                <p className="text-gray-600 mb-4">{fornecedor.descricao}</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {fornecedor.descricao}
+                </p>
               )}
 
               <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-6 justify-center md:justify-start">
                 {fornecedor.endereco && (
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     <span className="font-semibold">Endereço:</span>{" "}
                     {fornecedor.endereco}
                   </p>
                 )}
 
                 {fornecedor.whatsapp && (
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     <span className="font-semibold">WhatsApp:</span>{" "}
                     {formatWhatsApp(fornecedor.whatsapp)}
                   </p>
@@ -207,12 +213,12 @@ const DetalheFornecedor = () => {
             </div>
 
             {fornecedor.whatsapp && (
-              <div className="mt-6 md:mt-0">
+              <div className="mt-4 md:mt-0">
                 <a
                   href={getWhatsAppLink(fornecedor.whatsapp)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md"
+                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
                 >
                   Contatar via WhatsApp
                 </a>
@@ -223,10 +229,12 @@ const DetalheFornecedor = () => {
 
         {/* Pratos do fornecedor */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Cardápio</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+            Cardápio
+          </h2>
 
           {pratos.length === 0 ? (
-            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <div className="bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-700/50 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded">
               Este fornecedor ainda não tem pratos cadastrados.
             </div>
           ) : (
@@ -234,9 +242,9 @@ const DetalheFornecedor = () => {
               {pratos.map((prato) => (
                 <div
                   key={prato.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all"
                 >
-                  <div className="h-48 bg-gray-200 relative">
+                  <div className="h-48 bg-gray-200 dark:bg-gray-700 relative">
                     {prato.imagem ? (
                       <img
                         src={prato.imagem}
@@ -245,28 +253,28 @@ const DetalheFornecedor = () => {
                         onError={handlePratoImageError}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-green-100">
+                      <div className="w-full h-full flex items-center justify-center bg-green-100 dark:bg-green-900/20">
                         <span className="text-4xl">🍲</span>
                       </div>
                     )}
-                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
                       {prato.categoria}
                     </div>
                   </div>
 
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-gray-800">
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-white">
                         {prato.nome}
                       </h3>
-                      <span className="font-bold text-green-600">
+                      <span className="font-bold text-green-600 dark:text-green-400">
                         R$ {prato.preco.toFixed(2).replace(".", ",")}
                       </span>
                     </div>
 
                     <div className="flex items-center mb-2">
                       {renderEstrelas(prato.mediaAvaliacao)}
-                      <span className="text-sm text-gray-600 ml-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                         ({prato.totalAvaliacoes}{" "}
                         {prato.totalAvaliacoes === 1
                           ? "avaliação"
@@ -275,16 +283,16 @@ const DetalheFornecedor = () => {
                       </span>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                       {prato.descricao.length > 100
                         ? `${prato.descricao.substring(0, 100)}...`
                         : prato.descricao}
                     </p>
 
-                    <div className="flex justify-between">
+                    <div className="flex justify-between mt-4">
                       <Link
                         to={`/pratos/${prato.id}`}
-                        className="text-green-600 font-medium hover:text-green-700"
+                        className="text-green-600 dark:text-green-400 font-medium hover:text-green-700 dark:hover:text-green-300 transition-colors"
                       >
                         Ver detalhes
                       </Link>
@@ -296,7 +304,7 @@ const DetalheFornecedor = () => {
                         )}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md"
+                        className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-3 py-1 rounded-md transition-colors"
                       >
                         Pedir
                       </a>
