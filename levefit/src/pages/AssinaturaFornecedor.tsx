@@ -360,7 +360,9 @@ const AssinaturaFornecedor = () => {
             <FaArrowLeft />
           </button>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-            Gerenciamento de Assinatura
+            {assinaturaStatus
+              ? "Gerenciamento de Assinatura"
+              : "Assinar Plano LeveFit"}
           </h1>
         </div>
 
@@ -375,6 +377,26 @@ const AssinaturaFornecedor = () => {
           <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded-xl mb-6 flex items-center">
             <FaCheckCircle className="text-green-500 dark:text-green-400 mr-2 flex-shrink-0" />
             <span>{success}</span>
+          </div>
+        )}
+
+        {!assinaturaStatus && (
+          <div className="bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 p-5 rounded-xl mb-6 flex items-start">
+            <FaInfoCircle
+              className="text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0"
+              size={20}
+            />
+            <div>
+              <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-1 text-lg">
+                Bem-vindo(a) ao LeveFit!
+              </h3>
+              <p>
+                Para acessar o dashboard e começar a cadastrar seus produtos,
+                você precisa assinar um dos nossos planos abaixo. Após a
+                assinatura, você terá acesso completo a todas as funcionalidades
+                da plataforma.
+              </p>
+            </div>
           </div>
         )}
 

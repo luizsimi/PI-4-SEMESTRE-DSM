@@ -54,4 +54,60 @@ adminRouter.get(
   }
 );
 
+// Novas rotas para gerenciamento de fornecedores
+adminRouter.put(
+  "/fornecedores/:id/ativar",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await adminController.ativarFornecedor(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+adminRouter.put(
+  "/fornecedores/:id/desativar",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await adminController.desativarFornecedor(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+adminRouter.put(
+  "/fornecedores/:id/ativar-assinatura",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await adminController.ativarAssinaturaFornecedor(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+adminRouter.put(
+  "/fornecedores/:id/desativar-assinatura",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await adminController.desativarAssinaturaFornecedor(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+adminRouter.get(
+  "/clientes",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await adminController.getAllClientes(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default adminRouter;

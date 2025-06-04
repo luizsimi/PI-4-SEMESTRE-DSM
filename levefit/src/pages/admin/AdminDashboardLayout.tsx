@@ -3,11 +3,12 @@ import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { isAdminLoggedIn, logoutAdmin } from "../../services/adminAuth";
 import {
   FaTachometerAlt,
-  FaUsers,
   FaSignOutAlt,
   FaBars,
   FaTimes,
   FaShieldAlt,
+  FaUserFriends,
+  FaStore,
 } from "react-icons/fa";
 
 const AdminDashboardLayout: React.FC = () => {
@@ -28,7 +29,12 @@ const AdminDashboardLayout: React.FC = () => {
     {
       name: "Fornecedores",
       path: "/admin/fornecedores",
-      icon: <FaUsers />,
+      icon: <FaStore />,
+    },
+    {
+      name: "Clientes",
+      path: "/admin/clientes",
+      icon: <FaUserFriends />,
     },
   ];
 

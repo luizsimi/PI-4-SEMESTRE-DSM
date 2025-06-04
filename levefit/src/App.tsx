@@ -21,6 +21,7 @@ import FornecedorPerfil from "./pages/FornecedorPerfil";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminDashboardHomePage from "./pages/admin/AdminDashboardHomePage";
 import AdminFornecedoresListPage from "./pages/admin/AdminFornecedoresListPage";
+import AdminClientesListPage from "./pages/admin/AdminClientesListPage";
 import AdminDashboardLayout from "./pages/admin/AdminDashboardLayout";
 import MeusPedidosPage from "./pages/MeusPedidosPage";
 import Contato from "./pages/Contato";
@@ -102,7 +103,30 @@ const ProtectedRouteCliente: React.FC<{ children: React.ReactElement }> = ({
 const ProtectedRouteFornecedor: React.FC<{ children: React.ReactElement }> = ({
   children,
 }) => <ProtectedRoute allowedUserType="fornecedor">{children}</ProtectedRoute>;
-// FIM Rotas Protegidas
+
+// Componente de rota protegida para fornecedores com verificação de assinatura
+const ProtectedRouteFornecedorAssinatura: React.FC<{
+  children: React.ReactElement;
+}> = ({ children }) => {
+  const { isAuthenticated, userType, userData } = useAuth();
+
+  // Se não estiver autenticado ou não for fornecedor, o ProtectedRouteFornecedor já lida com isso
+  if (!isAuthenticated || userType !== "fornecedor") {
+    return <ProtectedRouteFornecedor>{children}</ProtectedRouteFornecedor>;
+  }
+
+  // Verifica se o fornecedor tem assinatura ativa
+  if (!userData?.assinaturaAtiva) {
+    console.log(
+      "[ProtectedRouteFornecedorAssinatura] Fornecedor sem assinatura ativa, redirecionando para assinatura"
+    );
+    // Redireciona para a página de assinatura
+    return <Navigate to="/dashboard/fornecedor/assinatura" replace />;
+  }
+
+  // Se tudo estiver ok, renderiza o componente filho
+  return children;
+};
 
 // Componente para agrupar rotas que usam o layout global (Navbar + Footer)
 const GlobalLayout: React.FC<{ children: React.ReactNode }> = ({
@@ -272,6 +296,7 @@ function AppContent() {
       <Route path="/admin" element={<AdminDashboardLayout />}>
         <Route path="dashboard" element={<AdminDashboardHomePage />} />
         <Route path="fornecedores" element={<AdminFornecedoresListPage />} />
+        <Route path="clientes" element={<AdminClientesListPage />} />
       </Route>
 
       {/* Rotas SEM Layout Global (Dashboard Fornecedor) / (Dashboard Admin) */}
@@ -279,9 +304,9 @@ function AppContent() {
         path="/dashboard/fornecedor"
         element={
           <NoGlobalLayout>
-            <ProtectedRouteFornecedor>
+            <ProtectedRouteFornecedorAssinatura>
               <FornecedorDashboard />
-            </ProtectedRouteFornecedor>
+            </ProtectedRouteFornecedorAssinatura>
           </NoGlobalLayout>
         }
       />
@@ -299,9 +324,9 @@ function AppContent() {
         path="/dashboard/fornecedor/novo-prato"
         element={
           <NoGlobalLayout>
-            <ProtectedRouteFornecedor>
+            <ProtectedRouteFornecedorAssinatura>
               <FormularioPrato />
-            </ProtectedRouteFornecedor>
+            </ProtectedRouteFornecedorAssinatura>
           </NoGlobalLayout>
         }
       />
@@ -309,9 +334,9 @@ function AppContent() {
         path="/dashboard/fornecedor/editar-prato/:id"
         element={
           <NoGlobalLayout>
-            <ProtectedRouteFornecedor>
+            <ProtectedRouteFornecedorAssinatura>
               <FormularioPrato />
-            </ProtectedRouteFornecedor>
+            </ProtectedRouteFornecedorAssinatura>
           </NoGlobalLayout>
         }
       />

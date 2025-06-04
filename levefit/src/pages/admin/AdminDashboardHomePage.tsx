@@ -25,6 +25,9 @@ interface AdminStats {
   totalPedidosHoje?: number;
   totalPratosAtivos?: number;
   totalFornecedores?: number;
+  totalClientes?: number;
+  novosClientesPeriodo?: number;
+  variacaoClientes?: number;
   variacaoAssinaturas?: number; // em percentual
   novosFornecedoresSemana?: number;
   pedidosRecentes?: Array<{
@@ -248,6 +251,65 @@ const AdminDashboardHomePage: React.FC = () => {
             <span className="text-gray-500 dark:text-gray-400 ml-2">
               esta semana
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Card para Clientes Cadastrados */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-b-4 border-indigo-500 dark:border-indigo-600 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400">
+            Clientes Cadastrados
+          </h3>
+          <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
+            <FaUsers className="text-xl text-indigo-600 dark:text-indigo-400" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+            <p className="text-3xl font-bold text-gray-800 dark:text-white">
+              {stats?.totalClientes || 0}
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+              Total de clientes
+            </p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+            <p className="text-3xl font-bold text-gray-800 dark:text-white">
+              {stats?.novosClientesPeriodo || 0}
+            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+              Novos neste{" "}
+              {periodoSelecionado === "hoje"
+                ? "dia"
+                : periodoSelecionado === "semana"
+                ? "semana"
+                : periodoSelecionado === "mes"
+                ? "mês"
+                : "ano"}
+            </p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+            <div className="flex items-center justify-center">
+              {stats?.variacaoClientes && stats.variacaoClientes > 0 ? (
+                <div className="flex items-center text-green-600 dark:text-green-400">
+                  <FaArrowUp className="mr-1 text-xl" />
+                  <span className="text-3xl font-bold">
+                    {stats.variacaoClientes}%
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center text-red-600 dark:text-red-400">
+                  <FaArrowDown className="mr-1 text-xl" />
+                  <span className="text-3xl font-bold">
+                    {Math.abs(stats?.variacaoClientes || 0)}%
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+              Variação em relação ao total
+            </p>
           </div>
         </div>
       </div>
